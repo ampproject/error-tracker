@@ -15,6 +15,7 @@ const afterEach = mocha.afterEach;
 const app = require('../app');
 process.env.NODE_ENV = 'test';
 const should = chai.should;
+const expect = chai.expect;
 const it = mocha.it;
 const assert = require('assert');
 const Math = require('../routes/Math');
@@ -37,9 +38,12 @@ describe('Test throttling', function() {
 
 
     };
+    let header = {
+        Referer:'Mozzila-agent'
+    };
     // start HTTP server
     before(function() {
-        // app.listen(3001);
+         //app.listen(3001);
     });
 
     after(function() {
@@ -51,11 +55,12 @@ describe('Test throttling', function() {
 
     it('Should ignore 99% of user errors', function(done) {
         Math.randomVal = 0.0000000000000000000000001;
-        chai.request(app).get('/r').query(query).end(function(err, res) {
-            expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
+        chai.request(app,he).get('/r').query(query).end(function(err, res) {
+            //expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
             expect(res).to.have.status(statusCodes.OK);
             console.log(res.body);
-            expect(res).to.have.body('THROTTLED\n');
+            expect(res.body).to.equal("{food: bar}");
+            expect(res).to.be.html;
         });
         done();
     });

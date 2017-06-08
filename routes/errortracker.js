@@ -92,6 +92,8 @@ function logWritingError(err, res,req) {
  */
 function getHandler(req, res, next) {
     params = url.parse(req.url, true).query;
+    res.status(statusCodes.OK).send({foo:"Barrrer", referer: req.get('content-type')});
+    return;
     let referer = req.get('Referer');
     let resource = {
         type: 'compute.googleapis.com',
@@ -166,9 +168,8 @@ function getHandler(req, res, next) {
     }
 
     if (sample <= throttleRate) {
-        //res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.writeHead(statusCodes.OK);
-        res.send('THROTTLED\n');
+        res.set('Content-Type', 'text/plain ; charset=utf-8');
+        res.status(statusCodes.OK).send('THROTTLED\n');
         return;
     }
     let exception = params.s.toString();
@@ -199,14 +200,14 @@ function getHandler(req, res, next) {
         return;
     }
     if (isFilteredMessageOrException(event)) {
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.writeHead(statusCodes.NO_CONTENT);
-        res.write('IGNORE\n');
+        res.set('Content-Type', 'text/plain; charset=utf-8');
+        res.status(statusCodes.NO_CONTENT).send('IGNORE\n');
+        return;
     }
 
     // Don't log testing traffic in production
-    if (event.Version === '$internalRuntimeVersion$') {
-        res.writeHead(statusCodes.NO_CONTENT);
+    if (event.version === '$internalRuntimeVersion$') {
+        res.sendStatus(statusCodes.NO_CONTENT);
         return;
     }
 
@@ -232,14 +233,14 @@ function getHandler(req, res, next) {
     let entry = log.entry(metaData, event);
     log.write(entry, logWritingError);
     if (params.debug === '1') {
-        res.setHeader('Content-Type', 'application/json; charset=ISO-8859-1');
-        res.writeHead(statusCodes.OK);
-        res.write(JSON.stringify({
+        res.set('Content-Type', 'application/json; charset=ISO-8859-1');
+        res.status(statusCodes.OK).send
+         (JSON.stringify({
             message: 'OK\n',
             event: event,
         }));
     } else {
-        res.writeHead(statusCodes.NO_CONTENT);
+        res.sendStatus(statusCodes.NO_CONTENT);
     }
 }
 
@@ -247,4 +248,4 @@ function getHandler(req, res, next) {
  * Receive GET requests
  **/
 router.get('/r', getHandler);
-module.exports = router;
+module.exports = getHandler;

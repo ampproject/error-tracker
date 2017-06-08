@@ -3,7 +3,9 @@
  * @type {*}
  */
 let express = require('express');
+let router = express.Router();
 let errorTracker = require('./routes/errortracker');
+
 
 
 if (process.env.NODE_ENV === 'production') {
@@ -14,8 +16,11 @@ if (process.env.NODE_ENV === 'production') {
 
 let app = express();
 
-
-app.use('/r', errorTracker);
+//app.use(router);
+app.get('/r', errorTracker);
+// app.get('/r',function (req,res) {
+//     res.json({foo: 'bar'});
+// });
 
 
 // error handler
@@ -29,8 +34,8 @@ app.use(function(err, req, res, next) {
   res.write('error');
 });
 
+//app.listen(3000);
+
 module.exports = app;
 
-app.listen(3001, function() {
-    console.log('Listening on port 3001');
-});
+
