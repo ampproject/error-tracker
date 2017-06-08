@@ -2,28 +2,28 @@
  * App.js file that handles routing and basic error handling
  * @type {*}
  */
-var express = require('express');
-var bodyParser = require('body-parser');
-var errorTracker = require('./routes/errortracker');
+let express = require('express');
+let bodyParser = require('body-parser');
+let errorTracker = require('./routes/errortracker');
 
 
-if(process.env.NODE_ENV === 'production'){
+if (process.env.NODE_ENV === 'production') {
   require('@google/cloud-trace').start();
   require('@google/cloud-debug').start();
 }
 
 
-var app = express();
+let app = express();
 
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 app.use('/r', errorTracker);
 
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
@@ -36,7 +36,11 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.write('error');
 });
 
 module.exports = app;
+
+app.listen(3001, function() {
+    console.log('Listening on port 3001');
+});
