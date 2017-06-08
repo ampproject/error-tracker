@@ -2,32 +2,29 @@
  * Created by rigwanzojunior on 6/5/17.
  *objects used
  *Objects are identical to the objects used in previous errortracker.go
- * type errorRequestMeta {
-	HTTPReferrer  string `json:"http_referrer,omitempty"`
-	HTTPUserAgent string `json:"http_user_agent,omitempty"`
+ * @typedef errorRequestMeta {
+	HTTPReferrer: string,
+	HTTPUserAgent: string
     }
- type errorRequest {
-	URL    string            `json:"url,omitempty"`
-	Method string            `json:"method,omitempty"`
-	Meta   *errorRequestMeta `json:"meta,omitempty"`
- }
- type errorEvent {
-	Application string `json:"application,omitempty"`
-	AppID       string `json:"app_id,omitempty"`
-	Environment string `json:"environment,omitempty"`
-	Version     string `json:"version,omitempty"`
-
-	Message   string `json:"message,omitempty"`
-	Exception string `json:"exception,omitempty"`
-
-	Request *errorRequest `json:"request,omitempty"`
-
-	Filename  string `json:"filename,omitempty"`
-	Line      int32  `json:"line,omitempty"`
-	Classname string `json:"classname,omitempty"`
-	Function  string `json:"function,omitempty"`
-	Severity  string `json:"severity,omitempty"`
- }
+  @typedef errorRequest {
+	URL:  string,
+	Method: string,
+	Meta: errorRequestMeta
+  }
+  @typedef errorEvent {
+	Application: string,
+	AppID; string,
+	Environment: string,
+	Version: string,
+	Message: string,
+	Exception: string,
+	Request: *errorRequest,
+	Filename: string,
+	Line: int32,
+	Classname: string,
+	Function: string,
+	Severity: string
+   }
  * Handle error requests from clients and log them.
  */
 // AppEngine project ID
@@ -40,7 +37,10 @@ const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const Math = require('./Math');
 const url = require('url');
-// String constants for identifying error level.
+/**
+ * errorLevels
+ * @enum {string}
+ */
 const errorLevels = {
     Default: 'Default',
     Debug: 'Debug',
@@ -63,7 +63,7 @@ let params = {};
 function isFilteredMessageOrException(errorEvent) {
     let filteredMessageOrException = ['stop_youtube',
         'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-    filteredMessageOrException.forEach(function filter(msg) {
+    filteredMessageOrException.some(function filter(msg) {
         if (errorEvent.Message.toString().includes(msg) || errorEvent.Exception.toString().includes(msg)) {
             return true;
         }
@@ -75,11 +75,12 @@ function isFilteredMessageOrException(errorEvent) {
  * Function that handles errors that come from an attempt to write to the logs
  * @param err error
  * @param res http response object
+ * @param req http request object
  */
-function logWritingError(err, res) {
+function logWritingError(err, res,req) {
     if (err) {
         res.status(statusCodes.INTERNAL_SERVER_ERROR).send({error: 'Cannot write to Google Cloud Logging'});
-        winston.error(projectId, 'Cannot write to Google Cloud Logging: '+params['v'], err);
+        winston.error(projectId, 'Cannot write to Google Cloud Logging: '+url.parse(req.url, true).query['v'], err);
     }
 }
 
@@ -91,7 +92,7 @@ function logWritingError(err, res) {
  */
 function getHandler(req, res, next) {
     params = url.parse(req.url, true).query;
-    let referer = req.get('Referer').toString();
+    let referer = req.get('Referer');
     let resource = {
         type: 'compute.googleapis.com',
         labels: {
@@ -99,10 +100,10 @@ function getHandler(req, res, next) {
             'compute.googleapis.com/resource_id': 'errors',
         },
     };
-    let line = params['l'];
+    let line = params.l;
     let errorType = 'default';
     let isUserError = false;
-    if (params['a'] === 1) {
+    if (params.a === 1) {
         errorType = 'assert';
         isUserError = true;
     }
@@ -113,7 +114,7 @@ function getHandler(req, res, next) {
     // if request comes from the cache and thus only from valid AMP docs we log as "Error"
     let isCdn = false;
     if (referer.startsWith('https://cdn.ampproject.org/') ||
-    referer.includes('cdn.ampproject.org/') ||
+    referer.includes('.cdn.ampproject.org/') ||
     referer.includes('.ampproject.net/')) {
         severity = 'ERROR';
         level = errorLevels.Error;
@@ -123,7 +124,7 @@ function getHandler(req, res, next) {
         errorType += '-origin';
     }
     let is3p = false;
-    let runTime = params['rt'];
+    let runTime = params.rt;
     if (runTime !== '') {
         errorType += '-' + runTime;
         if (runTime === 'inabox') {
@@ -142,11 +143,11 @@ function getHandler(req, res, next) {
         }
     }
     let isCanary = false;
-    if (params['ca'] === 1) {
+    if (params.ca === 1) {
         errorType += '-canary';
         isCanary = true;
     }
-    if (params['ex'] === 1) {
+    if (params.ex === 1) {
         errorType += '-expected';
     }
     let sample = Math.random();
@@ -164,41 +165,37 @@ function getHandler(req, res, next) {
         throttleRate = throttleRate/10;
     }
 
-    if (!sample <= throttleRate) {
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    if (sample <= throttleRate) {
+        //res.setHeader('Content-Type', 'text/plain; charset=utf-8');
         res.writeHead(statusCodes.OK);
-<<<<<<< Updated upstream
-        res.write("THROTTLED\n",res );
-=======
-        res.write('THROTTLED\n');
->>>>>>> Stashed changes
+        res.send('THROTTLED\n');
         return;
     }
-    let exception = params['s'].toString();
-    let reg = new RegExp(':\d+$');
-    if (exception.match(reg)) {
-        exception = exception.replace(new RegExp(':\d+$'), '');
+    let exception = params.s.toString();
+    let reg = /:\d+$/;
+    if (!exception.match(reg)) {
+        exception = exception.replace(reg, '');
     }
 
     // errorEvent object defined at the beginning.
     let event = {
-        Message: params['m'],
-        Exception: exception,
-        Version: errorType + '-' + params['v'],
-        Environment: 'prod',
-        Application: errorType,
-        AppID: projectId,
-        Filename: req.url.toString(),
-        Line: parseInt(line),
-        Classname: params['el'],
-        Severity: severity,
+        message: params.m,
+        exception: exception,
+        version: errorType + '-' + params.v,
+        environment: 'prod',
+        application: errorType,
+        appID: projectId,
+        filename: req.url.toString(),
+        line: parseInt(line),
+        classname: params.el,
+        severity: severity,
 
     };
 
     // If format does not end with :\d+ truncate up to the last newline.
     if (event.Message === '' && event.Exception === '') {
         res.status(statusCodes.BAD_REQUEST).send({error: 'One of \'message\' or \'exception\' must be present.'});
-        winston.error(projectId, 'Malformed request: ' + params['v'].toString(), event);
+        winston.error(projectId, 'Malformed request: ' + params.v.toString(), event);
         return;
     }
     if (isFilteredMessageOrException(event)) {
@@ -216,7 +213,7 @@ function getHandler(req, res, next) {
     event['Request'] = {
         URL: referer,
         Meta: {
-            HTTPReferrer: params['r'],
+            HTTPReferrer: params.r,
             HTTPUserAgent: req.headers['user-agent'],
         },
     };
@@ -234,7 +231,7 @@ function getHandler(req, res, next) {
     };
     let entry = log.entry(metaData, event);
     log.write(entry, logWritingError);
-    if (params['debug'] === '1') {
+    if (params.debug === '1') {
         res.setHeader('Content-Type', 'application/json; charset=ISO-8859-1');
         res.writeHead(statusCodes.OK);
         res.write(JSON.stringify({
