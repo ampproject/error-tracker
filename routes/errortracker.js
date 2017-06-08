@@ -1,20 +1,17 @@
 /**
  * Created by rigwanzojunior on 6/5/17.
  *objects used
- *
- * Supports errorRequest. Object with details of errorRequest
+ *Objects are identical to the objects used in previous errortracker.go
  * type errorRequestMeta {
 	HTTPReferrer  string `json:"http_referrer,omitempty"`
 	HTTPUserAgent string `json:"http_user_agent,omitempty"`
     }
- Supports payload object errorEvent. Details from error instance
  type errorRequest {
 	URL    string            `json:"url,omitempty"`
 	Method string            `json:"method,omitempty"`
 	Meta   *errorRequestMeta `json:"meta,omitempty"`
  }
- Object encompassing payload written into logs
- type errorEvent struct {
+ type errorEvent {
 	Application string `json:"application,omitempty"`
 	AppID       string `json:"app_id,omitempty"`
 	Environment string `json:"environment,omitempty"`
@@ -33,6 +30,7 @@
  }
  * Handle error requests from clients and log them.
  */
+//AppEngine project ID
 const projectId ='';
 const logName = 'javascript.errors';
 const express = require('express');
@@ -53,10 +51,14 @@ const errorLevels = {
     Alert:     "Alert",
     Emergency: "Emergency"
 };
+//params in http request
+var params = {};
 
-//logger that captures all top level app errors and outputs json diagnostic
-
-
+/**
+ * Filter exceptions in an array to prevent them from being logged
+ * @param errorEvent
+ * @returns {boolean}
+ */
 function isFilteredMessageOrException(errorEvent) {
     var filteredMessageOrException = ["stop_youtube",
         "null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)"];
@@ -69,6 +71,11 @@ function isFilteredMessageOrException(errorEvent) {
 
 }
 
+/**
+ * Function that handles errors that come from an attempt to write to the logs
+ * @param err error
+ * @param res http response object
+ */
 function logWritingError(err,res) {
     if(err) {
         res.status(statusCodes.INTERNAL_SERVER_ERROR).send({error:'Cannot write to Google Cloud Logging'});
@@ -86,7 +93,7 @@ function logWritingError(err,res) {
  */
 function getHandler(req,res,next){
 
-    var params = url.parse(req.url, true).query;
+    params = url.parse(req.url, true).query;
     var referer = req.get('Referer').toString();
     var resource = {
         type:'compute.googleapis.com',

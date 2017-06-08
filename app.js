@@ -1,6 +1,8 @@
+/**
+ * App.js file that handles routing and basic error handling
+ * @type {*}
+ */
 var express = require('express');
-var path = require('path');
-var Log = require('@google-cloud/logging');
 var bodyParser = require('body-parser');
 var errorTracker = require('./routes/errortracker');
 
