@@ -3,30 +3,20 @@
  * @type {*}
  */
 let express = require('express');
-let bodyParser = require('body-parser');
 let errorTracker = require('./routes/errortracker');
 
 
 if (process.env.NODE_ENV === 'production') {
-  require('@google/cloud-trace').start();
-  require('@google/cloud-debug').start();
+  require('@google/cloud-trace-agent').start();
+  require('@google/cloud-debug-agent').start();
 }
 
 
 let app = express();
 
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
 app.use('/r', errorTracker);
 
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  let err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
 
 // error handler
 app.use(function(err, req, res, next) {
