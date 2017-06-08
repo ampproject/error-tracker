@@ -38,6 +38,8 @@ const logName = 'javascript.errors';
 const express = require('express');
 const router = express.Router();
 const logging = require('@google-cloud/logging');
+const winston = require('winston');
+const statusCodes = require('http-status-codes');
 const url = require('url');
 //String constants for identifying error level.
 const errorLevels = {
@@ -51,7 +53,30 @@ const errorLevels = {
     Alert:     "Alert",
     Emergency: "Emergency"
 };
-const statusCodes = require('http-status-codes');
+
+//logger that captures all top level app errors and outputs json diagnostic
+
+
+function isFilteredMessageOrException(errorEvent) {
+    var filteredMessageOrException = ["stop_youtube",
+        "null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)"];
+    filteredMessageOrException.forEach(function filter(msg){
+        if(errorEvent.Message.toString().includes(msg) || errorEvent.Exception.toString().includes(msg)){
+            return true;
+        }
+    });
+    return false;
+
+}
+
+function logWritingError(err,res) {
+    if(err) {
+        res.status(statusCodes.INTERNAL_SERVER_ERROR).send({error:'Cannot write to Google Cloud Logging'});
+        winston.error(projectId, 'Cannot write to Google Cloud Logging: '+params['v'],err)
+    }
+
+
+}
 
 /**
  *extract params in GET request from query and fill errorEvent object
@@ -60,6 +85,7 @@ const statusCodes = require('http-status-codes');
  * @param next
  */
 function getHandler(req,res,next){
+
     var params = url.parse(req.url, true).query;
     var referer = req.get('Referer').toString();
     var resource = {
@@ -140,7 +166,7 @@ function getHandler(req,res,next){
     if (!sample <= throttleRate) {
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
         res.writeHead(statusCodes.OK);
-        console.log("THROTTLED\n",res );
+        res.write("THROTTLED\n",res );
         return;
     }
     var exception  = params['s'].toString();
@@ -167,18 +193,53 @@ function getHandler(req,res,next){
     // If format does not end with :\d+ truncate up to the last newline.
     if(event.Message === '' && event.Exception === ''){
         res.status(statusCodes.BAD_REQUEST).send({error:"One of 'message' or 'exception' must be present."});
+        winston.error(projectId, "Malformed request: " + params['v'].toString(), event);
+        return;
 
     }
+    if(isFilteredMessageOrException(event)){
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.writeHead(statusCodes.NO_CONTENT);
+        res.write("IGNORE\n");
+    }
+
+    //Don't log testing traffic in production
+    if(event.Version === '$internalRuntimeVersion$'){
+        res.writeHead(statusCodes.NO_CONTENT);
+        return;
+    }
+
+    event['Request'] = {
+        URL:referer,
+        Meta:{
+            HTTPReferrer:params['r'],
+            HTTPUserAgent:req.headers['user-agent']
+        }
+    };
 
 
-//get authentication context for logging
+    //get authentication context for logging
     var loggingClient = logging({
-        projectId:projectId,
-        level: level,
-        time: new Date().getTime()
-
+        projectId:projectId
     });
     var log = loggingClient.log(logName);
+    var metaData = {
+        resource:resource,
+        level: level,
+        time: new Date().getTime()
+    };
+    var entry = log.entry(metaData,event);
+    log.write(entry,logWritingError);
+    if(params['debug'] === '1'){
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.writeHead(statusCodes.OK);
+        res.write('OK\n');
+        res.write(event);
+    }
+    else{
+        res.writeHead(statusCodes.NO_CONTENT);
+    }
+
 
 }
 
