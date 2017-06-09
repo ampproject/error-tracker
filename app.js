@@ -18,8 +18,6 @@ let express = require('express');
 let router = express.Router();
 let errorTracker = require('./routes/errortracker');
 
-
-
 if (process.env.NODE_ENV === 'production') {
   require('@google/cloud-trace-agent').start();
   require('@google/cloud-debug-agent').start();
