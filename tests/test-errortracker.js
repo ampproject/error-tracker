@@ -38,9 +38,6 @@ describe('Test throttling', function() {
 
 
     };
-    let header = {
-        Referer:'Mozzila-agent'
-    };
     // start HTTP server
     before(function() {
          //app.listen(3001);
@@ -54,13 +51,16 @@ describe('Test throttling', function() {
     });
 
     it('Should ignore 99% of user errors', function(done) {
-        Math.randomVal = 0.0000000000000000000000001;
-        chai.request(app,he).get('/r').query(query).end(function(err, res) {
-            //expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
+        //set up parameters
+        Math.randomVal = 1;
+        query.ca = 0; //canary errors cannot be throttled unless ca =0
+        query.rt ='';
+        query['3p'] = 0;
+        chai.request(app).get('/r').query(query).end(function(err, res) {
+            expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
             expect(res).to.have.status(statusCodes.OK);
             console.log(res.body);
-            expect(res.body).to.equal("{food: bar}");
-            expect(res).to.be.html;
+            expect(res.statusMessage).to.equal("THROTTLED\n");
         });
         done();
     });

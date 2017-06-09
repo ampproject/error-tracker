@@ -5,10 +5,15 @@
 
 const express = require('express');
 const router = express.Router();
-let randomVal = 0.0000000000000000000000001;
+let randomVal = 1;
 
 function random() {
     return randomVal;
 }
 
-module.exports = [router, random, randomVal];
+module.exports ={
+    router:router,
+    randomVal:randomVal,
+    random:random
+};
+

@@ -63,12 +63,11 @@ let params = {};
 function isFilteredMessageOrException(errorEvent) {
     let filteredMessageOrException = ['stop_youtube',
         'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-    filteredMessageOrException.some(function filter(msg) {
-        if (errorEvent.Message.toString().includes(msg) || errorEvent.Exception.toString().includes(msg)) {
-            return true;
-        }
+    return filteredMessageOrException.some(function filter(msg) {
+        return errorEvent.message.includes(msg) || errorEvent.exception.includes(msg);
     });
-    return false;
+
+
 }
 
 /**
@@ -91,10 +90,9 @@ function logWritingError(err, res,req) {
  * @param next
  */
 function getHandler(req, res, next) {
-    params = url.parse(req.url, true).query;
-    res.status(statusCodes.OK).send({foo:"Barrrer", referer: req.get('content-type')});
-    return;
-    let referer = req.get('Referer');
+
+    params = req.query;
+    let referer = params.r;
     let resource = {
         type: 'compute.googleapis.com',
         labels: {
@@ -105,10 +103,12 @@ function getHandler(req, res, next) {
     let line = params.l;
     let errorType = 'default';
     let isUserError = false;
-    if (params.a === 1) {
+    if (params.a === '1') {
         errorType = 'assert';
         isUserError = true;
     }
+
+
     // log as INFO severity by default, because reports are spammy
 
     let severity = 'INFO';
@@ -136,23 +136,26 @@ function getHandler(req, res, next) {
         if (runTime === '3p') {
             is3p = true;
         }
+
     } else {
-        if (params['3p'] === 1) {
+        if (params['3p'] === '1') {
             is3p = true;
             errorType += '-3p';
         } else {
             errorType += '-1p';
         }
+
     }
     let isCanary = false;
-    if (params.ca === 1) {
+    if (params.ca === '1') {
         errorType += '-canary';
         isCanary = true;
     }
-    if (params.ex === 1) {
+
+    if (params.ex === '1') {
         errorType += '-expected';
     }
-    let sample = Math.random();
+    let sample = Math.randomVal;
     let throttleRate = 0.01;
 
     if (isCanary) {
@@ -167,15 +170,16 @@ function getHandler(req, res, next) {
         throttleRate = throttleRate/10;
     }
 
-    if (sample <= throttleRate) {
-        res.set('Content-Type', 'text/plain ; charset=utf-8');
-        res.status(statusCodes.OK).send('THROTTLED\n');
+    if (sample > throttleRate) {
+        res.set('Content-Type', 'text/plain; charset=utf-8');
+        res.status(statusCodes.OK).send('THROTTLED\n').end();
         return;
     }
-    let exception = params.s.toString();
+    let exception = params.s;
     let reg = /:\d+$/;
     if (!exception.match(reg)) {
-        exception = exception.replace(reg, '');
+        exception = exception.replace(/\n.*$/, '');
+
     }
 
     // errorEvent object defined at the beginning.
@@ -194,20 +198,21 @@ function getHandler(req, res, next) {
     };
 
     // If format does not end with :\d+ truncate up to the last newline.
-    if (event.Message === '' && event.Exception === '') {
-        res.status(statusCodes.BAD_REQUEST).send({error: 'One of \'message\' or \'exception\' must be present.'});
-        winston.error(projectId, 'Malformed request: ' + params.v.toString(), event);
+    if (event.message === '' && event.exception === '') {
+        res.status(statusCodes.BAD_REQUEST).send({error: 'One of \'message\' or \'exception\' must be present.'}).end();
+        winston.log(errorLevels.Error, 'Malformed request: ' + params.v.toString(), event);
         return;
     }
+
     if (isFilteredMessageOrException(event)) {
         res.set('Content-Type', 'text/plain; charset=utf-8');
-        res.status(statusCodes.NO_CONTENT).send('IGNORE\n');
+        res.status(statusCodes.NO_CONTENT).send('IGNORE\n').end();
         return;
     }
 
     // Don't log testing traffic in production
-    if (event.version === '$internalRuntimeVersion$') {
-        res.sendStatus(statusCodes.NO_CONTENT);
+    if (event.version.includes('$internalRuntimeVersion$')) {
+        res.sendStatus(statusCodes.NO_CONTENT).end();
         return;
     }
 
