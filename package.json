@@ -7,7 +7,7 @@
     "deploy": "gcloud app deploy",
     "lint": "eslint **/*.js --fix",
     "pretest": "npm run lint",
-    "system-test": "samples test app",
+    "system-test": "errortracker test app",
     "test": "npm run system-test",
     "e2e-test": "samples test deploy"
   },
@@ -15,7 +15,6 @@
     "@google-cloud/logging": "^1.0.2",
     "@google/cloud-debug-agent": "^0.9.3",
     "@google/cloud-trace-agent": "^0.6.3",
-    "debug": "~2.6.3",
     "express": "~4.15.2",
     "http-status-codes": "^1.1.6",
     "winston": "^2.3.1",

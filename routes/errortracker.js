@@ -40,8 +40,6 @@
  * Handle error requests from clients and log them.
  */
 // AppEngine project ID
-const projectId ='';
-const logName = 'javascript.errors';
 const express = require('express');
 const router = express.Router();
 const logging = require('@google-cloud/logging');
@@ -49,23 +47,23 @@ const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const Math = require('../tests/Math');
 const url = require('url');
+const projectId ='';
+const logName = 'javascript.errors';
 /**
- * errorLevels
+ * ERROR_LEVELS
  * @enum {string}
  */
-const errorLevels = {
-    Default: 'Default',
-    Debug: 'Debug',
-    Info: 'Info',
-    Notice: 'Notice',
-    Warning: 'Warning',
-    Error: 'Error',
-    Critical: 'Critical',
-    Alert: 'Alert',
-    Emergency: 'Emergency',
+const ERROR_LEVELS = {
+    DEFAULT: 'Default',
+    DEBUG: 'Debug',
+    INFO: 'Info',
+    NOTICE: 'Notice',
+    WARNING: 'Warning',
+    ERROR: 'Error',
+    CRITICAL: 'Critical',
+    ALERT: 'Alert',
+    EMERGENCY: 'Emergency',
 };
-// params in http request
-let params = {};
 
 /**
  * Filter exceptions in an array to prevent them from being logged
@@ -88,7 +86,7 @@ function isFilteredMessageOrException(errorEvent) {
  * @param res http response object
  * @param req http request object
  */
-function logWritingError(err, res,req) {
+function logWritingError(err,res,req) {
     if (err) {
         res.status(statusCodes.INTERNAL_SERVER_ERROR).send({error: 'Cannot write to Google Cloud Logging'});
         winston.error(projectId, 'Cannot write to Google Cloud Logging: '+url.parse(req.url, true).query['v'], err);
@@ -103,7 +101,7 @@ function logWritingError(err, res,req) {
  */
 function getHandler(req, res, next) {
 
-    params = req.query;
+    let params = req.query;
     let referer = params.r;
     let resource = {
         type: 'compute.googleapis.com',
@@ -124,28 +122,28 @@ function getHandler(req, res, next) {
     // log as INFO severity by default, because reports are spammy
 
     let severity = 'INFO';
-    let level = errorLevels.Info;
+    let level = ERROR_LEVELS.INFO;
     // if request comes from the cache and thus only from valid AMP docs we log as "Error"
     let isCdn = false;
     if (referer.startsWith('https://cdn.ampproject.org/') ||
-    referer.includes('.cdn.ampproject.org/') ||
-    referer.includes('.ampproject.net/')) {
+        referer.includes('.cdn.ampproject.org/') ||
+        referer.includes('.ampproject.net/')) {
         severity = 'ERROR';
-        level = errorLevels.Error;
+        level = ERROR_LEVELS.ERROR;
         errorType += '-cdn';
         isCdn = true;
     } else {
         errorType += '-origin';
     }
     let is3p = false;
-    let runTime = params.rt;
-    if (runTime !== '') {
-        errorType += '-' + runTime;
-        if (runTime === 'inabox') {
+    let runtime = params.rt;
+    if (runtime) {
+        errorType += '-' + runtime;
+        if (runtime === 'inabox') {
             severity = 'ERROR';
-            level = errorLevels.Error;
+            level = ERROR_LEVELS.ERROR;
         }
-        if (runTime === '3p') {
+        if (runtime === '3p') {
             is3p = true;
         }
 
@@ -179,7 +177,7 @@ function getHandler(req, res, next) {
     }
 
     if (isUserError) {
-        throttleRate = throttleRate/10;
+        throttleRate =throttleRate / 10;
     }
 
     if (sample > throttleRate) {
@@ -189,6 +187,7 @@ function getHandler(req, res, next) {
     }
     let exception = params.s;
     let reg = /:\d+$/;
+    // If format does not end with :\d+ truncate up to the last newline.
     if (!exception.match(reg)) {
         exception = exception.replace(/\n.*$/, '');
 
@@ -209,10 +208,9 @@ function getHandler(req, res, next) {
 
     };
 
-    // If format does not end with :\d+ truncate up to the last newline.
     if (event.message === '' && event.exception === '') {
         res.status(statusCodes.BAD_REQUEST).send({error: 'One of \'message\' or \'exception\' must be present.'}).end();
-        winston.log(errorLevels.Error, 'Malformed request: ' + params.v.toString(), event);
+        winston.log(ERROR_LEVELS.ERROR, 'Malformed request: ' + params.v.toString(), event);
         return;
     }
 
