@@ -35,7 +35,7 @@ const router = express.Router();
 const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
-const Math = require('./Math');
+const Math = require('../tests/Math');
 const url = require('url');
 /**
  * errorLevels
@@ -156,7 +156,7 @@ function getHandler(req, res, next) {
         errorType += '-expected';
     }
     let sample = Math.randomVal;
-    let throttleRate = 0.01;
+    let throttleRate = 0.1;
 
     if (isCanary) {
         throttleRate = 1.0; // explicitly log all errors
@@ -206,7 +206,7 @@ function getHandler(req, res, next) {
 
     if (isFilteredMessageOrException(event)) {
         res.set('Content-Type', 'text/plain; charset=utf-8');
-        res.status(statusCodes.NO_CONTENT).send('IGNORE\n').end();
+        res.status(statusCodes.BAD_REQUEST).send('IGNORE\n').end();
         return;
     }
 
@@ -241,12 +241,14 @@ function getHandler(req, res, next) {
         res.set('Content-Type', 'application/json; charset=ISO-8859-1');
         res.status(statusCodes.OK).send
          (JSON.stringify({
-            message: 'OK\n',
-            event: event,
-        }));
+             message: 'OK\n',
+             event: event,
+             throttleRate:throttleRate,
+         }));
     } else {
         res.sendStatus(statusCodes.NO_CONTENT);
     }
+    next();
 }
 
 /**
