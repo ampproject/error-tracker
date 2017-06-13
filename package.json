@@ -1,30 +1,26 @@
 {
-  "name": "error-tracker",
+  "name": "base",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "deploy": "gcloud app deploy",
-    "lint": "eslint **/*.js --fix",
-    "pretest": "npm run lint",
-    "system-test": "errortracker test app",
-    "test": "npm run system-test",
-    "e2e-test": "samples test deploy"
+    "start": "node ./bin/www"
   },
   "dependencies": {
+    "@google-cloud/debug-agent": "^2.1.0",
     "@google-cloud/logging": "^1.0.2",
-    "@google/cloud-debug-agent": "^0.9.3",
-    "@google/cloud-trace-agent": "^0.6.3",
+    "@google-cloud/trace-agent": "^2.1.0",
+    "body-parser": "~1.17.1",
+    "chai": "^4.0.2",
+    "chai-http": "^3.0.0",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.3",
     "express": "~4.15.2",
     "http-status-codes": "^1.1.6",
-    "winston": "^2.3.1",
-    "chai": "latest",
-    "chai-http": "latest",
-    "mocha": "latest"
-  },
-  "devDependencies": {
-    "babel-eslint": "^7.2.3",
-    "eslint": "^3.19.0",
-    "eslint-config-google": "^0.8.0"
+    "jade": "~1.11.0",
+    "mocha": "^3.4.2",
+    "morgan": "~1.8.1",
+    "serve-favicon": "~2.4.2",
+    "sinon": "^2.3.4",
+    "winston": "^2.3.1"
   }
 }

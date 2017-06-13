@@ -45,7 +45,6 @@ const router = express.Router();
 const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
-const Math = require('../tests/Math');
 const url = require('url');
 const projectId ='';
 const logName = 'javascript.errors';
@@ -165,7 +164,7 @@ function getHandler(req, res, next) {
     if (params.ex === '1') {
         errorType += '-expected';
     }
-    let sample = Math.randomVal;
+    let sample = Math.random();
     let throttleRate = 0.1;
 
     if (isCanary) {

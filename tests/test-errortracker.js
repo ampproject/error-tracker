@@ -7,17 +7,19 @@ const chai = require('chai');
 const chaihttp = require('chai-http');
 const mocha = require('mocha');
 const statusCodes = require('http-status-codes');
+const app = require('../app');
+const assert = require('assert');
+const sinon = require('sinon');
 const describe = mocha.describe;
 const before = mocha.before;
 const after = mocha.after;
 const beforeEach = mocha.beforeEach;
 const afterEach = mocha.afterEach;
-const app = require('../app');
-process.env.NODE_ENV = 'test';
 const expect = chai.expect;
 const it = mocha.it;
-const assert = require('assert');
-const Math = require('./Math');
+
+process.env.NODE_ENV = 'test';
+
 chai.use(chaihttp);
 
 describe('Test how server responds to requests/behave', function() {
@@ -34,16 +36,16 @@ describe('Test how server responds to requests/behave', function() {
         'el': 'classname',
         'r': 'referrer',
         'debug': 1,
-
-
     };
-    // start HTTP server
+    let randomVal = 1;
     before(function () {
-        //app.listen(3001);
+        sinon.stub(Math,'random').callsFake(function () {
+            return randomVal;
+        })
     });
 
     after(function () {
-        // app.close();
+        Math.random.restore();
     });
     beforeEach(function () {
 
@@ -51,7 +53,7 @@ describe('Test how server responds to requests/behave', function() {
 
     it('Should ignore 99% of user errors', function (done) {
         //set up parameters
-        Math.randomVal = 1;
+        randomVal = 1;
         query.a = 1; //set explicitly to usererror
         query.ca = 0; //canary errors cannot be throttled unless ca =0
         query.rt = '';
@@ -66,7 +68,7 @@ describe('Test how server responds to requests/behave', function() {
 
     it('Should log 1% of user errors', function (done) {
         // modify query parameters to run test
-        Math.randomVal = 0.00000000000000001; //set sample to extremely small.
+        randomVal = 0.00000000000000001; //set sample to extremely small.
         query.a = 1;
         query.ca = 0;
         query.debug = 1;
@@ -84,7 +86,7 @@ describe('Test how server responds to requests/behave', function() {
     it('Should ignore 90% of 3p errors', function (done) {
             // adjust query parameters for test. Don't forget to adjust math.random to extremely small
         query['3p'] = 1;
-        Math.randomVal = 1;
+        randomVal = 1;
         query.ca = 0;
         query.a = 0;
         query.debug = 1;
@@ -99,7 +101,7 @@ describe('Test how server responds to requests/behave', function() {
     it('Should log 10% of 3p errors', function (done) {
         //adjust query parameters to mock this case
         query['3p'] = 1;
-        Math.randomVal = 0.00000000000000001;
+        randomVal = 0.00000000000000001;
         query.ca =0;
         query.a = 0;
         query.debug = 1;
@@ -122,7 +124,7 @@ describe('Test how server responds to requests/behave', function() {
         query.ca = 0;
         query.debug = 1;
         query.r = 'https://cdn.ampproject.org/conferences';
-        Math.randomVal = 1;
+        randomVal = 1;
         chai.use(chaihttp).request(app).get('/r').query(query).end(function (err,res) {
             expect(res).to.have.status(statusCodes.OK);
             expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
@@ -138,7 +140,7 @@ describe('Test how server responds to requests/behave', function() {
         query.ca = 0;
         query.debug = 1;
         query.r = 'https://cdn.ampproject.org/conferences';
-        Math.randomVal = 0.00000000000000001;
+        randomVal = 0.00000000000000001;
         chai.use(chaihttp).request(app).get('/r').query(query).end(function (err, res) {
             expect(res).to.have.status(statusCodes.OK);
             expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
@@ -157,7 +159,7 @@ describe('Test how server responds to requests/behave', function() {
         query['3p'] =0;
         query.debug = 1;
         query.r = 'referer';
-        Math.randomVal = 0.00000000000000001;
+        randomVal = 0.00000000000000001;
         chai.use(chaihttp).request(app).get('/r').query(query).end(function (err,res) {
             expect(res).to.have.status(statusCodes.OK);
             expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
@@ -171,7 +173,7 @@ describe('Test how server responds to requests/behave', function() {
     });
     it('Should not log errors missing exception and message', function (done) {
         //adjust query parameters to mock this case
-        Math.randomVal = 0.00000000000000001;
+        randomVal = 0.00000000000000001;
         query.a = 0;
         query.ca = 1;
         query['3p'] =0;
@@ -190,7 +192,7 @@ describe('Test how server responds to requests/behave', function() {
 
     it('Should ignore testing traffic', function (done) {
        //adjust query parameters to mock this case.
-        Math.randomVal = 0.00000000000000001;
+        randomVal = 0.00000000000000001;
         query.a = 0;
         query.ca = 1;
         query['3p'] =0;
@@ -209,7 +211,7 @@ describe('Test how server responds to requests/behave', function() {
 
     it('Should ignore filtered messages or exceptions', function (done) {
         //adjust query parameters to mock this case
-        Math.randomVal = 0.00000000000000001;
+        randomVal = 0.00000000000000001;
         query.a = 0;
         query.ca = 1;
         query['3p'] =0;
@@ -228,7 +230,7 @@ describe('Test how server responds to requests/behave', function() {
 
     it('Should ignore debug errors', function (done) {
         //adjust query parameters to mock this case
-        Math.randomVal = 0.00000000000000001;
+        randomVal = 0.00000000000000001;
         query.a = 0;
         query.ca = 1;
         query['3p'] =0;
