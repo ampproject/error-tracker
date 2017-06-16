@@ -32,8 +32,11 @@
 	Function: string,
 	Severity: string
    }
+ **/
+
+ /**
  * Handle error requests from clients and log them.
- */
+ **/
 
 const express = require('express');
 const logging = require('@google-cloud/logging');
