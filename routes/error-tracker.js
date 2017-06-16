@@ -57,7 +57,6 @@ const ERROR_LEVELS = {
 
 
 /**
- * @desc Filter exceptions in an array to prevent them from being logged
  * @param errorEvent
  * @returns {boolean}
  */
