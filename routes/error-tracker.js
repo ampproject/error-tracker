@@ -51,15 +51,9 @@ const logName = 'javascript.errors';
  * @enum {string}
  */
 const ERROR_LEVELS = {
-    DEFAULT: 'Default',
-    DEBUG: 'Debug',
     INFO: 'Info',
-    NOTICE: 'Notice',
-    WARNING: 'Warning',
     ERROR: 'Error',
-    CRITICAL: 'Critical',
-    ALERT: 'Alert',
-    EMERGENCY: 'Emergency',
+    
 };
 
 
