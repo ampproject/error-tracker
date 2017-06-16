@@ -74,6 +74,28 @@ function filter(msg) {
   return errorEvent.message.includes(msg) || 
     errorEvent.exception.includes(msg);
 }
+function stackTraceConversion(exception) {
+    let chromeStackTraceRegex = /^\s*(.*)(.+):(\d+):(\d+)$/;
+    let match = exception.match(chromeStackTraceRegex);
+    if(match){
+        exception = exception.substring(exception.indexOf('\n'));
+        let exceptions = exception.split('\n');
+        let validExceptions = exceptions.filter(function (value) {
+           return value.match(chromeStackTraceRegex);
+        });
+        exception = validExceptions.join('\n');
+        return exception;
+    }else if(!match){
+        let mozillaSafariStackTraceRegex = /\d+/;
+        let otherMatch = exception.match(mozillaSafariStackTraceRegex);
+        if(otherMatch){
+            //convert to chromeLike
+            return exception;
+        }
+    }
+    return  null;
+
+}
 
 /**
  * @desc handle errors that come from an attempt to write to the logs
@@ -262,4 +284,4 @@ function getHandler(req, res, next) {
  * Receive GET requests
  **/
 router.get('/r', getHandler);
-module.exports = getHandler;
+module.exports = [getHandler,stackTraceConversion];

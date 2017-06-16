@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
  *
@@ -24,6 +25,5 @@ if (process.env.NODE_ENV === 'production') {
 let app = express();
 app.use(router);
 app.get('/r', errorTracker);
-
 
 module.exports = app;
