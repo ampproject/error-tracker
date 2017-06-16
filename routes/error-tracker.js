@@ -44,7 +44,7 @@ const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
 const router = express.Router();
-const appEngineProjectId ='';
+const appEngineProjectId = '';
 const logName = 'javascript.errors';
 /**
  * ERROR_LEVELS
