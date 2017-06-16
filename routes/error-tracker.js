@@ -52,8 +52,7 @@ const logName = 'javascript.errors';
  */
 const ERROR_LEVELS = {
     INFO: 'Info',
-    ERROR: 'Error',
-    
+    ERROR: 'Error',    
 };
 
 
