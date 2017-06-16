@@ -3,13 +3,12 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  **/
 
 /**
- *objects used
- *Objects are identical to the objects used in previous errortracker.go
+ * objects used
+ * Objects are identical to the objects used in previous errortracker.go
  * @typedef errorRequestMeta {
 	HTTPReferrer: string,
 	HTTPUserAgent: string
@@ -33,8 +32,11 @@
 	Function: string,
 	Severity: string
    }
+ **/
+
+ /**
  * Handle error requests from clients and log them.
- */
+ **/
 
 const express = require('express');
 const logging = require('@google-cloud/logging');
@@ -42,39 +44,35 @@ const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
 const router = express.Router();
-const appEngineProjectId ='';
+const appEngineProjectId = '';
 const logName = 'javascript.errors';
 /**
  * ERROR_LEVELS
  * @enum {string}
  */
 const ERROR_LEVELS = {
-    DEFAULT: 'Default',
-    DEBUG: 'Debug',
     INFO: 'Info',
-    NOTICE: 'Notice',
-    WARNING: 'Warning',
-    ERROR: 'Error',
-    CRITICAL: 'Critical',
-    ALERT: 'Alert',
-    EMERGENCY: 'Emergency',
+    ERROR: 'Error',    
+};
+const SEVERITY = {
+    INFO: 'INFO',
+    ERROR: 'ERROR',
 };
 
 
 /**
- * @desc Filter exceptions in an array to prevent them from being logged
  * @param errorEvent
  * @returns {boolean}
  */
 function isFilteredMessageOrException(errorEvent) {
     let filteredMessageOrException = ['stop_youtube',
         'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-    return filteredMessageOrException.some(function filter(msg) {
-        return errorEvent.message.includes(msg) ||
-            errorEvent.exception.includes(msg);
-    });
+    return filteredMessageOrException.some(filter);
+}
 
-
+function filter(msg) {
+  return errorEvent.message.includes(msg) || 
+    errorEvent.exception.includes(msg);
 }
 function stackTraceConversion(exception) {
     let chromeStackTraceRegex = /^\s*(.*)(.+):(\d+):(\d+)$/;
@@ -101,13 +99,15 @@ function stackTraceConversion(exception) {
 
 /**
  * @desc handle errors that come from an attempt to write to the logs
- * @param err error
+ * @param {!error} err
  * @param res http response object
  * @param req http request object
  */
-function logWritingError(err,res,req) {
-    if (err) {
-        res.status(statusCodes.INTERNAL_SERVER_ERROR).send({error: 'Cannot write to Google Cloud Logging'});
+function logWritingError(err, res, req) {
+  if (err) {
+        res.status(statusCodes.INTERNAL_SERVER_ERROR)
+	  .send({error: 'Cannot write to Google Cloud Logging'})
+	    .end();
         winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '+url.parse(req.url, true).query['v'], err);
     }
 }
@@ -121,16 +121,16 @@ function logWritingError(err,res,req) {
  */
 function getHandler(req, res, next) {
 
-    let params = req.query;
-    let referer = params.r;
-    let resource = {
+    const params = req.query;
+    const referer = params.r;
+    const resource = {
         type: 'compute.googleapis.com',
         labels: {
             'compute.googleapis.com/resource_type': 'logger',
             'compute.googleapis.com/resource_id': 'errors',
         },
     };
-    let line = params.l;
+    const line = params.l;
     let errorType = 'default';
     let isUserError = false;
     if (params.a === '1') {
@@ -143,12 +143,12 @@ function getHandler(req, res, next) {
     // if request comes from the cache and thus only from valid AMP docs we log as "Error"
     let isCdn = false;
     if (referer.startsWith('https://cdn.ampproject.org/') ||
-        referer.includes('.cdn.ampproject.org/') ||
-        referer.includes('.ampproject.net/')) {
-        severity = 'ERROR';
-        level = ERROR_LEVELS.ERROR;
-        errorType += '-cdn';
-        isCdn = true;
+      referer.includes('.cdn.ampproject.org/') ||
+      referer.includes('.ampproject.net/')) {
+      severity = 'ERROR';
+      level = ERROR_LEVELS.ERROR;
+      errorType += '-cdn';
+      isCdn = true;
     } else {
         errorType += '-origin';
     }
@@ -194,12 +194,14 @@ function getHandler(req, res, next) {
     }
 
     if (isUserError) {
-        throttleRate =throttleRate / 10;
+        throttleRate = throttleRate / 10;
     }
 
     if (sample > throttleRate) {
         res.set('Content-Type', 'text/plain; charset=utf-8');
-        res.status(statusCodes.OK).send('THROTTLED\n').end();
+        res.status(statusCodes.OK)
+	  .send('THROTTLED\n')
+	    .end();
         return;
     }
     let exception = params.s;
@@ -266,8 +268,8 @@ function getHandler(req, res, next) {
     log.write(entry, logWritingError);
     if (params.debug === '1') {
         res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-        res.status(statusCodes.OK).send
-         (JSON.stringify({
+        res.status(statusCodes.OK).send(
+	   JSON.stringify({
              message: 'OK\n',
              event: event,
              throttleRate:throttleRate,
