@@ -7,8 +7,8 @@
  **/
 
 /**
- *objects used
- *Objects are identical to the objects used in previous errortracker.go
+ * objects used
+ * Objects are identical to the objects used in previous errortracker.go
  * @typedef errorRequestMeta {
 	HTTPReferrer: string,
 	HTTPUserAgent: string
