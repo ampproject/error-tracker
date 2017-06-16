@@ -13,12 +13,12 @@
 	HTTPReferrer: string,
 	HTTPUserAgent: string
     }
-  @typedef errorRequest {
+ @typedef errorRequest {
 	URL:  string,
 	Method: string,
 	Meta: errorRequestMeta
   }
-  @typedef errorEvent {
+ @typedef errorEvent {
 	Application: string,
 	AppID; string,
 	Environment: string,
@@ -34,7 +34,7 @@
    }
  **/
 
- /**
+/**
  * Handle error requests from clients and log them.
  **/
 
@@ -46,55 +46,32 @@ const url = require('url');
 const router = express.Router();
 const appEngineProjectId = '';
 const logName = 'javascript.errors';
+const SERVER_START_TIME = Date.now();
+const filteredMessageOrException = ['stop_youtube',
+  'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 /**
  * ERROR_LEVELS
  * @enum {string}
  */
 const ERROR_LEVELS = {
-    INFO: 'Info',
-    ERROR: 'Error',    
+  INFO: 'Info',
+  ERROR: 'Error',
 };
 const SEVERITY = {
-    INFO: 'INFO',
-    ERROR: 'ERROR',
+  INFO: 200,
+  ERROR: 500,
 };
 
-
 /**
- * @param errorEvent
+ * @param message
+ * @param exception
  * @returns {boolean}
  */
-function isFilteredMessageOrException(errorEvent) {
-    let filteredMessageOrException = ['stop_youtube',
-        'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-    return filteredMessageOrException.some(filter);
-}
-
-function filter(msg) {
-  return errorEvent.message.includes(msg) || 
-    errorEvent.exception.includes(msg);
-}
-function stackTraceConversion(exception) {
-    let chromeStackTraceRegex = /^\s*(.*)(.+):(\d+):(\d+)$/;
-    let match = exception.match(chromeStackTraceRegex);
-    if(match){
-        exception = exception.substring(exception.indexOf('\n'));
-        let exceptions = exception.split('\n');
-        let validExceptions = exceptions.filter(function (value) {
-           return value.match(chromeStackTraceRegex);
-        });
-        exception = validExceptions.join('\n');
-        return exception;
-    }else if(!match){
-        let mozillaSafariStackTraceRegex = /\d+/;
-        let otherMatch = exception.match(mozillaSafariStackTraceRegex);
-        if(otherMatch){
-            //convert to chromeLike
-            return exception;
-        }
-    }
-    return  null;
-
+function isFilteredMessageOrException(message, exception) {
+  return filteredMessageOrException.some(function (msg) {
+    return message.includes(msg) ||
+      exception.includes(msg);
+  });
 }
 
 /**
@@ -105,11 +82,11 @@ function stackTraceConversion(exception) {
  */
 function logWritingError(err, res, req) {
   if (err) {
-        res.status(statusCodes.INTERNAL_SERVER_ERROR)
-	  .send({error: 'Cannot write to Google Cloud Logging'})
-	    .end();
-        winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '+url.parse(req.url, true).query['v'], err);
-    }
+    res.status(statusCodes.INTERNAL_SERVER_ERROR)
+      .send({error: 'Cannot write to Google Cloud Logging'})
+      .end();
+    winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: ' + url.parse(req.url, true).query['v'], err);
+  }
 }
 
 /**
@@ -120,168 +97,154 @@ function logWritingError(err, res, req) {
  * @param next
  */
 function getHandler(req, res, next) {
+  const params = req.query;
+  const referer = params.r;
+  let errorType = 'default';
+  let isUserError = false;
+  if (params.a === '1') {
+    errorType = 'assert';
+    isUserError = true;
+  }
 
-    const params = req.query;
-    const referer = params.r;
-    const resource = {
-        type: 'compute.googleapis.com',
-        labels: {
-            'compute.googleapis.com/resource_type': 'logger',
-            'compute.googleapis.com/resource_id': 'errors',
-        },
-    };
-    const line = params.l;
-    let errorType = 'default';
-    let isUserError = false;
-    if (params.a === '1') {
-        errorType = 'assert';
-        isUserError = true;
+  let severity = SEVERITY.INFO;
+  // if request comes from the cache and thus only from valid AMP docs we log as "Error"
+  let isCdn = false;
+  if (referer.startsWith('https://cdn.ampproject.org/') ||
+    referer.includes('.cdn.ampproject.org/') ||
+    referer.includes('.ampproject.net/')) {
+    severity = SEVERITY.ERROR;
+    errorType += '-cdn';
+    isCdn = true;
+  } else {
+    errorType += '-origin';
+  }
+  let is3p = false;
+  let runtime = params.rt;
+  if (runtime) {
+    errorType += '-' + runtime;
+    if (runtime === 'inabox') {
+      severity = SEVERITY.ERROR;
+    }
+    if (runtime === '3p') {
+      is3p = true;
     }
 
-    let severity = 'INFO';
-    let level = ERROR_LEVELS.INFO;
-    // if request comes from the cache and thus only from valid AMP docs we log as "Error"
-    let isCdn = false;
-    if (referer.startsWith('https://cdn.ampproject.org/') ||
-      referer.includes('.cdn.ampproject.org/') ||
-      referer.includes('.ampproject.net/')) {
-      severity = 'ERROR';
-      level = ERROR_LEVELS.ERROR;
-      errorType += '-cdn';
-      isCdn = true;
+  } else {
+    if (params['3p'] === '1') {
+      is3p = true;
+      errorType += '-3p';
     } else {
-        errorType += '-origin';
-    }
-    let is3p = false;
-    let runtime = params.rt;
-    if (runtime) {
-        errorType += '-' + runtime;
-        if (runtime === 'inabox') {
-            severity = 'ERROR';
-            level = ERROR_LEVELS.ERROR;
-        }
-        if (runtime === '3p') {
-            is3p = true;
-        }
-
-    } else {
-        if (params['3p'] === '1') {
-            is3p = true;
-            errorType += '-3p';
-        } else {
-            errorType += '-1p';
-        }
-
-    }
-    let isCanary = false;
-    if (params.ca === '1') {
-        errorType += '-canary';
-        isCanary = true;
+      errorType += '-1p';
     }
 
-    if (params.ex === '1') {
-        errorType += '-expected';
-    }
-    let sample = Math.random();
-    let throttleRate = 0.1;
+  }
+  let isCanary = false;
+  if (params.ca === '1') {
+    errorType += '-canary';
+    isCanary = true;
+  }
 
-    if (isCanary) {
-        throttleRate = 1.0; // explicitly log all errors
-    } else if (is3p) {
-        throttleRate = 0.1;
-    } else if (isCdn) {
-        throttleRate = 0.1;
-    }
+  if (params.ex === '1') {
+    errorType += '-expected';
+  }
+  let sample = Math.random();
+  let throttleRate = 0.1;
 
-    if (isUserError) {
-        throttleRate = throttleRate / 10;
-    }
+  if (isCanary) {
+    throttleRate = 1.0; // explicitly log all errors
+  } else if (is3p) {
+    throttleRate = 0.1;
+  } else if (isCdn) {
+    throttleRate = 0.1;
+  }
 
-    if (sample > throttleRate) {
-        res.set('Content-Type', 'text/plain; charset=utf-8');
-        res.status(statusCodes.OK)
-	  .send('THROTTLED\n')
-	    .end();
-        return;
-    }
-    let exception = params.s;
-    let reg = /:\d+$/;
-    // If format does not end with :\d+ truncate up to the last newline.
-    if (!exception.match(reg)) {
-        exception = exception.replace(/\n.*$/, '');
+  if (isUserError) {
+    throttleRate = throttleRate / 10;
+  }
 
-    }
+  if (sample > throttleRate) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.status(statusCodes.OK)
+      .send('THROTTLED\n')
+      .end();
+    return;
+  }
+  let exception = params.s;
+  let reg = /:\d+$/;
+  // If format does not end with :\d+ truncate up to the last newline.
+  if (!exception.match(reg)) {
+    exception = exception.replace(/\n.*$/, '');
 
-    // errorEvent object defined at the beginning.
-    let event = {
-        message: params.m,
-        exception: exception,
-        version: errorType + '-' + params.v,
-        environment: 'prod',
-        application: errorType,
-        appID: appEngineProjectId,
-        filename: req.url.toString(),
-        line: parseInt(line),
-        classname: params.el,
-        severity: severity,
+  }
 
-    };
+  if (params.m === '' && exception === '') {
+    res.status(statusCodes.BAD_REQUEST).send({error: 'One of \'message\' or \'exception\' must be present.'}).end();
+    winston.log(ERROR_LEVELS.ERROR, 'Malformed request: ' + params.v.toString(), event);
+    return;
+  }
 
-    if (event.message === '' && event.exception === '') {
-        res.status(statusCodes.BAD_REQUEST).send({error: 'One of \'message\' or \'exception\' must be present.'}).end();
-        winston.log(ERROR_LEVELS.ERROR, 'Malformed request: ' + params.v.toString(), event);
-        return;
-    }
+  if (isFilteredMessageOrException(params.m, exception)) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.status(statusCodes.BAD_REQUEST).send('IGNORE\n').end();
+    return;
+  }
 
-    if (isFilteredMessageOrException(event)) {
-        res.set('Content-Type', 'text/plain; charset=utf-8');
-        res.status(statusCodes.BAD_REQUEST).send('IGNORE\n').end();
-        return;
-    }
+  // Don't log testing traffic in production
+  if (params.v.includes('$internalRuntimeVersion$')) {
+    res.sendStatus(statusCodes.NO_CONTENT).end();
+    return;
+  }
 
-    // Don't log testing traffic in production
-    if (event.version.includes('$internalRuntimeVersion$')) {
-        res.sendStatus(statusCodes.NO_CONTENT).end();
-        return;
-    }
+  // get authentication context for logging
+  let loggingClient = logging({
+    projectId: appEngineProjectId,
+  });
+  let log = loggingClient.log(logName);
+  const resource = {
+    type: 'gae_app',
+    labels: {
+      project_id: "amp-error-reporting",
+      version_id: 'SERVER_START_TIME',
+      module_id: "default",
+    },
+  };
+  const metaData = {
+    resource: resource,
+    severity: severity,
+  };
+  let event = {
+    serviceContext: {
+      service: appEngineProjectId,
+      version: errorType + '-' + params.v,
+    },
+    message: exception,
+    context: {
+      httpRequest: {
+        url: req.url.toString(),
+        userAgent: req.get('User-Agent'),
+        referrer: params.r,
+      },
+    },
+  };
 
-    event['Request'] = {
-        URL: referer,
-        Meta: {
-            HTTPReferrer: params.r,
-            HTTPUserAgent: req.headers['user-agent'],
-        },
-    };
-
-
-    // get authentication context for logging
-    let loggingClient = logging({
-        projectId: appEngineProjectId,
-    });
-    let log = loggingClient.log(logName);
-    let metaData = {
-        resource: resource,
-        level: level,
-        time: new Date().getTime(),
-    };
-    let entry = log.entry(metaData, event);
-    log.write(entry, logWritingError);
-    if (params.debug === '1') {
-        res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-        res.status(statusCodes.OK).send(
-	   JSON.stringify({
-             message: 'OK\n',
-             event: event,
-             throttleRate:throttleRate,
-         }));
-    } else {
-        res.sendStatus(statusCodes.NO_CONTENT);
-    }
-    next();
+  let entry = log.entry(metaData, event);
+  log.write(entry, logWritingError);
+  if (params.debug === '1') {
+    res.set('Content-Type', 'application/json; charset=ISO-8859-1');
+    res.status(statusCodes.OK).send(
+      JSON.stringify({
+        message: 'OK\n',
+        event: event,
+        throttleRate: throttleRate,
+      }));
+  } else {
+    res.sendStatus(statusCodes.NO_CONTENT);
+  }
+  next();
 }
 
 /**
  * Receive GET requests
  **/
 router.get('/r', getHandler);
-module.exports = [getHandler,stackTraceConversion];
+module.exports = [getHandler, stackTraceConversion];
