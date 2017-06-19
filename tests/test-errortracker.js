@@ -249,3 +249,18 @@ describe('Test how server responds to requests/behave', function () {
   });
 });
 
+describe('Test stacktraces are done correctly', function () {
+  let testInput = [];
+  let expectedTestOutput = [];
+  it('Should leave chrome and chrome like stack traces as they are', function () {
+    assert(false);
+  });
+  it('Should ignore stack traces with no line number and column number', function () {
+    assert(false);
+  });
+  it('Should convert safari and firefox stack traces to chrome like', function () {
+    assert(false);
+  });
+});
+
+

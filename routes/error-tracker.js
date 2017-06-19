@@ -60,6 +60,32 @@ function logWritingError(err, res, req) {
         + url.parse(req.url, true).query['v'], err);
   }
 }
+/**
+ * @desc converts stack traces and standardizes them to chrome like.
+ * @param exception
+ * @return standardized exception
+ **/
+function stackTraceConversion(exception) {
+  let chromeStackTraceRegex = /^\s*(.*)(.+):(\d+):(\d+)$/;
+  let match = exception.match(chromeStackTraceRegex);
+  if (match) {
+    exception = exception.substring(exception.indexOf('\n'));
+    let exceptions = exception.split('\n');
+    let validExceptions = exceptions.filter(function (value) {
+      return value.match(chromeStackTraceRegex);
+    });
+    exception = validExceptions.join('\n');
+    return exception;
+  } else if (!match) {
+    let mozillaSafariStackTraceRegex = /\d+/;
+    let otherMatch = exception.match(mozillaSafariStackTraceRegex);
+    if (otherMatch) {
+      // convert to chromeLike
+      return exception;
+    }
+  }
+  return null;
+}
 
 /**
  * @desc extract params in GET request from query and fill errorEvent object
