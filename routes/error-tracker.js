@@ -7,34 +7,6 @@
  */
 
 /**
- * objects used
- * Objects are identical to the objects used in previous errortracker.go
- * @typedef errorRequestMeta {
-	HTTPReferrer: string,
-	HTTPUserAgent: string
-    }
- @typedef errorRequest {
-	URL:  string,
-	Method: string,
-	Meta: errorRequestMeta
-  }
- @typedef errorEvent {
-	Application: string,
-	AppID; string,
-	Environment: string,
-	Version: string,
-	Message: string,
-	Exception: string,
-	Request: *errorRequest,
-	Filename: string,
-	Line: int32,
-	Classname: string,
-	Function: string,
-	Severity: string
-   }
- */
-
-/**
  * Handle error requests from clients and log them.
  */
 
@@ -69,8 +41,7 @@ const SEVERITY = {
  */
 function isFilteredMessageOrException(message, exception) {
   return filteredMessageOrException.some(function (msg) {
-    return message.includes(msg) ||
-      exception.includes(msg);
+    return message.includes(msg) || exception.includes(msg);
   });
 }
 
@@ -86,7 +57,7 @@ function logWritingError(err, res, req) {
     res.send({error: 'Cannot write to Google Cloud Logging'});
     res.end();
     winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
-      + url.parse(req.url, true).query['v'], err);
+        + url.parse(req.url, true).query['v'], err);
   }
 }
 
@@ -107,21 +78,20 @@ function getHandler(req, res, next) {
     isUserError = true;
   }
 
+  // if request comes from the cache and thus only from valid
+  // AMP docs we log as "Error"
   let severity = SEVERITY.INFO;
-  /**
-   *if request comes from the cache and thus only from valid
-   *AMP docs we log as "Error"
-   */
   let isCdn = false;
   if (referer.startsWith('https://cdn.ampproject.org/') ||
-    referer.includes('.cdn.ampproject.org/') ||
-    referer.includes('.ampproject.net/')) {
+      referer.includes('.cdn.ampproject.org/') ||
+      referer.includes('.ampproject.net/')) {
     severity = SEVERITY.ERROR;
     errorType += '-cdn';
     isCdn = true;
   } else {
     errorType += '-origin';
   }
+
   let is3p = false;
   let runtime = params.rt;
   if (runtime) {
@@ -140,18 +110,18 @@ function getHandler(req, res, next) {
       errorType += '-1p';
     }
   }
+
   let isCanary = false;
   if (params.ca === '1') {
     errorType += '-canary';
     isCanary = true;
   }
-
   if (params.ex === '1') {
     errorType += '-expected';
   }
+
   let sample = Math.random();
   let throttleRate = 0.1;
-
   if (isCanary) {
     throttleRate = 1.0; // explicitly log all errors
   } else if (is3p) {
@@ -163,14 +133,14 @@ function getHandler(req, res, next) {
   if (isUserError) {
     throttleRate = throttleRate / 10;
   }
-
   if (sample > throttleRate) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.OK)
-      .send('THROTTLED\n')
-      .end();
+        .send('THROTTLED\n')
+        .end();
     return;
   }
+
   let exception = params.s;
   let reg = /:\d+$/;
   // If format does not end with :\d+ truncate up to the last newline.
@@ -217,16 +187,15 @@ function getHandler(req, res, next) {
     projectId: appEngineProjectId,
   });
   let log = loggingClient.log(logName);
-  const resource = {
-    type: 'gae_app',
-    labels: {
-      project_id: 'amp-error-reporting',
-      version_id: SERVER_START_TIME,
-      module_id: 'default',
-    },
-  };
   const metaData = {
-    resource: resource,
+    resource: {
+      type: 'gae_app',
+      labels: {
+        project_id: 'amp-error-reporting',
+        version_id: SERVER_START_TIME,
+        module_id: 'default',
+      },
+    },
     severity: severity,
   };
   let entry = log.entry(metaData, event);
@@ -241,7 +210,7 @@ function getHandler(req, res, next) {
         throttleRate: throttleRate,
       }));
   } else {
-    res.sendStatus(statusCodes.NO_CONTENT);
+    res.sendStatus(statusCodes.NO_CONTENT).end();
   }
   next();
 }
