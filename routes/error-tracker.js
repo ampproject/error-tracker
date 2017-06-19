@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *     http://www.apache.org/licenses/LICENSE-2.0
- **/
+ */
 
 /**
  * objects used
@@ -32,11 +32,11 @@
 	Function: string,
 	Severity: string
    }
- **/
+ */
 
 /**
  * Handle error requests from clients and log them.
- **/
+ */
 
 const express = require('express');
 const logging = require('@google-cloud/logging');
@@ -111,7 +111,7 @@ function getHandler(req, res, next) {
   /**
    *if request comes from the cache and thus only from valid
    *AMP docs we log as "Error"
-   **/
+   */
   let isCdn = false;
   if (referer.startsWith('https://cdn.ampproject.org/') ||
     referer.includes('.cdn.ampproject.org/') ||

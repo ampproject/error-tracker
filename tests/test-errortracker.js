@@ -245,7 +245,6 @@ describe('Test how server responds to requests/behave', function () {
     query.m = 'message';
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.NO_CONTENT);
-      //try
     });
   });
 });
