@@ -65,7 +65,7 @@ const SEVERITY = {
 /**
  * @param message
  * @param exception
- * @returns {boolean}
+ * @return {boolean}
  */
 function isFilteredMessageOrException(message, exception) {
   return filteredMessageOrException.some(function (msg) {
@@ -82,10 +82,11 @@ function isFilteredMessageOrException(message, exception) {
  */
 function logWritingError(err, res, req) {
   if (err) {
-    res.status(statusCodes.INTERNAL_SERVER_ERROR)
-      .send({error: 'Cannot write to Google Cloud Logging'})
-      .end();
-    winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: ' + url.parse(req.url, true).query['v'], err);
+    res.status(statusCodes.INTERNAL_SERVER_ERROR);
+    res.send({error: 'Cannot write to Google Cloud Logging'});
+    res.end();
+    winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
+      + url.parse(req.url, true).query['v'], err);
   }
 }
 
@@ -107,7 +108,10 @@ function getHandler(req, res, next) {
   }
 
   let severity = SEVERITY.INFO;
-  // if request comes from the cache and thus only from valid AMP docs we log as "Error"
+  /**
+   *if request comes from the cache and thus only from valid
+   *AMP docs we log as "Error"
+   **/
   let isCdn = false;
   if (referer.startsWith('https://cdn.ampproject.org/') ||
     referer.includes('.cdn.ampproject.org/') ||
@@ -128,7 +132,6 @@ function getHandler(req, res, next) {
     if (runtime === '3p') {
       is3p = true;
     }
-
   } else {
     if (params['3p'] === '1') {
       is3p = true;
@@ -136,7 +139,6 @@ function getHandler(req, res, next) {
     } else {
       errorType += '-1p';
     }
-
   }
   let isCanary = false;
   if (params.ca === '1') {
@@ -174,11 +176,26 @@ function getHandler(req, res, next) {
   // If format does not end with :\d+ truncate up to the last newline.
   if (!exception.match(reg)) {
     exception = exception.replace(/\n.*$/, '');
-
   }
+  let event = {
+    serviceContext: {
+      service: appEngineProjectId,
+      version: errorType + '-' + params.v,
+    },
+    message: exception,
+    context: {
+      httpRequest: {
+        url: req.url.toString(),
+        userAgent: req.get('User-Agent'),
+        referrer: params.r,
+      },
+    },
+  };
 
   if (params.m === '' && exception === '') {
-    res.status(statusCodes.BAD_REQUEST).send({error: 'One of \'message\' or \'exception\' must be present.'}).end();
+    res.status(statusCodes.BAD_REQUEST);
+    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
+    res.end();
     winston.log(ERROR_LEVELS.ERROR, 'Malformed request: ' + params.v.toString(), event);
     return;
   }
@@ -203,32 +220,18 @@ function getHandler(req, res, next) {
   const resource = {
     type: 'gae_app',
     labels: {
-      project_id: "amp-error-reporting",
-      version_id: 'SERVER_START_TIME',
-      module_id: "default",
+      project_id: 'amp-error-reporting',
+      version_id: SERVER_START_TIME,
+      module_id: 'default',
     },
   };
   const metaData = {
     resource: resource,
     severity: severity,
   };
-  let event = {
-    serviceContext: {
-      service: appEngineProjectId,
-      version: errorType + '-' + params.v,
-    },
-    message: exception,
-    context: {
-      httpRequest: {
-        url: req.url.toString(),
-        userAgent: req.get('User-Agent'),
-        referrer: params.r,
-      },
-    },
-  };
-
   let entry = log.entry(metaData, event);
   log.write(entry, logWritingError);
+
   if (params.debug === '1') {
     res.set('Content-Type', 'application/json; charset=ISO-8859-1');
     res.status(statusCodes.OK).send(
@@ -247,4 +250,4 @@ function getHandler(req, res, next) {
  * Receive GET requests
  **/
 router.get('/r', getHandler);
-module.exports = [getHandler, stackTraceConversion];
+module.exports = [getHandler];

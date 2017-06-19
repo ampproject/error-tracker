@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "deploy": "gcloud app deploy",
-    "lint": "eslint **/*.js --fix",
+    "lint": "eslint **/*.js",
     "pretest": "npm run lint",
     "system-test": "errortracker test app",
     "test": "npm run system-test",
