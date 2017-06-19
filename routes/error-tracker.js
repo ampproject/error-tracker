@@ -21,6 +21,8 @@ const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const filteredMessageOrException = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
+const mozzilaSafariMidString = '@';
+const chromeEtAlString = ' at ';
 /**
  * ERROR_LEVELS
  * @enum {string}
@@ -74,14 +76,23 @@ function stackTraceConversion(exception) {
     exception = validExceptions.join('\n');
     return exception;
   } else if (!match) {
-    let mozillaSafariStackTraceRegex = /\d+/;
+    let mozillaSafariStackTraceRegex = /^([^@]*)@(.+):(\d+):(\d+)$/;
     let otherMatch = exception.match(mozillaSafariStackTraceRegex);
     if (otherMatch) {
       // convert to chromeLike
+      let exceptions = exception.split('\n');
+      let validExceptions = exceptions.map(safariOrMozillaToChrome);
+      exception = validExceptions.join('\n');
       return exception;
     }
   }
   return null;
+}
+/**
+ * @param exception
+ **/
+function safariOrMozillaToChrome(exception) {
+ return exception.replace(mozzilaSafariMidString,chromeEtAlString);
 }
 
 /**
