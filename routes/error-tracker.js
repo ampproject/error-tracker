@@ -69,7 +69,7 @@ function logWritingError(err, res, req) {
  * @return standardized exception
  */
 function stackTraceConversion(exception) {
-  let chromeStackTraceRegex = /^\s*(.*)(.+):(\d+):(\d+)/gm;
+  let chromeStackTraceRegex = /^\s*at (?:([^]*) )?([^]+):(\d+):(\d+)/m;
   let match = chromeStackTraceRegex.test(exception);
   if (match) {
     exception = exception.substring(exception.indexOf('\n'));
@@ -80,7 +80,7 @@ function stackTraceConversion(exception) {
     exception = validExceptions.join('\n');
     return exception;
   } else if (!match) {
-    let mozillaSafariStackTraceRegex = /^([^@]*)@(.+):(\d+):(\d+)$/;
+    let mozillaSafariStackTraceRegex = /^([^@]*)@(.+):(\d+):(\d+)$/m;
     let otherMatch = mozillaSafariStackTraceRegex.test(exception);
     if (otherMatch) {
       // convert to chromeLike
@@ -100,8 +100,9 @@ function stackTraceConversion(exception) {
  * @param exception
  */
 function safariOrMozillaToChrome(exception) {
-
- return exception.replace(mozzilaSafariMidString,chromeEtAlString);
+  let context = exception.substring(0,exception.indexOf(mozzilaSafariMidString));
+  let notContext = exception.substring(exception.indexOf(mozzilaSafariMidString) + 1);
+  return  chromeEtAlString + context + ' ' + notContext;
 }
 
 /**

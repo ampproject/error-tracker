@@ -281,7 +281,10 @@ I([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:51
    at pf.applyBestCandidate (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:310:3)
    at picturefill (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:494:7)
    at Anonymous function (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:514:4)
-   at nrWrapper (http://www.24horas.cl/deportes/copa-confederaciones/chile-vs-burkina-faso-la-roja-disputa-amistoso-preparatorio-para-copa-confederaciones-2404073:14:11014)`
+   at nrWrapper (http://www.24horas.cl/deportes/copa-confederaciones/chile-vs-burkina-faso-la-roja-disputa-amistoso-preparatorio-para-copa-confederaciones-2404073:14:11014)`,
+   `[native code]
+https://cdn.ampproject.org/v0.js:115:170
+promiseReactionJob@[native code]`
   ];
   let expectedTestOutput = [`    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
@@ -292,33 +295,31 @@ I([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:51
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
     at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
-    `Zd at https://cdn.ampproject.org/v0.js:5:204
-error at https://cdn.ampproject.org/v0.js:5:314
-jh at https://cdn.ampproject.org/v0.js:237:205
-dc at https://cdn.ampproject.org/v0.js:53:69
-G at https://cdn.ampproject.org/v0.js:51:510
-ph at https://cdn.ampproject.org/v0.js:245:131
-dc at https://cdn.ampproject.org/v0.js:53:69
-gc at https://cdn.ampproject.org/v0.js:52:43
-bh at https://cdn.ampproject.org/v0.js:226:461
-dc at https://cdn.ampproject.org/v0.js:53:69
-I at https://cdn.ampproject.org/v0.js:51:628
-https://cdn.ampproject.org/v0.js:408:173
-pf at https://cdn.ampproject.org/v0.js:112:411
-$d at https://cdn.ampproject.org/v0.js:115:88`
+    ` at Zd https://cdn.ampproject.org/v0.js:5:204
+ at error https://cdn.ampproject.org/v0.js:5:314
+ at jh https://cdn.ampproject.org/v0.js:237:205
+ at dc https://cdn.ampproject.org/v0.js:53:69
+ at G https://cdn.ampproject.org/v0.js:51:510
+ at ph https://cdn.ampproject.org/v0.js:245:131
+ at dc https://cdn.ampproject.org/v0.js:53:69
+ at gc https://cdn.ampproject.org/v0.js:52:43
+ at bh https://cdn.ampproject.org/v0.js:226:461
+ at dc https://cdn.ampproject.org/v0.js:53:69
+ at I https://cdn.ampproject.org/v0.js:51:628
+ at pf https://cdn.ampproject.org/v0.js:112:411
+ at $d https://cdn.ampproject.org/v0.js:115:88`
   ];
 
   it('Should leave chrome and chrome like stack traces as they are', function () {
     expect(stackTrace.stackTraceConversion(testInput[0])).to.equal(expectedTestOutput[0]);
-    // assert(false);
   });
 
   it('Should ignore stack traces with no line number and column number', function () {
-    assert(false);
+    expect(stackTrace.stackTraceConversion(testInput[4])).to.equal(null);
   });
 
   it('Should convert safari and firefox stack traces to chrome like', function () {
-    assert(false);
+    expect(stackTrace.stackTraceConversion(testInput[1])).to.equal(expectedTestOutput[1]);
   });
 });
 
