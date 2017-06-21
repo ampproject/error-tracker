@@ -23,11 +23,11 @@ const filteredMessageOrException = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const mozzilaSafariMidString = '@';
 const chromeEtAlString = ' at ';
-/**
- * ERROR_LEVELS
- * @enum {string}
- */
 
+/**
+ * SEVERITY
+ * @enum {int}
+ */
 const SEVERITY = {
   INFO: 200,
   ERROR: 500,
@@ -103,15 +103,15 @@ function safariOrMozillaToChrome(exception) {
  * @param next
  */
 function getHandler(req, res, next) {
+  const params = req.query;
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
     res.end();
-    winston.log('Error', 'Malformed request: ' + params.v.toString(), event);
+    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-  
-  const params = req.query;
+
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -206,14 +206,14 @@ function getHandler(req, res, next) {
 
   if (isFilteredMessageOrException(params.m, exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST)
+    res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE\n').end();
     return;
   }
 
   // Don't log testing traffic in production
   if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT)
+    res.sendStatus(statusCodes.NO_CONTENT);
     res.end();
     return;
   }
