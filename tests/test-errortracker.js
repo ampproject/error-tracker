@@ -1,11 +1,9 @@
 /**
- * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
- *
+ * Copyright 2017 The AMP Authors. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  */
 
 
@@ -20,12 +18,13 @@ const before = mocha.before;
 const after = mocha.after;
 const expect = chai.expect;
 const it = mocha.it;
+const stackTrace = require('../routes/error-tracker');
+const assert = require('assert');
 
 process.env.NODE_ENV = 'test';
-
 chai.use(chaihttp);
 
-describe('Test how server responds to requests/behave', function () {
+describe('Test how server responds to requests', function () {
   let query = {
     'l': 12,
     'a': 1,
@@ -52,10 +51,9 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should ignore 99% of user errors', function () {
-    // set up parameters
     randomVal = 1;
-    query.a = 1; // set explicitly to user error
-    query.ca = 0; // canary errors cannot be throttled unless ca =0
+    query.a = 1;
+    query.ca = 0;
     query.rt = '';
     query['3p'] = 0;
     return chai.request(app).get('/r').query(query).then(function (res) {
@@ -66,7 +64,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should log 1% of user errors', function () {
-    // modify query parameters to run test
     randomVal = 0.00000000000000001; // set sample to extremely small.
     query.a = 1;
     query.ca = 0;
@@ -82,7 +79,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should ignore 90% of 3p errors', function () {
-    // adjust query parameters for test.
     query['3p'] = 1;
     randomVal = 1;
     query.ca = 0;
@@ -97,7 +93,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should log 10% of 3p errors', function () {
-    // adjust query parameters to mock this case
     query['3p'] = 1;
     randomVal = 0.00000000000000001;
     query.ca = 0;
@@ -115,7 +110,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should ignore 90% of cdn errors', function () {
-    // adjust query parameters to mock this case
     query['3p'] = 0;
     query.a = 0;
     query.ca = 0;
@@ -130,7 +124,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should log 10% of cdn errors', function () {
-    // adjust query parameters to mock this case
     query['3p'] = 0;
     query.a = 0;
     query.ca = 0;
@@ -148,7 +141,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should log all canary errors ', function () {
-    // adjust query parameters to
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
@@ -166,7 +158,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should not log errors missing exception and message', function () {
-    // adjust query parameters to mock this case
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -183,7 +174,7 @@ describe('Test how server responds to requests/behave', function () {
        *  object. More information at https://github.com/chaijs/chai-http/issues/75.
        *  This is a hack and once the package has been updated is subject to
        *  change
-       **/
+       */
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       let payload = JSON.parse(res.response.text);
       expect(payload.error).to.equal('One of \'message\' or \'exception\' must be present.');
@@ -191,7 +182,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should ignore testing traffic', function () {
-    // adjust query parameters to mock this case.
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -208,7 +198,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should ignore filtered messages or exceptions', function () {
-    // adjust query parameters to mock this case
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -226,7 +215,7 @@ describe('Test how server responds to requests/behave', function () {
        * object. More information at https://github.com/chaijs/chai-http/issues/75.
        * This is a hack and once the package
        * has been updated is subject to change
-       **/
+       */
       expect(res).to.have.status(statusCodes.BAD_REQUEST);
       expect(res.response).to.have.header('content-Type', 'text/plain; charset=utf-8');
       expect(res.response.text).to.equal('IGNORE\n');
@@ -234,7 +223,6 @@ describe('Test how server responds to requests/behave', function () {
   });
 
   it('Should ignore debug errors', function () {
-    // adjust query parameters to mock this case
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -245,22 +233,93 @@ describe('Test how server responds to requests/behave', function () {
     query.m = 'message';
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.NO_CONTENT);
-      //try
     });
   });
 });
 
-describe('Test stacktraces are done correctly', function () {
-  let testInput = [];
-  let expectedTestOutput = [];
+describe('Test stacktrace conversions are done correctly', function () {
+  let testInput = [`Error: localStorage not supported.
+    at Error (native)
+    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at I (https://cdn.ampproject.org/rtv/031496877433269/v0.js:51:626)
+    at xi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:278)
+    at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
+    at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
+    at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
+    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
+    `Zd@https://cdn.ampproject.org/v0.js:5:204
+error@https://cdn.ampproject.org/v0.js:5:314
+jh@https://cdn.ampproject.org/v0.js:237:205
+dc@https://cdn.ampproject.org/v0.js:53:69
+G@https://cdn.ampproject.org/v0.js:51:510
+ph@https://cdn.ampproject.org/v0.js:245:131
+dc@https://cdn.ampproject.org/v0.js:53:69
+gc@https://cdn.ampproject.org/v0.js:52:43
+bh@https://cdn.ampproject.org/v0.js:226:461
+dc@https://cdn.ampproject.org/v0.js:53:69
+I@https://cdn.ampproject.org/v0.js:51:628
+https://cdn.ampproject.org/v0.js:408:173
+pf@https://cdn.ampproject.org/v0.js:112:411
+$d@https://cdn.ampproject.org/v0.js:115:88
+[native code]
+https://cdn.ampproject.org/v0.js:115:170
+promiseReactionJob@[native code]`,
+      `anonymous function: a.prototype.t>([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:78
+Vd([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:78
+Ud([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:75
+Rd([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:73
+Qd([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:72
+anonymous function: f.expectedError>([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:5
+yi([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:297
+anonymous function>([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:298
+dc([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:53
+I([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:51
+`,
+      `TypeError: Unable to get property 'url' of undefined or null reference
+   at pf.applyBestCandidate (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:310:3)
+   at picturefill (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:494:7)
+   at Anonymous function (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:514:4)
+   at nrWrapper (http://www.24horas.cl/deportes/copa-confederaciones/chile-vs-burkina-faso-la-roja-disputa-amistoso-preparatorio-para-copa-confederaciones-2404073:14:11014)`,
+   `[native code]
+https://cdn.ampproject.org/v0.js:115:170
+promiseReactionJob@[native code]`
+  ];
+  let expectedTestOutput = [`    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at I (https://cdn.ampproject.org/rtv/031496877433269/v0.js:51:626)
+    at xi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:278)
+    at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
+    at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
+    at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
+    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
+    ` at Zd https://cdn.ampproject.org/v0.js:5:204
+ at error https://cdn.ampproject.org/v0.js:5:314
+ at jh https://cdn.ampproject.org/v0.js:237:205
+ at dc https://cdn.ampproject.org/v0.js:53:69
+ at G https://cdn.ampproject.org/v0.js:51:510
+ at ph https://cdn.ampproject.org/v0.js:245:131
+ at dc https://cdn.ampproject.org/v0.js:53:69
+ at gc https://cdn.ampproject.org/v0.js:52:43
+ at bh https://cdn.ampproject.org/v0.js:226:461
+ at dc https://cdn.ampproject.org/v0.js:53:69
+ at I https://cdn.ampproject.org/v0.js:51:628
+ at pf https://cdn.ampproject.org/v0.js:112:411
+ at $d https://cdn.ampproject.org/v0.js:115:88`
+  ];
+
   it('Should leave chrome and chrome like stack traces as they are', function () {
-    assert(false);
+    expect(stackTrace.stackTraceConversion(testInput[0])).to.equal(expectedTestOutput[0]);
   });
+
   it('Should ignore stack traces with no line number and column number', function () {
-    assert(false);
+    expect(stackTrace.stackTraceConversion(testInput[4])).to.equal(null);
   });
+
   it('Should convert safari and firefox stack traces to chrome like', function () {
-    assert(false);
+    expect(stackTrace.stackTraceConversion(testInput[1])).to.equal(expectedTestOutput[1]);
   });
 });
 
