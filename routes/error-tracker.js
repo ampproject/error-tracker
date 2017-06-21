@@ -22,8 +22,8 @@ const SERVER_START_TIME = Date.now();
 const filteredMessageOrException = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 /**
- * ERROR_LEVELS
- * @enum {string}
+ * SEVERITY
+ * @enum {int}
  */
 
 const SEVERITY = {
