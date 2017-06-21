@@ -66,6 +66,14 @@ function logWritingError(err, res, req) {
  * @param next
  */
 function getHandler(req, res, next) {
+  if (params.m === '' && params.s === '') {
+    res.status(statusCodes.BAD_REQUEST);
+    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
+    res.end();
+    winston.log('Error', 'Malformed request: ' + params.v.toString(), event);
+    return;
+  }
+  
   const params = req.query;
   const referer = params.r;
   let errorType = 'default';
@@ -158,14 +166,6 @@ function getHandler(req, res, next) {
       },
     },
   };
-
-  if (params.m === '' && exception === '') {
-    res.status(statusCodes.BAD_REQUEST);
-    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
-    res.end();
-    winston.log('Error', 'Malformed request: ' + params.v.toString(), event);
-    return;
-  }
 
   if (isFilteredMessageOrException(params.m, exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
