@@ -238,7 +238,8 @@ describe('Test how server responds to requests', function () {
 });
 
 describe('Test stacktrace conversions are done correctly', function () {
-  let testInput = [`Error: localStorage not supported.
+  let testInput = [
+    `Error: localStorage not supported.
     at Error (native)
     at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
@@ -250,43 +251,28 @@ describe('Test stacktrace conversions are done correctly', function () {
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
     at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
     `Zd@https://cdn.ampproject.org/v0.js:5:204
-error@https://cdn.ampproject.org/v0.js:5:314
-jh@https://cdn.ampproject.org/v0.js:237:205
-dc@https://cdn.ampproject.org/v0.js:53:69
-G@https://cdn.ampproject.org/v0.js:51:510
-ph@https://cdn.ampproject.org/v0.js:245:131
-dc@https://cdn.ampproject.org/v0.js:53:69
-gc@https://cdn.ampproject.org/v0.js:52:43
-bh@https://cdn.ampproject.org/v0.js:226:461
-dc@https://cdn.ampproject.org/v0.js:53:69
-I@https://cdn.ampproject.org/v0.js:51:628
-https://cdn.ampproject.org/v0.js:408:173
-pf@https://cdn.ampproject.org/v0.js:112:411
-$d@https://cdn.ampproject.org/v0.js:115:88
-[native code]
-https://cdn.ampproject.org/v0.js:115:170
-promiseReactionJob@[native code]`,
-      `anonymous function: a.prototype.t>([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:78
-Vd([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:78
-Ud([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:75
-Rd([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:73
-Qd([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:72
-anonymous function: f.expectedError>([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:5
-yi([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:297
-anonymous function>([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:298
-dc([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:53
-I([arguments not available])@https://cdn.ampproject.org/amp4ads-v0.js:51
-`,
-      `TypeError: Unable to get property 'url' of undefined or null reference
-   at pf.applyBestCandidate (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:310:3)
-   at picturefill (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:494:7)
-   at Anonymous function (http://estaticos.24horas.cl/skins/2017/05/23/js/picturefill.js:514:4)
-   at nrWrapper (http://www.24horas.cl/deportes/copa-confederaciones/chile-vs-burkina-faso-la-roja-disputa-amistoso-preparatorio-para-copa-confederaciones-2404073:14:11014)`,
-   `[native code]
-https://cdn.ampproject.org/v0.js:115:170
-promiseReactionJob@[native code]`
+    error@https://cdn.ampproject.org/v0.js:5:314
+    jh@https://cdn.ampproject.org/v0.js:237:205
+    dc@https://cdn.ampproject.org/v0.js:53:69
+    G@https://cdn.ampproject.org/v0.js:51:510
+    ph@https://cdn.ampproject.org/v0.js:245:131
+    dc@https://cdn.ampproject.org/v0.js:53:69
+    gc@https://cdn.ampproject.org/v0.js:52:43
+    bh@https://cdn.ampproject.org/v0.js:226:461
+    dc@https://cdn.ampproject.org/v0.js:53:69
+    I@https://cdn.ampproject.org/v0.js:51:628
+    https://cdn.ampproject.org/v0.js:408:173
+    pf@https://cdn.ampproject.org/v0.js:112:411
+    $d@https://cdn.ampproject.org/v0.js:115:88
+    [native code]
+    https://cdn.ampproject.org/v0.js:115:170
+    promiseReactionJob@[native code]`,
+    `[native code]
+    https://cdn.ampproject.org/v0.js:115:170
+    promiseReactionJob@[native code]`
   ];
-  let expectedTestOutput = [`    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+  let expectedTestOutput = [
+    `    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
     at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
     at I (https://cdn.ampproject.org/rtv/031496877433269/v0.js:51:626)
@@ -296,18 +282,18 @@ promiseReactionJob@[native code]`
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
     at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
     ` at Zd https://cdn.ampproject.org/v0.js:5:204
- at error https://cdn.ampproject.org/v0.js:5:314
- at jh https://cdn.ampproject.org/v0.js:237:205
- at dc https://cdn.ampproject.org/v0.js:53:69
- at G https://cdn.ampproject.org/v0.js:51:510
- at ph https://cdn.ampproject.org/v0.js:245:131
- at dc https://cdn.ampproject.org/v0.js:53:69
- at gc https://cdn.ampproject.org/v0.js:52:43
- at bh https://cdn.ampproject.org/v0.js:226:461
- at dc https://cdn.ampproject.org/v0.js:53:69
- at I https://cdn.ampproject.org/v0.js:51:628
- at pf https://cdn.ampproject.org/v0.js:112:411
- at $d https://cdn.ampproject.org/v0.js:115:88`
+ at     error https://cdn.ampproject.org/v0.js:5:314
+ at     jh https://cdn.ampproject.org/v0.js:237:205
+ at     dc https://cdn.ampproject.org/v0.js:53:69
+ at     G https://cdn.ampproject.org/v0.js:51:510
+ at     ph https://cdn.ampproject.org/v0.js:245:131
+ at     dc https://cdn.ampproject.org/v0.js:53:69
+ at     gc https://cdn.ampproject.org/v0.js:52:43
+ at     bh https://cdn.ampproject.org/v0.js:226:461
+ at     dc https://cdn.ampproject.org/v0.js:53:69
+ at     I https://cdn.ampproject.org/v0.js:51:628
+ at     pf https://cdn.ampproject.org/v0.js:112:411
+ at     $d https://cdn.ampproject.org/v0.js:115:88`,
   ];
 
   it('Should leave chrome and chrome like stack traces as they are', function () {
