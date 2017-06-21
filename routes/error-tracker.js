@@ -196,6 +196,14 @@ function getHandler(req, res, next) {
   if (!exception.match(reg)) {
     exception = exception.replace(/\n.*$/, '');
   }
+  exception = stackTraceConversion(exception);
+  if(!exception) {
+    res.status(statusCodes.BAD_REQUEST);
+    res.send({error: 'Exception must have a valid stack trace'});
+    res.end();
+    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
+    return;
+  }
   let event = {
     serviceContext: {
       service: appEngineProjectId,

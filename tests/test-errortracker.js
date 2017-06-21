@@ -235,6 +235,30 @@ describe('Test how server responds to requests', function () {
       expect(res).to.have.status(statusCodes.NO_CONTENT);
     });
   });
+
+  it('Should not log exceptions with only invalid stacktraces',function () {
+    randomVal = 0.00000000000000001;
+    query.a = 0;
+    query.ca = 1;
+    query['3p'] = 0;
+    query.s = 'exception@file.js';
+    query.debug = 1;
+    query.r = 'referer';
+    query.m = 'message';
+    return chai.request(app).get('/r').query(query).then(function (res) {
+      throw new Error('Unreachable');
+    },function (res) {
+      /** chai-http errors with handling > 299 status codes hence errors can only be
+       * asserted in the catch block which modifies anatomy of response
+       * object. More information at https://github.com/chaijs/chai-http/issues/75.
+       * This is a hack and once the package
+       * has been updated is subject to change
+       */
+      expect(res).to.have.property('status',statusCodes.BAD_REQUEST);
+      let payload = JSON.parse(res.response.text);
+      expect(payload.error).to.equal('Exception must have a valid stack trace');
+    })
+  })
 });
 
 describe('Test stacktrace conversions are done correctly', function () {
