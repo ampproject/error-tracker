@@ -169,14 +169,14 @@ function getHandler(req, res, next) {
 
   if (isFilteredMessageOrException(params.m, exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST)
+    res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE\n').end();
     return;
   }
 
   // Don't log testing traffic in production
   if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT)
+    res.sendStatus(statusCodes.NO_CONTENT);
     res.end();
     return;
   }
