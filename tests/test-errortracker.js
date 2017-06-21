@@ -56,6 +56,7 @@ describe('Test how server responds to requests', function () {
     query.ca = 0;
     query.rt = '';
     query['3p'] = 0;
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res).to.have.status(statusCodes.OK);
@@ -68,6 +69,7 @@ describe('Test how server responds to requests', function () {
     query.a = 1;
     query.ca = 0;
     query.debug = 1;
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
@@ -85,6 +87,7 @@ describe('Test how server responds to requests', function () {
     query.a = 0;
     query.debug = 1;
     query.rt = '';
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
@@ -99,6 +102,7 @@ describe('Test how server responds to requests', function () {
     query.a = 0;
     query.debug = 1;
     query.rt = '';
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
@@ -115,6 +119,7 @@ describe('Test how server responds to requests', function () {
     query.ca = 0;
     query.debug = 1;
     query.r = 'https://cdn.ampproject.org/conferences';
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     randomVal = 1;
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
@@ -129,6 +134,7 @@ describe('Test how server responds to requests', function () {
     query.ca = 0;
     query.debug = 1;
     query.r = 'https://cdn.ampproject.org/conferences';
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     randomVal = 0.00000000000000001;
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
@@ -146,6 +152,7 @@ describe('Test how server responds to requests', function () {
     query['3p'] = 0;
     query.debug = 1;
     query.r = 'referer';
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     randomVal = 0.00000000000000001;
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
@@ -186,14 +193,14 @@ describe('Test how server responds to requests', function () {
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
-    query.s = 'exception';
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     query.m = 'message';
     query.debug = 1;
     query.r = 'referer';
     query.m = 'message';
     query.v = '$internalRuntimeVersion$';
     return chai.request(app).get('/r').query(query).then(function (res) {
-      expect(res).to.have.status(statusCodes.NO_CONTENT);
+      expect(res).to.have.property('status', statusCodes.NO_CONTENT);
     });
   });
 
@@ -227,7 +234,7 @@ describe('Test how server responds to requests', function () {
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
-    query.s = 'exception';
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     query.debug = 0;
     query.r = 'referer';
     query.m = 'message';

@@ -191,6 +191,13 @@ function getHandler(req, res, next) {
   }
 
   let exception = params.s;
+  if (isFilteredMessageOrException(params.m, exception)) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.status(statusCodes.BAD_REQUEST);
+    res.send('IGNORE\n').end();
+    return;
+  }
+
   let reg = /:\d+$/;
   // If format does not end with :\d+ truncate up to the last newline.
   if (!exception.match(reg)) {
@@ -218,13 +225,6 @@ function getHandler(req, res, next) {
       },
     },
   };
-
-  if (isFilteredMessageOrException(params.m, exception)) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE\n').end();
-    return;
-  }
 
   // Don't log testing traffic in production
   if (params.v.includes('$internalRuntimeVersion$')) {
