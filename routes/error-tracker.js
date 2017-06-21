@@ -66,15 +66,15 @@ function logWritingError(err, res, req) {
  * @param next
  */
 function getHandler(req, res, next) {
+   const params = req.query;
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
     res.end();
-    winston.log('Error', 'Malformed request: ' + params.v.toString(), event);
+    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
   
-  const params = req.query;
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
