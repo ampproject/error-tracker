@@ -16,21 +16,18 @@ const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
 const router = express.Router();
-const appEngineProjectId = '';
+const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const filteredMessageOrException = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const mozzilaSafariMidString = '@';
 const chromeEtAlString = ' at ';
+
 /**
- * ERROR_LEVELS
- * @enum {string}
+ * SEVERITY
+ * @enum {int}
  */
-const ERROR_LEVELS = {
-  INFO: 'Info',
-  ERROR: 'Error',
-};
 const SEVERITY = {
   INFO: 200,
   ERROR: 500,
@@ -114,6 +111,14 @@ function safariOrMozillaToChrome(exception) {
  */
 function getHandler(req, res, next) {
   const params = req.query;
+  if (params.m === '' && params.s === '') {
+    res.status(statusCodes.BAD_REQUEST);
+    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
+    res.end();
+    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
+    return;
+  }
+
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -206,24 +211,17 @@ function getHandler(req, res, next) {
     },
   };
 
-  if (params.m === '' && exception === '') {
-    res.status(statusCodes.BAD_REQUEST);
-    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
-    res.end();
-    winston.log(ERROR_LEVELS.ERROR, 'Malformed request: '
-        + params.v.toString(), event);
-    return;
-  }
-
   if (isFilteredMessageOrException(params.m, exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST).send('IGNORE\n').end();
+    res.status(statusCodes.BAD_REQUEST);
+    res.send('IGNORE\n').end();
     return;
   }
 
   // Don't log testing traffic in production
   if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT).end();
+    res.sendStatus(statusCodes.NO_CONTENT);
+    res.end();
     return;
   }
 
@@ -253,7 +251,7 @@ function getHandler(req, res, next) {
         message: 'OK\n',
         event: event,
         throttleRate: throttleRate,
-      }));
+      })).end();
   } else {
     res.sendStatus(statusCodes.NO_CONTENT).end();
   }
