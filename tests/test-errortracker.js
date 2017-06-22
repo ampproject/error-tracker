@@ -79,7 +79,8 @@ describe('Test how server responds to requests/behave', function () {
     query.debug = 1;
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
-      expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
+      expect(res).to.have.header('Content-Type',
+        'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
       expect(payload.event.serviceContext.version).to.includes('assert');
       expect(payload.message).to.equal('OK\n');
@@ -112,7 +113,8 @@ describe('Test how server responds to requests/behave', function () {
     query.rt = '';
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
-      expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
+      expect(res).to.have.header('Content-Type',
+        'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
       expect(payload.event.serviceContext.version).to.includes('3p');
       expect(payload.message).to.includes('OK\n');
@@ -145,7 +147,8 @@ describe('Test how server responds to requests/behave', function () {
     randomVal = 0.00000000000000001;
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
-      expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
+      expect(res).to.have.header('Content-Type',
+        'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
       expect(payload.event.serviceContext.version).includes('cdn');
       expect(payload.message === 'OK\n');
@@ -163,7 +166,8 @@ describe('Test how server responds to requests/behave', function () {
     randomVal = 0.00000000000000001;
     return chai.request(app).get('/r').query(query).then(function (res) {
       expect(res).to.have.status(statusCodes.OK);
-      expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
+      expect(res).to.have.header('Content-Type',
+        'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
       expect(payload.event.serviceContext.version).includes('canary');
       expect(payload.message === 'OK\n');
@@ -184,11 +188,12 @@ describe('Test how server responds to requests/behave', function () {
     return chai.request(app).get('/r').query(query).then(function (res) {
       throw new Error('Unreachable');
     }, function (res) {
-      /** chai-http errors with handling > 299 status codes hence errors can only
-       *  be asserted in the catch block which modifies anatomy of response
-       *  object. More information at https://github.com/chaijs/chai-http/issues/75.
-       *  This is a hack and once the package has been updated is subject to
-       *  change
+      /** chai-http errors with handling > 299 status codes hence errors can
+       * only be asserted in the catch block which modifies anatomy of response
+       * object. More information at
+       * https://github.com/chaijs/chai-http/issues/75.
+       * This is a hack and once the package has been updated is subject to
+       * change
        **/
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       let payload = JSON.parse(res.response.text);
@@ -227,9 +232,10 @@ describe('Test how server responds to requests/behave', function () {
     return chai.request(app).get('/r').query(query).then(function (res) {
       throw new Error('Unreachable');
     }, function (res) {
-      /** chai-http errors with handling > 299 status codes hence errors can only be
-       * asserted in the catch block which modifies anatomy of response
-       * object. More information at https://github.com/chaijs/chai-http/issues/75.
+      /** chai-http errors with handling > 299 status codes hence errors can
+       * only be asserted in the catch block which modifies anatomy of response
+       * object. More information at
+       * https://github.com/chaijs/chai-http/issues/75.
        * This is a hack and once the package
        * has been updated is subject to change
        **/

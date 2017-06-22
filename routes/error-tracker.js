@@ -53,9 +53,9 @@ function isFilteredMessageOrException(message, exception) {
 /**
  * @desc extract params in GET request from query and fill errorEvent object
  * log level by default is INFO.
- * @param req {httpRequest}
- * @param res {response}
- * @param next {middleware}
+ * @param {httpRequest} req
+ * @param {response} res
+ * @param {middleware} next
  */
 function getHandler(req, res, next) {
   const params = req.query;
@@ -66,7 +66,6 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-  
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
