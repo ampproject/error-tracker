@@ -7,6 +7,7 @@
  */
 
 /**
+ * @fileoverview
  * Handle error requests from clients and log them.
  */
 
