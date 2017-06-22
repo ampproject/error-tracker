@@ -14,7 +14,7 @@
     "deploy": "gcloud app deploy",
     "lint": "eslint **/*.js",
     "pretest": "npm run lint",
-    "system-test": "errortracker test app",
+    "system-test": "",
     "test": "./node_modules/mocha/bin/mocha",
     "e2e-test": "samples test deploy"
   },
