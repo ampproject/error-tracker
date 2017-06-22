@@ -24,7 +24,7 @@ const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
-const router = express.Router();
+const router = new express.Router();
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
@@ -53,15 +53,15 @@ function isFilteredMessageOrException(message, exception) {
 /**
  * @desc extract params in GET request from query and fill errorEvent object
  * log level by default is INFO.
- * @param req http reu
- * @param res
- * @param next
+ * @param req {httpRequest}
+ * @param res {response}
+ * @param next {middleware}
  */
 function getHandler(req, res, next) {
   const params = req.query;
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
-    res.send({error: "One of 'message' or 'exception' must be present."});
+    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
     res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
