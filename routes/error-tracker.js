@@ -1,12 +1,21 @@
 /**
- * Copyright 2017 The AMP Authors. All Rights Reserved.
+ * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
+ * @fileoverview
  * Handle error requests from clients and log them.
  */
 
@@ -15,28 +24,24 @@ const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
-const router = express.Router();
-const appEngineProjectId = '';
+const router = new express.Router();
+const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const filteredMessageOrException = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
+
 /**
- * ERROR_LEVELS
- * @enum {string}
+ * @enum {int}
  */
-const ERROR_LEVELS = {
-  INFO: 'Info',
-  ERROR: 'Error',
-};
 const SEVERITY = {
   INFO: 200,
   ERROR: 500,
 };
 
 /**
- * @param message
- * @param exception
+ * @param {string} message
+ * @param {string} exception
  * @return {boolean}
  */
 function isFilteredMessageOrException(message, exception) {
@@ -46,30 +51,22 @@ function isFilteredMessageOrException(message, exception) {
 }
 
 /**
- * @desc handle errors that come from an attempt to write to the logs
- * @param {!error} err
- * @param res http response object
- * @param req http request object
- */
-function logWritingError(err, res, req) {
-  if (err) {
-    res.status(statusCodes.INTERNAL_SERVER_ERROR);
-    res.send({error: 'Cannot write to Google Cloud Logging'});
-    res.end();
-    winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
-        + url.parse(req.url, true).query['v'], err);
-  }
-}
-
-/**
  * @desc extract params in GET request from query and fill errorEvent object
  * log level by default is INFO.
- * @param req
- * @param res
- * @param next
+ * @param req {httpRequest}
+ * @param res {response}
+ * @param next {middleware}
  */
 function getHandler(req, res, next) {
   const params = req.query;
+  if (params.m === '' && params.s === '') {
+    res.status(statusCodes.BAD_REQUEST);
+    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
+    res.end();
+    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
+    return;
+  }
+  
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -142,12 +139,11 @@ function getHandler(req, res, next) {
   }
 
   let exception = params.s;
-  let reg = /:\d+$/;
   // If format does not end with :\d+ truncate up to the last newline.
-  if (!exception.match(reg)) {
+  if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
-  let event = {
+  const event = {
     serviceContext: {
       service: appEngineProjectId,
       version: errorType + '-' + params.v,
@@ -162,23 +158,17 @@ function getHandler(req, res, next) {
     },
   };
 
-  if (params.m === '' && exception === '') {
-    res.status(statusCodes.BAD_REQUEST);
-    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
-    res.end();
-    winston.log(ERROR_LEVELS.ERROR, 'Malformed request: ' + params.v.toString(), event);
-    return;
-  }
-
   if (isFilteredMessageOrException(params.m, exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST).send('IGNORE\n').end();
+    res.status(statusCodes.BAD_REQUEST);
+    res.send('IGNORE\n').end();
     return;
   }
 
   // Don't log testing traffic in production
   if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT).end();
+    res.sendStatus(statusCodes.NO_CONTENT);
+    res.end();
     return;
   }
 
@@ -199,7 +189,15 @@ function getHandler(req, res, next) {
     severity: severity,
   };
   let entry = log.entry(metaData, event);
-  log.write(entry, logWritingError);
+  log.write(entry, function (err) {
+    if (err) {
+      res.status(statusCodes.INTERNAL_SERVER_ERROR);
+      res.send({error: 'Cannot write to Google Cloud Logging'});
+      res.end();
+      winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
+          + url.parse(req.url, true).query['v'], err);
+    }
+  });
 
   if (params.debug === '1') {
     res.set('Content-Type', 'application/json; charset=ISO-8859-1');
@@ -208,7 +206,7 @@ function getHandler(req, res, next) {
         message: 'OK\n',
         event: event,
         throttleRate: throttleRate,
-      }));
+      })).end();
   } else {
     res.sendStatus(statusCodes.NO_CONTENT).end();
   }
@@ -219,4 +217,4 @@ function getHandler(req, res, next) {
  * Receive GET requests
  **/
 router.get('/r', getHandler);
-module.exports = [getHandler];
+module.exports = getHandler;
