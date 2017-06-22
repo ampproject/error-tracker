@@ -197,7 +197,8 @@ describe('Test how server responds to requests/behave', function () {
        **/
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       let payload = JSON.parse(res.response.text);
-      expect(payload.error).to.equal('One of \'message\' or \'exception\' must be present.');
+      expect(payload.error)
+        .to.equal('One of \'message\' or \'exception\' must be present.');
     });
   });
 
@@ -224,7 +225,8 @@ describe('Test how server responds to requests/behave', function () {
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
-    query.s = 'I null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27) exception';
+    query.s = 'I null%20is%20not%20an%20object%20' +
+      '(evaluating%20%27elt.parentNode%27) exception';
     query.debug = 1;
     query.r = 'referer';
     query.m = 'I stop_youtube';
@@ -240,7 +242,8 @@ describe('Test how server responds to requests/behave', function () {
        * has been updated is subject to change
        **/
       expect(res).to.have.status(statusCodes.BAD_REQUEST);
-      expect(res.response).to.have.header('content-Type', 'text/plain; charset=utf-8');
+      expect(res.response).to.have.header('content-Type',
+        'text/plain; charset=utf-8');
       expect(res.response.text).to.equal('IGNORE\n');
     });
   });
