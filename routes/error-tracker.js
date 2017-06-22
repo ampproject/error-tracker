@@ -44,7 +44,7 @@ const SEVERITY = {
  * @param {string} exception
  * @return {boolean}
  */
-function isFilteredMessageOrException(message, exception) {
+function isFilteredMessageOrException(message, exception){
   return filteredMessageOrException.some(function (msg) {
     return message.includes(msg) || exception.includes(msg);
   });
@@ -57,7 +57,7 @@ function isFilteredMessageOrException(message, exception) {
  * @param {response} res
  * @param {middleware} next
  */
-function getHandler(req, res, next) {
+function getHandler(req, res, next){
   const params = req.query;
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
