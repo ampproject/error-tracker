@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- /*
+/**
  * App.js file that handles routing and basic error handling
  */
 

@@ -1,9 +1,17 @@
 /**
- * Copyright 2017 The AMP Authors. All Rights Reserved.
+ * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
@@ -24,7 +32,6 @@ const filteredMessageOrException = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 
 /**
- * SEVERITY
  * @enum {int}
  */
 const SEVERITY = {
@@ -33,8 +40,8 @@ const SEVERITY = {
 };
 
 /**
- * @param message
- * @param exception
+ * @param message {string}
+ * @param exception {string}
  * @return {boolean}
  */
 function isFilteredMessageOrException(message, exception) {
@@ -44,33 +51,17 @@ function isFilteredMessageOrException(message, exception) {
 }
 
 /**
- * @desc handle errors that come from an attempt to write to the logs
- * @param {!error} err
- * @param res http response object
- * @param req http request object
- */
-function logWritingError(err, res, req) {
-  if (err) {
-    res.status(statusCodes.INTERNAL_SERVER_ERROR);
-    res.send({error: 'Cannot write to Google Cloud Logging'});
-    res.end();
-    winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
-        + url.parse(req.url, true).query['v'], err);
-  }
-}
-
-/**
  * @desc extract params in GET request from query and fill errorEvent object
  * log level by default is INFO.
- * @param req
+ * @param req http reu
  * @param res
  * @param next
  */
 function getHandler(req, res, next) {
-   const params = req.query;
+  const params = req.query;
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
-    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
+    res.send({error: "One of 'message' or 'exception' must be present."});
     res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
@@ -148,12 +139,11 @@ function getHandler(req, res, next) {
   }
 
   let exception = params.s;
-  let reg = /:\d+$/;
   // If format does not end with :\d+ truncate up to the last newline.
-  if (!exception.match(reg)) {
+  if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
-  let event = {
+  const event = {
     serviceContext: {
       service: appEngineProjectId,
       version: errorType + '-' + params.v,
@@ -199,7 +189,15 @@ function getHandler(req, res, next) {
     severity: severity,
   };
   let entry = log.entry(metaData, event);
-  log.write(entry, logWritingError);
+  log.write(entry, function (err) {
+    if (err) {
+      res.status(statusCodes.INTERNAL_SERVER_ERROR);
+      res.send({error: 'Cannot write to Google Cloud Logging'});
+      res.end();
+      winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
+          + url.parse(req.url, true).query['v'], err);
+    }
+  });
 
   if (params.debug === '1') {
     res.set('Content-Type', 'application/json; charset=ISO-8859-1');
