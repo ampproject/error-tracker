@@ -15,7 +15,7 @@
     "lint": "eslint **/*.js",
     "pretest": "npm run lint",
     "system-test": "errortracker test app",
-    "test": "npm run system-test",
+    "test": "./node_modules/mocha/bin/mocha",
     "e2e-test": "samples test deploy"
   },
   "dependencies": {
