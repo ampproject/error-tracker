@@ -45,7 +45,7 @@ const SEVERITY = {
  * @return {boolean}
  */
 function isFilteredMessageOrException(message, exception) {
-  return filteredMessageOrException.some(function (msg) {
+  return filteredMessageOrException.some(function(msg) {
     return message.includes(msg) || exception.includes(msg);
   });
 }
@@ -79,8 +79,8 @@ function getHandler(req, res, next) {
   let severity = SEVERITY.INFO;
   let isCdn = false;
   if (referer.startsWith('https://cdn.ampproject.org/') ||
-      referer.includes('.cdn.ampproject.org/') ||
-      referer.includes('.ampproject.net/')) {
+    referer.includes('.cdn.ampproject.org/') ||
+    referer.includes('.ampproject.net/')) {
     severity = SEVERITY.ERROR;
     errorType += '-cdn';
     isCdn = true;
@@ -132,8 +132,8 @@ function getHandler(req, res, next) {
   if (sample > throttleRate) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.OK)
-        .send('THROTTLED\n')
-        .end();
+      .send('THROTTLED\n')
+      .end();
     return;
   }
 
@@ -188,13 +188,13 @@ function getHandler(req, res, next) {
     severity: severity,
   };
   let entry = log.entry(metaData, event);
-  log.write(entry, function (err) {
+  log.write(entry, function(err) {
     if (err) {
       res.status(statusCodes.INTERNAL_SERVER_ERROR);
       res.send({error: 'Cannot write to Google Cloud Logging'});
       res.end();
       winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
-          + url.parse(req.url, true).query['v'], err);
+        + url.parse(req.url, true).query['v'], err);
     }
   });
 
