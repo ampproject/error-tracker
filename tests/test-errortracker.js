@@ -31,7 +31,7 @@ process.env.NODE_ENV = 'test';
 
 chai.use(chaihttp);
 
-describe('Test how server responds to requests/behave', function () {
+describe('Test how server responds to requests/behave', function() {
   let query = {
     'l': 12,
     'a': 1,
@@ -47,37 +47,37 @@ describe('Test how server responds to requests/behave', function () {
     'debug': 1,
   };
   let randomVal = 1;
-  before(function () {
-    sinon.stub(Math, 'random').callsFake(function () {
+  before(function() {
+    sinon.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
   });
 
-  after(function (){
+  after(function() {
     Math.random.restore();
   });
 
-  it('Should ignore 99% of user errors', function () {
+  it('Should ignore 99% of user errors', function() {
     // set up parameters
     randomVal = 1;
     query.a = 1; // set explicitly to user error
     query.ca = 0; // canary errors cannot be throttled unless ca =0
     query.rt = '';
     query['3p'] = 0;
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res).to.have.status(statusCodes.OK);
       expect(res.text).to.equal('THROTTLED\n');
     });
   });
 
-  it('Should log 1% of user errors', function () {
+  it('Should log 1% of user errors', function() {
     // modify query parameters to run test
     randomVal = 0.00000000000000001; // set sample to extremely small.
     query.a = 1;
     query.ca = 0;
     query.debug = 1;
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
         'application/json; charset=utf-8');
@@ -88,7 +88,7 @@ describe('Test how server responds to requests/behave', function () {
     });
   });
 
-  it('Should ignore 90% of 3p errors', function () {
+  it('Should ignore 90% of 3p errors', function() {
     // adjust query parameters for test.
     query['3p'] = 1;
     randomVal = 1;
@@ -96,14 +96,14 @@ describe('Test how server responds to requests/behave', function () {
     query.a = 0;
     query.debug = 1;
     query.rt = '';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res.text).to.equal('THROTTLED\n');
     });
   });
 
-  it('Should log 10% of 3p errors', function () {
+  it('Should log 10% of 3p errors', function() {
     // adjust query parameters to mock this case
     query['3p'] = 1;
     randomVal = 0.00000000000000001;
@@ -111,7 +111,7 @@ describe('Test how server responds to requests/behave', function () {
     query.a = 0;
     query.debug = 1;
     query.rt = '';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
         'application/json; charset=utf-8');
@@ -122,7 +122,7 @@ describe('Test how server responds to requests/behave', function () {
     });
   });
 
-  it('Should ignore 90% of cdn errors', function () {
+  it('Should ignore 90% of cdn errors', function() {
     // adjust query parameters to mock this case
     query['3p'] = 0;
     query.a = 0;
@@ -130,14 +130,14 @@ describe('Test how server responds to requests/behave', function () {
     query.debug = 1;
     query.r = 'https://cdn.ampproject.org/conferences';
     randomVal = 1;
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res.text).to.equal('THROTTLED\n');
     });
   });
 
-  it('Should log 10% of cdn errors', function () {
+  it('Should log 10% of cdn errors', function() {
     // adjust query parameters to mock this case
     query['3p'] = 0;
     query.a = 0;
@@ -145,7 +145,7 @@ describe('Test how server responds to requests/behave', function () {
     query.debug = 1;
     query.r = 'https://cdn.ampproject.org/conferences';
     randomVal = 0.00000000000000001;
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
         'application/json; charset=utf-8');
@@ -156,7 +156,7 @@ describe('Test how server responds to requests/behave', function () {
     });
   });
 
-  it('Should log all canary errors ', function () {
+  it('Should log all canary errors ', function() {
     // adjust query parameters to
     query.a = 0;
     query.ca = 1;
@@ -164,7 +164,7 @@ describe('Test how server responds to requests/behave', function () {
     query.debug = 1;
     query.r = 'referer';
     randomVal = 0.00000000000000001;
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
         'application/json; charset=utf-8');
@@ -175,7 +175,7 @@ describe('Test how server responds to requests/behave', function () {
     });
   });
 
-  it('Should not log errors missing exception and message', function () {
+  it('Should not log errors missing exception and message', function() {
     // adjust query parameters to mock this case
     randomVal = 0.00000000000000001;
     query.a = 0;
@@ -185,9 +185,9 @@ describe('Test how server responds to requests/behave', function () {
     query.m = '';
     query.debug = 1;
     query.r = 'referer';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
-    }, function (res) {
+    }, function(res) {
       /** chai-http errors with handling > 299 status codes hence errors can
        * only be asserted in the catch block which modifies anatomy of response
        * object. More information at
@@ -202,7 +202,7 @@ describe('Test how server responds to requests/behave', function () {
     });
   });
 
-  it('Should ignore testing traffic', function () {
+  it('Should ignore testing traffic', function() {
     // adjust query parameters to mock this case.
     randomVal = 0.00000000000000001;
     query.a = 0;
@@ -214,12 +214,12 @@ describe('Test how server responds to requests/behave', function () {
     query.r = 'referer';
     query.m = 'message';
     query.v = '$internalRuntimeVersion$';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.NO_CONTENT);
     });
   });
 
-  it('Should ignore filtered messages or exceptions', function () {
+  it('Should ignore filtered messages or exceptions', function() {
     // adjust query parameters to mock this case
     randomVal = 0.00000000000000001;
     query.a = 0;
@@ -231,9 +231,9 @@ describe('Test how server responds to requests/behave', function () {
     query.r = 'referer';
     query.m = 'I stop_youtube';
     query.v = 'version';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
-    }, function (res) {
+    }, function(res) {
       /** chai-http errors with handling > 299 status codes hence errors can
        * only be asserted in the catch block which modifies anatomy of response
        * object. More information at
@@ -248,7 +248,7 @@ describe('Test how server responds to requests/behave', function () {
     });
   });
 
-  it('Should ignore debug errors', function () {
+  it('Should ignore debug errors', function() {
     // adjust query parameters to mock this case
     randomVal = 0.00000000000000001;
     query.a = 0;
@@ -258,7 +258,7 @@ describe('Test how server responds to requests/behave', function () {
     query.debug = 0;
     query.r = 'referer';
     query.m = 'message';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.NO_CONTENT);
     });
   });
