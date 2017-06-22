@@ -40,8 +40,8 @@ const SEVERITY = {
 };
 
 /**
- * @param message {string}
- * @param exception {string}
+ * @param {string} message
+ * @param {string} exception
  * @return {boolean}
  */
 function isFilteredMessageOrException(message, exception) {
