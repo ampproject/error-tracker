@@ -19,16 +19,14 @@
  * Handle error requests from clients and log them.
  */
 
-const express = require('express');
 const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
-const router = new express.Router();
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
-const filteredMessageOrException = ['stop_youtube',
+const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 
 /**
@@ -44,15 +42,13 @@ const SEVERITY = {
  * @param {string} exception
  * @return {boolean}
  */
-function isFilteredMessageOrException(message, exception) {
-  return filteredMessageOrException.some(function(msg) {
+function ignoreMessageOrException(message, exception) {
+  return errorsToIgnore.some(function(msg) {
     return message.includes(msg) || exception.includes(msg);
   });
 }
 
 /**
- * @desc extract params in GET request from query and fill errorEvent object
- * log level by default is INFO.
  * @param {httpRequest} req
  * @param {response} res
  * @param {middleware} next
@@ -116,7 +112,7 @@ function getHandler(req, res, next) {
     errorType += '-expected';
   }
 
-  let sample = Math.random();
+  const sample = Math.random();
   let throttleRate = 0.1;
   if (isCanary) {
     throttleRate = 1.0; // explicitly log all errors
@@ -157,7 +153,7 @@ function getHandler(req, res, next) {
     },
   };
 
-  if (isFilteredMessageOrException(params.m, exception)) {
+  if (ignoreMessageOrException(params.m, exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE\n').end();
@@ -172,10 +168,10 @@ function getHandler(req, res, next) {
   }
 
   // get authentication context for logging
-  let loggingClient = logging({
+  const loggingClient = logging({
     projectId: appEngineProjectId,
   });
-  let log = loggingClient.log(logName);
+  const log = loggingClient.log(logName);
   const metaData = {
     resource: {
       type: 'gae_app',
@@ -187,7 +183,7 @@ function getHandler(req, res, next) {
     },
     severity: severity,
   };
-  let entry = log.entry(metaData, event);
+  const entry = log.entry(metaData, event);
   log.write(entry, function(err) {
     if (err) {
       res.status(statusCodes.INTERNAL_SERVER_ERROR);
@@ -212,8 +208,4 @@ function getHandler(req, res, next) {
   next();
 }
 
-/**
- * Receive GET requests
- **/
-router.get('/r', getHandler);
 module.exports = getHandler;
