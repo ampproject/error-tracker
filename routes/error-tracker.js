@@ -50,8 +50,8 @@ function ignoreMessageOrException(message, exception) {
 
 /**
  * @desc converts stack traces and standardizes them to chrome like.
- * @param exception
- * @return standardized exception
+ * @param {string} exception
+ * @return {string} standardized exception
  */
 function stackTraceConversion(exception) {
   let chromeStackTraceRegex = /^\s*at (?:([^]*) )?([^]+):(\d+):(\d+)/m;
@@ -59,7 +59,7 @@ function stackTraceConversion(exception) {
   if (match) {
     exception = exception.substring(exception.indexOf('\n'));
     let exceptions = exception.split('\n');
-    let validExceptions = exceptions.filter(function (value) {
+    let validExceptions = exceptions.filter(function(value) {
       return chromeStackTraceRegex.test(value);
     });
     exception = validExceptions.join('\n');
@@ -70,7 +70,7 @@ function stackTraceConversion(exception) {
     if (otherMatch) {
       // convert to chromeLike
       let exceptions = exception.split('\n');
-      let usableExceptions = exceptions.filter(function (value) {
+      let usableExceptions = exceptions.filter(function(value) {
         return mozillaSafariStackTraceRegex.test(value);
       });
       let validExceptions = usableExceptions.map(safariOrMozillaToChrome);
@@ -82,12 +82,15 @@ function stackTraceConversion(exception) {
 }
 
 /**
- * @param exception
+ * @param {string} exception
+ * @return {string} chromeLikeException
  */
 function safariOrMozillaToChrome(exception) {
-  let context = exception.substring(0,exception.indexOf(mozzilaSafariMidString));
-  let notContext = exception.substring(exception.indexOf(mozzilaSafariMidString) + 1);
-  return  chromeEtAlString + context + ' ' + notContext;
+  let context = exception.substring(0,
+      exception.indexOf(mozzilaSafariMidString));
+  let notContext = exception.substring(exception.
+      indexOf(mozzilaSafariMidString) + 1);
+  return chromeEtAlString + context + ' ' + notContext;
 }
 
 /**
@@ -182,20 +185,18 @@ function getHandler(req, res, next) {
     res.send('IGNORE\n').end();
     return;
   }
-    
   // If format does not end with :\d+ truncate up to the last newline.
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
   exception = stackTraceConversion(exception);
-  if(!exception) {
+  if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'Exception must have a valid stack trace'});
     res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-    
   const event = {
     serviceContext: {
       service: appEngineProjectId,

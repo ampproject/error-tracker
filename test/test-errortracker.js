@@ -26,7 +26,6 @@ const after = mocha.after;
 const expect = chai.expect;
 const it = mocha.it;
 const stackTrace = require('../routes/error-tracker');
-const assert = require('assert');
 
 process.env.NODE_ENV = 'test';
 chai.use(chaihttp);
@@ -260,7 +259,7 @@ describe('Test how server responds to requests', function() {
     });
   });
 
-  it('Should not log exceptions with only invalid stacktraces',function() {
+  it('Should not log exceptions with only invalid stacktraces', function() {
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -278,11 +277,11 @@ describe('Test how server responds to requests', function() {
        * This is a hack and once the package
        * has been updated is subject to change
        */
-      expect(res).to.have.property('status',statusCodes.BAD_REQUEST);
+      expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       let payload = JSON.parse(res.response.text);
       expect(payload.error).to.equal('Exception must have a valid stack trace');
-    })
-  })
+    });
+  });
 });
 
 describe('Test stacktrace conversions are done correctly', function() {
@@ -344,19 +343,20 @@ describe('Test stacktrace conversions are done correctly', function() {
  at     $d https://cdn.ampproject.org/v0.js:115:88`,
   ];
 
-  it('Should leave chrome and chrome like stack traces as they are', function() {
-    expect(stackTrace.stackTraceConversion(testInput[0])).to.equal(expectedTestOutput[0]);
+  it('Should leave chrome and chrome like stack traces as they are',
+      function() {
+        expect(stackTrace.stackTraceConversion(testInput[0])).
+            to.equal(expectedTestOutput[0]);
   });
 
-  it('Should ignore stack traces with no line number and column number', function() {
-    expect(stackTrace.stackTraceConversion(testInput[4])).to.equal(null);
+  it('Should ignore stack traces with no line number and column number',
+      function() {
+        expect(stackTrace.stackTraceConversion(testInput[4])).to.equal(null);
   });
 
-  it('Should convert safari and firefox stack traces to chrome like', function() {
-    expect(stackTrace.stackTraceConversion(testInput[1])).to.equal(expectedTestOutput[1]);
+  it('Should convert safari and firefox stack traces to chrome like',
+      function() {
+        expect(stackTrace.stackTraceConversion(testInput[1])).
+            to.equal(expectedTestOutput[1]);
   });
 });
-
-
-
-
