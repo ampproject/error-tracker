@@ -1,6 +1,5 @@
 /**
- * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
- *
+ * Copyright 2017 The AMP Authors. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -106,6 +105,7 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
+
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -119,8 +119,8 @@ function getHandler(req, res, next) {
   let severity = SEVERITY.INFO;
   let isCdn = false;
   if (referer.startsWith('https://cdn.ampproject.org/') ||
-    referer.includes('.cdn.ampproject.org/') ||
-    referer.includes('.ampproject.net/')) {
+      referer.includes('.cdn.ampproject.org/') ||
+      referer.includes('.ampproject.net/')) {
     severity = SEVERITY.ERROR;
     errorType += '-cdn';
     isCdn = true;
@@ -172,8 +172,8 @@ function getHandler(req, res, next) {
   if (sample > throttleRate) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.OK)
-      .send('THROTTLED\n')
-      .end();
+        .send('THROTTLED\n')
+        .end();
     return;
   }
 
