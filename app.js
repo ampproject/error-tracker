@@ -32,5 +32,8 @@ if (process.env.NODE_ENV === 'production') {
 const app = express();
 app.use(router);
 app.get('/r', errorTracker);
+app.listen(parseInt(process.env.port)||3000,function() {
+  console.log('App Started');
+});
 
 module.exports = app;
