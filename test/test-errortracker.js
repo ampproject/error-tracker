@@ -270,9 +270,10 @@ describe('Test how server responds to requests', function() {
     query.m = 'message';
     return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
-    },function(res) {
-      /** chai-http errors with handling > 299 status codes hence errors can only be
-       * asserted in the catch block which modifies anatomy of response
+    }, function(res) {
+      /** chai-http errors with handling > 299 status codes hence
+       * errors can only be asserted in the catch block which
+       * modifies anatomy of response
        * object. More information at https://github.com/chaijs/chai-http/issues/75.
        * This is a hack and once the package
        * has been updated is subject to change
@@ -316,7 +317,7 @@ describe('Test stacktrace conversions are done correctly', function() {
     promiseReactionJob@[native code]`,
     `[native code]
     https://cdn.ampproject.org/v0.js:115:170
-    promiseReactionJob@[native code]`
+    promiseReactionJob@[native code]`,
   ];
   let expectedTestOutput = [
     `    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
