@@ -33,7 +33,7 @@ const assert = require('assert');
 process.env.NODE_ENV = 'test';
 chai.use(chaihttp);
 
-describe('Test how server responds to requests', function () {
+describe('Test how server responds to requests', function() {
   let query = {
     'l': 12,
     'a': 1,
@@ -49,37 +49,37 @@ describe('Test how server responds to requests', function () {
     'debug': 1,
   };
   let randomVal = 1;
-  before(function () {
-    sinon.stub(Math, 'random').callsFake(function () {
+  before(function() {
+    sinon.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
   });
 
-  after(function () {
+  after(function() {
     Math.random.restore();
   });
 
-  it('Should ignore 99% of user errors', function () {
+  it('Should ignore 99% of user errors', function() {
     randomVal = 1;
     query.a = 1;
     query.ca = 0;
     query.rt = '';
     query['3p'] = 0;
     query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res).to.have.status(statusCodes.OK);
       expect(res.text).to.equal('THROTTLED\n');
     });
   });
 
-  it('Should log 1% of user errors', function () {
+  it('Should log 1% of user errors', function() {
     randomVal = 0.00000000000000001; // set sample to extremely small.
     query.a = 1;
     query.ca = 0;
     query.debug = 1;
     query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
@@ -89,7 +89,7 @@ describe('Test how server responds to requests', function () {
     });
   });
 
-  it('Should ignore 90% of 3p errors', function () {
+  it('Should ignore 90% of 3p errors', function() {
     query['3p'] = 1;
     randomVal = 1;
     query.ca = 0;
@@ -97,14 +97,14 @@ describe('Test how server responds to requests', function () {
     query.debug = 1;
     query.rt = '';
     query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res.text).to.equal('THROTTLED\n');
     });
   });
 
-  it('Should log 10% of 3p errors', function () {
+  it('Should log 10% of 3p errors', function() {
     query['3p'] = 1;
     randomVal = 0.00000000000000001;
     query.ca = 0;
@@ -112,7 +112,7 @@ describe('Test how server responds to requests', function () {
     query.debug = 1;
     query.rt = '';
     query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
@@ -122,7 +122,7 @@ describe('Test how server responds to requests', function () {
     });
   });
 
-  it('Should ignore 90% of cdn errors', function () {
+  it('Should ignore 90% of cdn errors', function() {
     query['3p'] = 0;
     query.a = 0;
     query.ca = 0;
@@ -130,14 +130,14 @@ describe('Test how server responds to requests', function () {
     query.r = 'https://cdn.ampproject.org/conferences';
     query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     randomVal = 1;
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res.text).to.equal('THROTTLED\n');
     });
   });
 
-  it('Should log 10% of cdn errors', function () {
+  it('Should log 10% of cdn errors', function() {
     query['3p'] = 0;
     query.a = 0;
     query.ca = 0;
@@ -145,7 +145,7 @@ describe('Test how server responds to requests', function () {
     query.r = 'https://cdn.ampproject.org/conferences';
     query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     randomVal = 0.00000000000000001;
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
@@ -155,7 +155,7 @@ describe('Test how server responds to requests', function () {
     });
   });
 
-  it('Should log all canary errors ', function () {
+  it('Should log all canary errors ', function() {
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
@@ -163,7 +163,7 @@ describe('Test how server responds to requests', function () {
     query.r = 'referer';
     query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
     randomVal = 0.00000000000000001;
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type', 'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
@@ -173,7 +173,7 @@ describe('Test how server responds to requests', function () {
     });
   });
 
-  it('Should not log errors missing exception and message', function () {
+  it('Should not log errors missing exception and message', function() {
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -182,9 +182,9 @@ describe('Test how server responds to requests', function () {
     query.m = '';
     query.debug = 1;
     query.r = 'referer';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
-    }, function (res) {
+    }, function(res) {
       /** chai-http errors with handling > 299 status codes hence errors can only
        *  be asserted in the catch block which modifies anatomy of response
        *  object. More information at https://github.com/chaijs/chai-http/issues/75.
@@ -197,7 +197,7 @@ describe('Test how server responds to requests', function () {
     });
   });
 
-  it('Should ignore testing traffic', function () {
+  it('Should ignore testing traffic', function() {
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -208,12 +208,12 @@ describe('Test how server responds to requests', function () {
     query.r = 'referer';
     query.m = 'message';
     query.v = '$internalRuntimeVersion$';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.property('status', statusCodes.NO_CONTENT);
     });
   });
 
-  it('Should ignore filtered messages or exceptions', function () {
+  it('Should ignore filtered messages or exceptions', function() {
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -226,9 +226,9 @@ describe('Test how server responds to requests', function () {
     query.r = 'referer';
     query.m = 'I stop_youtube';
     query.v = 'version';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
-    }, function (res) {
+    }, function(res) {
       /** chai-http errors with handling > 299 status codes hence errors can only be
        * asserted in the catch block which modifies anatomy of response
        * object. More information at https://github.com/chaijs/chai-http/issues/75.
@@ -241,7 +241,7 @@ describe('Test how server responds to requests', function () {
     });
   });
 
-  it('Should ignore debug errors', function () {
+  it('Should ignore debug errors', function() {
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -250,12 +250,12 @@ describe('Test how server responds to requests', function () {
     query.debug = 0;
     query.r = 'referer';
     query.m = 'message';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.NO_CONTENT);
     });
   });
 
-  it('Should not log exceptions with only invalid stacktraces',function () {
+  it('Should not log exceptions with only invalid stacktraces',function() {
     randomVal = 0.00000000000000001;
     query.a = 0;
     query.ca = 1;
@@ -264,9 +264,9 @@ describe('Test how server responds to requests', function () {
     query.debug = 1;
     query.r = 'referer';
     query.m = 'message';
-    return chai.request(app).get('/r').query(query).then(function (res) {
+    return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
-    },function (res) {
+    },function(res) {
       /** chai-http errors with handling > 299 status codes hence errors can only be
        * asserted in the catch block which modifies anatomy of response
        * object. More information at https://github.com/chaijs/chai-http/issues/75.
@@ -280,7 +280,7 @@ describe('Test how server responds to requests', function () {
   })
 });
 
-describe('Test stacktrace conversions are done correctly', function () {
+describe('Test stacktrace conversions are done correctly', function() {
   let testInput = [
     `Error: localStorage not supported.
     at Error (native)
@@ -339,15 +339,15 @@ describe('Test stacktrace conversions are done correctly', function () {
  at     $d https://cdn.ampproject.org/v0.js:115:88`,
   ];
 
-  it('Should leave chrome and chrome like stack traces as they are', function () {
+  it('Should leave chrome and chrome like stack traces as they are', function() {
     expect(stackTrace.stackTraceConversion(testInput[0])).to.equal(expectedTestOutput[0]);
   });
 
-  it('Should ignore stack traces with no line number and column number', function () {
+  it('Should ignore stack traces with no line number and column number', function() {
     expect(stackTrace.stackTraceConversion(testInput[4])).to.equal(null);
   });
 
-  it('Should convert safari and firefox stack traces to chrome like', function () {
+  it('Should convert safari and firefox stack traces to chrome like', function() {
     expect(stackTrace.stackTraceConversion(testInput[1])).to.equal(expectedTestOutput[1]);
   });
 });
