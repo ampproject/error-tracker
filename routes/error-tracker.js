@@ -104,7 +104,6 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -183,6 +182,7 @@ function getHandler(req, res, next) {
     res.send('IGNORE\n').end();
     return;
   }
+    
   // If format does not end with :\d+ truncate up to the last newline.
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
@@ -195,6 +195,7 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
+    
   const event = {
     serviceContext: {
       service: appEngineProjectId,
@@ -209,7 +210,6 @@ function getHandler(req, res, next) {
       },
     },
   };
-
   // Don't log testing traffic in production
   if (params.v.includes('$internalRuntimeVersion$')) {
     res.sendStatus(statusCodes.NO_CONTENT);
