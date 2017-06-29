@@ -58,6 +58,11 @@ function stackTraceConversion(exception) {
   let match = chromeStackTraceRegex.test(exception);
   if (match) {
     exception = exception.substring(exception.indexOf('\n'));
+    let exceptions = exception.split('\n');
+    let validExceptions = exceptions.filter(function(value) {
+      return chromeStackTraceRegex.test(value);
+    });
+    exception = validExceptions.join('\n');
     return exception;
   } else {
     let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
