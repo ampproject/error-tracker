@@ -65,19 +65,15 @@ function stackTraceConversion(exception) {
     exception = validExceptions.join('\n');
     return exception;
   } else {
-    let mozillaSafariStackTraceRegex = /^([^@]*)@(.+):(\d+):(\d+)$/m;
-    let otherMatch = mozillaSafariStackTraceRegex.test(exception);
-    if (otherMatch) {
-      // convert to chromeLike
-      let exceptions = exception.split('\n');
-      let usableExceptions = exceptions.filter(function(value) {
-        return mozillaSafariStackTraceRegex.test(value);
-      });
-      let validExceptions = usableExceptions.map(safariOrMozillaToChrome);
-      exception = validExceptions.join('\n');
-      return exception;
+    let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
+    let exceptions = [];
+    let otherMatch;
+    while(otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
+      exceptions.push(otherMatch[0]);
     }
-    return null;
+    let validExceptions =  exceptions.map(safariOrMozillaToChrome);
+    exception = validExceptions.join('\n');
+    return exception;
   }
 }
 

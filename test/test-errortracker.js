@@ -352,7 +352,7 @@ describe('Test stacktrace conversions are done correctly', function() {
 
   it('Should ignore stack traces with no line number and column number',
       function() {
-        expect(stackTrace.stackTraceConversion(testInput[4])).to.equal(null);
+        expect(stackTrace.stackTraceConversion(testInput[4])).to.equal('');
   });
 
   it('Should convert safari and firefox stack traces to chrome like',
