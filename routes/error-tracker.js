@@ -28,6 +28,10 @@ const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const mozzilaSafariMidString = '@';
 const chromeEtAlString = ' at ';
+const loggingClient = logging({
+  projectId: appEngineProjectId,
+});
+const log = loggingClient.log(logName);
 
 /**
  * @enum {int}
@@ -93,18 +97,23 @@ function safariOrMozillaToChrome(exception) {
   return chromeEtAlString + context + ' ' + notContext;
 }
 
-/**
- * @param {httpRequest} req
- * @param {response} res
- * @param {middleware} next
- */
-function getHandler(req, res, next) {
+function firstHandler(req, res) {
   const params = req.query;
+  if(params.debug !== '1') {
+    res.sendStatus(statusCodes.NO_CONTENT).end();
+    return;
+  }
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
     res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
+    return;
+  }
+  // Don't log testing traffic in production
+  if (params.v.includes('$internalRuntimeVersion$')) {
+    res.sendStatus(statusCodes.NO_CONTENT);
+    res.end();
     return;
   }
   const referer = params.r;
@@ -197,7 +206,7 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-  const event = {
+  let event = {
     serviceContext: {
       service: appEngineProjectId,
       version: errorType + '-' + params.v,
@@ -211,18 +220,13 @@ function getHandler(req, res, next) {
       },
     },
   };
-  // Don't log testing traffic in production
-  if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
-    res.end();
-    return;
-  }
-
-  // get authentication context for logging
-  const loggingClient = logging({
-    projectId: appEngineProjectId,
-  });
-  const log = loggingClient.log(logName);
+  res.set('Content-Type', 'application/json; charset=ISO-8859-1');
+  res.status(statusCodes.OK).send(
+      JSON.stringify({
+        message: 'OK\n',
+        event: event,
+        throttleRate: throttleRate,
+      })).end();
   const metaData = {
     resource: {
       type: 'gae_app',
@@ -234,28 +238,31 @@ function getHandler(req, res, next) {
     },
     severity: severity,
   };
-  const entry = log.entry(metaData, event);
+  let entry = log.entry(metaData, event);
+  //unminify(entry, req.url);
+}
+
+function loggingHandler(entry, url) {
   log.write(entry, function(err) {
     if (err) {
-      res.status(statusCodes.INTERNAL_SERVER_ERROR);
-      res.send({error: 'Cannot write to Google Cloud Logging'});
-      res.end();
       winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
-        + url.parse(req.url, true).query['v'], err);
+          + url.parse(url, true).query['v'], err);
     }
   });
 
-  if (params.debug === '1') {
-    res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-    res.status(statusCodes.OK).send(
-      JSON.stringify({
-        message: 'OK\n',
-        event: event,
-        throttleRate: throttleRate,
-      })).end();
-  } else {
-    res.sendStatus(statusCodes.NO_CONTENT).end();
-  }
+
+
+}
+
+/**
+ * @param {httpRequest} req
+ * @param {response} res
+ * @param {middleware} next
+ */
+function getHandler(req, res, next) {
+  firstHandler(req, res);
+  // event.message = unminify(event.message)
+  //loggingHandler(req, res);
   next();
 }
 
