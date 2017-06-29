@@ -56,6 +56,23 @@ describe('Test how server responds to requests', function() {
     Math.random.restore();
   });
 
+  it('Should log 1% of user errors', function() {
+    randomVal = 0.00000000000000001; // set sample to extremely small.
+    query.a = 1;
+    query.ca = 0;
+    query.debug = 1;
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
+    return chai.request(app).get('/r').query(query).then(function(res) {
+      expect(res).to.have.status(statusCodes.OK);
+      expect(res).to.have.header('Content-Type',
+          'application/json; charset=utf-8');
+      let payload = JSON.parse(res.text);
+      expect(payload.event.serviceContext.version).to.includes('assert');
+      expect(payload.message).to.equal('OK\n');
+      expect(payload.throttleRate).to.equal(0.01);
+    });
+  });
+
   it('Should ignore 99% of user errors', function() {
     randomVal = 1;
     query.a = 1;
@@ -67,23 +84,6 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res).to.have.status(statusCodes.OK);
       expect(res.text).to.equal('THROTTLED\n');
-    });
-  });
-
-  it('Should log 1% of user errors', function() {
-    randomVal = 0.00000000000000001; // set sample to extremely small.
-    query.a = 1;
-    query.ca = 0;
-    query.debug = 1;
-    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
-    return chai.request(app).get('/r').query(query).then(function(res) {
-      expect(res).to.have.status(statusCodes.OK);
-      expect(res).to.have.header('Content-Type',
-        'application/json; charset=utf-8');
-      let payload = JSON.parse(res.text);
-      expect(payload.event.serviceContext.version).to.includes('assert');
-      expect(payload.message).to.equal('OK\n');
-      expect(payload.throttleRate).to.equal(0.01);
     });
   });
 

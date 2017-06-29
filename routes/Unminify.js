@@ -16,14 +16,51 @@
  * @fileoverview
  * Convert's stacktrace line, column number and file references from minified
  * version to unminified version.
+ * @type sourceMapCache = {
+ *  key : url to JS file
+ *  sourceMap : corresponding sourceMap
+ * }
+ * @type requestCache = {
+ *  key : http request promise
+ *  queue : queue of stack traces waiting for promise to use sourceMap
+ * }
  *
  */
 
 const sourceMap = require('source-map');
+const http = require('http');
+const urlRegex  = /(https:(.*).js)/g;
+let sourceMapCache = new Map();
+let requestCache = new Map();
+
 let rawSourceMap;
 
+/**
+ * @param {string} stackTraceLine
+ * @return {sourceMap}
+ */
+function selectSourceMapVersion(stackTraceLine) {
+  let promisedSourceMap;
+  let sourceMapUrl = urlRegex.exec(stackTraceLine)[0];
+  if(sourceMapCache.has(sourceMapUrl)) {
+    return sourceMapCache.get(sourceMapUrl);
+  }
+  if(requestCache.has(sourceMapUrl)) {
+    requestCache.get(sourceMapUrl).push(stackTraceLine);
+  } else {
+    requestCache.set(sourceMapUrl, [stackTraceLine]);
+    promisedSourceMap = http.get(sourceMapUrl + '.map');
+    promisedSourceMap.then(function(err, res) {
+      let loadedSourceMap = JSON.parse(res.body);
+      sourceMapCache.set(sourceMapUrl, loadedSourceMap);
+      let jobQueue = requestCache.get(sourceMapUrl);
+      while(jobQueue.length !== 0) {
 
-function selectSourceMapVersion() {
+      }
+    });
+  }
+  
+
 
 }
 
@@ -60,27 +97,26 @@ function cached(stackTraceLine) {
 
 /***
  * @param {string} stackTraceLine
+ * @param {Object} sourceMap
  * @return {string}
  */
-function unminify(stackTraceLine) {
-  if(cached(stackTraceLine)){
-    return retrieveCache(stackTraceLine);
-  }
-  const sourceMapConsumer  = new sourceMap.SourceMapConsumer(rawSourceMap);
+function unminifyLine(stackTraceLine, sourceMap) {
+  const sourceMapConsumer  = new sourceMap.SourceMapConsumer(selectSourceMapVersion(stackTraceLine));
   let location = stackTraceLine.match(/:(\d+):(\d+)/g)[0];
   let locations = location.split(':');
   let originalPosition = sourceMapConsumer.originalPositionFor({
     line: locations[1],
     column: locations[2]
   });
-  stackTraceLine.replace(/(https:(.*).js)/, originalPosition.source);
+  stackTraceLine.replace(urlRegex, originalPosition.source);
   let originalLocation = ':' + originalPosition.line + ':' + originalPosition.column;
   stackTraceLine.replace(location, originalLocation);
-  cache(stackTraceLine);
   return stackTraceLine;
 }
 
+function unminify(entry, url) {
 
 
+}
 module.exports = unminify;
 
