@@ -206,6 +206,7 @@ function getHandler(req, res, next) {
     return;
   }
 
+  exception = params.m + '\n' + exception;
   const event = {
     serviceContext: {
       service: appEngineProjectId,
