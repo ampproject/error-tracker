@@ -71,7 +71,7 @@ function stackTraceConversion(exception) {
     while (otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
       exceptions.push(otherMatch[0]);
     }
-    let validExceptions =  exceptions.map(safariOrMozillaToChrome);
+    let validExceptions = exceptions.map(safariOrMozillaToChrome);
     exception = validExceptions.join('\n');
     return exception;
   }
