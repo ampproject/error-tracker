@@ -26,7 +26,7 @@ const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-const mozzilaSafariMidString = '@';
+const mozillaSafariMidString = '@';
 const chromeEtAlString = ' at ';
 
 /**
@@ -64,7 +64,7 @@ function stackTraceConversion(exception) {
     });
     exception = validExceptions.join('\n');
     return exception;
-  } else if (!match) {
+  } else {
     let mozillaSafariStackTraceRegex = /^([^@]*)@(.+):(\d+):(\d+)$/m;
     let otherMatch = mozillaSafariStackTraceRegex.test(exception);
     if (otherMatch) {
@@ -87,9 +87,9 @@ function stackTraceConversion(exception) {
  */
 function safariOrMozillaToChrome(exception) {
   let context = exception.substring(0,
-      exception.indexOf(mozzilaSafariMidString));
+      exception.indexOf(mozillaSafariMidString));
   let notContext = exception.substring(exception.
-      indexOf(mozzilaSafariMidString) + 1);
+      indexOf(mozillaSafariMidString) + 1);
   return chromeEtAlString + context + ' ' + notContext;
 }
 
@@ -107,6 +107,24 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
+
+  if (ignoreMessageOrException(params.m, params.s)) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.status(statusCodes.BAD_REQUEST);
+    res.send('IGNORE\n').end();
+    return;
+  }
+
+  if(params.debug !== '1') {
+    res.sendStatus(statusCodes.NO_CONTENT).end();
+  }
+  // Don't log testing traffic in production
+  if (params.v.includes('$internalRuntimeVersion$')) {
+    res.sendStatus(statusCodes.NO_CONTENT);
+    res.end();
+    return;
+  }
+
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -179,16 +197,6 @@ function getHandler(req, res, next) {
   }
 
   let exception = params.s;
-  if (ignoreMessageOrException(params.m, exception)) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE\n').end();
-    return;
-  }
-  // If format does not end with :\d+ truncate up to the last newline.
-  if (!exception.match(/:\d+$/)) {
-    exception = exception.replace(/\n.*$/, '');
-  }
   exception = stackTraceConversion(exception);
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
@@ -197,6 +205,11 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
+  // If format does not end with :\d+ truncate up to the last newline.
+  if (!exception.match(/:\d+$/)) {
+    exception = exception.replace(/\n.*$/, '');
+  }
+
   const event = {
     serviceContext: {
       service: appEngineProjectId,
@@ -211,12 +224,7 @@ function getHandler(req, res, next) {
       },
     },
   };
-  // Don't log testing traffic in production
-  if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
-    res.end();
-    return;
-  }
+
 
   // get authentication context for logging
   const loggingClient = logging({
@@ -244,18 +252,15 @@ function getHandler(req, res, next) {
         + url.parse(req.url, true).query['v'], err);
     }
   });
-
-  if (params.debug === '1') {
-    res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-    res.status(statusCodes.OK).send(
+  res.set('Content-Type', 'application/json; charset=ISO-8859-1');
+  res.status(statusCodes.OK);
+  res.send(
       JSON.stringify({
         message: 'OK\n',
         event: event,
         throttleRate: throttleRate,
-      })).end();
-  } else {
-    res.sendStatus(statusCodes.NO_CONTENT).end();
-  }
+      })
+  ).end();
   next();
 }
 
