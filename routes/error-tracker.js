@@ -77,8 +77,8 @@ function stackTraceConversion(exception) {
       exception = validExceptions.join('\n');
       return exception;
     }
+    return null;
   }
-  return null;
 }
 
 /**
