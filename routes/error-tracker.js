@@ -68,7 +68,7 @@ function stackTraceConversion(exception) {
     let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
     let exceptions = [];
     let otherMatch;
-    while(otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
+    while (otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
       exceptions.push(otherMatch[0]);
     }
     let validExceptions =  exceptions.map(safariOrMozillaToChrome);
