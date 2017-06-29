@@ -52,16 +52,8 @@ function selectSourceMapVersion(stackTraceLine) {
   if(requestCache.has(sourceMapUrl)) {
     requestCache.get(sourceMapUrl).push(stackTraceLine);
   } else {
-    requestCache.set(sourceMapUrl, [stackTraceLine]);
     promisedSourceMap = http.get(sourceMapUrl + '.map');
-    promisedSourceMap.then(function(err, res) {
-      let loadedSourceMap = JSON.parse(res.body);
-      sourceMapCache.set(sourceMapUrl, loadedSourceMap);
-      let jobQueue = requestCache.get(sourceMapUrl);
-      while(jobQueue.length !== 0) {
-
-      }
-    });
+    requestCache.set(sourceMapUrl, promisedSourceMap);
   }
   
 
