@@ -58,11 +58,6 @@ function stackTraceConversion(exception) {
   let match = chromeStackTraceRegex.test(exception);
   if (match) {
     exception = exception.substring(exception.indexOf('\n'));
-    let exceptions = exception.split('\n');
-    let validExceptions = exceptions.filter(function(value) {
-      return chromeStackTraceRegex.test(value);
-    });
-    exception = validExceptions.join('\n');
     return exception;
   } else {
     let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
@@ -193,6 +188,10 @@ function getHandler(req, res, next) {
   }
 
   let exception = params.s;
+  // If format does not end with :\d+ truncate up to the last newline.
+  if (!exception.match(/:\d+$/)) {
+    exception = exception.replace(/\n.*$/, '');
+  }
   exception = stackTraceConversion(exception);
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
@@ -200,10 +199,6 @@ function getHandler(req, res, next) {
     res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
-  }
-  // If format does not end with :\d+ truncate up to the last newline.
-  if (!exception.match(/:\d+$/)) {
-    exception = exception.replace(/\n.*$/, '');
   }
 
   const event = {
