@@ -115,7 +115,7 @@ function getHandler(req, res, next) {
     return;
   }
 
-  if(params.debug !== '1') {
+  if (params.debug !== '1') {
     res.sendStatus(statusCodes.NO_CONTENT).end();
   }
   // Don't log testing traffic in production
