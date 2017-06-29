@@ -24,6 +24,9 @@
  *  key : http request promise
  *  queue : queue of stack traces waiting for promise to use sourceMap
  * }
+ * @type logJobs = {
+ *   job : stackTrace event log to
+ * }
  *
  */
 
@@ -32,6 +35,7 @@ const http = require('http');
 const urlRegex  = /(https:(.*).js)/g;
 let sourceMapCache = new Map();
 let requestCache = new Map();
+let logJobs = [];
 
 let rawSourceMap;
 
@@ -114,8 +118,7 @@ function unminifyLine(stackTraceLine, sourceMap) {
   return stackTraceLine;
 }
 
-function unminify(entry, url) {
-
+function unminify(entry) {
 
 }
 module.exports = unminify;
