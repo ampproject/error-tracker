@@ -54,7 +54,7 @@ function ignoreMessageOrException(message, exception) {
  * @return {string} standardized exception
  */
 function stackTraceConversion(exception) {
-  let chromeStackTraceRegex = /^\s*at (?:([^]*) )?([^]+):(\d+):(\d+)/gm;
+  let chromeStackTraceRegex = /\s*at (?:([^\n]*) )?([^\n]+):(\d+):(\d+)[^]/gm;
   let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
   let match;
   let validExceptions  = [];
