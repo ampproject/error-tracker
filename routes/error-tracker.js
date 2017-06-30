@@ -54,16 +54,19 @@ function ignoreMessageOrException(message, exception) {
  * @return {string} standardized exception
  */
 function stackTraceConversion(exception) {
-  let chromeStackTraceRegex = /^\s*at (?:([^]*) )?([^]+):(\d+):(\d+)/m;
+  let chromeStackTraceRegex = /^\s*at (?:([^]*) )?([^]+):(\d+):(\d+)/gm;
   let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
   let match;
   let validExceptions  = [];
-  while (match = chromeStackTraceRegex.exec(exception)) {
-    validExceptions.push(match[0]);
-  }
-  let otherMatch;
-  while (otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
-    validExceptions.push(safariOrMozillaToChrome(otherMatch[0]));
+  if (chromeStackTraceRegex.test(exception)) {
+    while (match = chromeStackTraceRegex.exec(exception)) {
+      validExceptions.push(match[0]);
+    }
+  } else {
+    let otherMatch;
+    while (otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
+      validExceptions.push(safariOrMozillaToChrome(otherMatch[0]));
+    }
   }
   exception = validExceptions.join('\n');
   return exception;
