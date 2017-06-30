@@ -56,21 +56,26 @@ function ignoreMessageOrException(message, exception) {
 function stackTraceConversion(exception) {
   let chromeStackTraceRegex = /\s*at (?:([^\n]*) )?([^\n]+):(\d+):(\d+)[^]/gm;
   let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
+  let validException = '';
   let match;
   let validExceptions  = [];
   if (chromeStackTraceRegex.test(exception)) {
+    // Reset the state of the regex to capture all matches.
+    chromeStackTraceRegex.lastIndex = 0;
     while (match = chromeStackTraceRegex.exec(exception)) {
       validExceptions.push(match[0]);
     }
+    validException = validExceptions.join('');
+    // Remove first blank line
+    validException = validException.trim();
   } else {
     let otherMatch;
     while (otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
       validExceptions.push(safariOrMozillaToChrome(otherMatch[0]));
     }
+    validException = validExceptions.join('\n');
   }
-  exception = validExceptions.join('\n');
-  return exception;
-
+  return validException;
 }
 
 /**
@@ -107,9 +112,6 @@ function getHandler(req, res, next) {
     return;
   }
 
-  if (params.debug !== '1') {
-    res.sendStatus(statusCodes.NO_CONTENT).end();
-  }
   // Don't log testing traffic in production
   if (params.v.includes('$internalRuntimeVersion$')) {
     res.sendStatus(statusCodes.NO_CONTENT);
@@ -245,15 +247,20 @@ function getHandler(req, res, next) {
         + url.parse(req.url, true).query['v'], err);
     }
   });
-  res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-  res.status(statusCodes.OK);
-  res.send(
-      JSON.stringify({
-        message: 'OK\n',
-        event: event,
-        throttleRate: throttleRate,
-      })
-  ).end();
+  if (params.debug  === '1') {
+    res.set('Content-Type', 'application/json; charset=ISO-8859-1');
+    res.status(statusCodes.OK);
+    res.send(
+        JSON.stringify({
+          message: 'OK\n',
+          event: event,
+          throttleRate: throttleRate,
+        })
+    ).end();
+  } else {
+    res.sendStatus(statusCodes.NO_CONTENT).end();
+    return;
+  }
   next();
 }
 

@@ -298,7 +298,6 @@ describe('Test stacktrace conversions are done correctly', function() {
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
     at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
-
     `Zd@https://cdn.ampproject.org/v0.js:5:204
     error@https://cdn.ampproject.org/v0.js:5:314
     jh@https://cdn.ampproject.org/v0.js:237:205
@@ -316,13 +315,12 @@ describe('Test stacktrace conversions are done correctly', function() {
     [native code]
     https://cdn.ampproject.org/v0.js:115:170
     promiseReactionJob@[native code]`,
-
     `[native code]
     https://cdn.ampproject.org/v0.js:115:170
     promiseReactionJob@[native code]`,
   ];
   let expectedTestOutput = [
-    `    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    `at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
     at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
     at I (https://cdn.ampproject.org/rtv/031496877433269/v0.js:51:626)
@@ -354,8 +352,10 @@ describe('Test stacktrace conversions are done correctly', function() {
 
   it('Should ignore stack traces with no line number and column number',
       function() {
-        expect(stackTrace.stackTraceConversion(testInput[4])).to.equal('');
-  });
+        expect(stackTrace.stackTraceConversion(testInput[2])).to.equal('');
+
+      }
+  );
 
   it('Should convert safari and firefox stack traces to chrome like',
       function() {
