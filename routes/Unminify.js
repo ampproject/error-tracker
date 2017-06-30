@@ -58,14 +58,25 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
   return stackTraceLine;
 }
 
-function unminify(entry) {
-  let stackTraces = entry.data.message;
-  let promises = extractSourceMaps(stackTraces);
-  Promise.all(promises).then(function(values) {
-    values.forEach(function(res) {
-
-    })
+function unminify(entry, error) {
+  let stackTraces = entry.data.message.split('\n');
+  let stackTracesUrl = stackTraces.map(function(stackTrace) {
+    return urlRegex.exec(stackTrace)[0];
   });
+  let promises = extractSourceMaps(stackTracesUrl);
+  Promise.all(promises).then(function(values) {
+    let i = 0;
+    values.forEach(function(sourceMapConsumer) {
+      if (!sourceMapConsumerCache.has(stackTracesUrl[i])) {
+        sourceMapConsumerCache.set(stackTracesUrl[i], sourceMapConsumer);
+      }
+      stackTraces[i] = unminifyLine(stackTraces[i],
+          sourceMapConsumerCache.get(stackTraces[i]));
+      i++;
+    });
+  });
+  entry.data.message = error + '\n' + stackTraces.join('\n');
+  // log(entry)
 }
 
 /**
@@ -86,8 +97,7 @@ function getFromNetwork(url) {
 
 function extractSourceMaps(stackTraces) {
   let promises = [];
-  stackTraces.forEach(function(stackTraceLine) {
-    let sourceMapUrl = urlRegex.exec(stackTraceLine)[0];
+  stackTraces.forEach(function(sourceMapUrl) {
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
       promises.push(getFromInMemory(sourceMapUrl));
     } else if (requestCache.has(sourceMapUrl)) {
