@@ -41,7 +41,7 @@ let rawSourceMap;
 
 /**
  * @param {string} stackTraceLine
- * @return {sourceMap}
+ * @return {promise}
  */
 function selectSourceMapVersion(stackTraceLine) {
   let promisedSourceMap;
@@ -111,7 +111,26 @@ function unminifyLine(stackTraceLine, sourceMap) {
 }
 
 function unminify(entry) {
+  let stackTraces = entry.data.message;
+  let promises = extractSourceMaps(stackTraces);
+  Promise.all(promises).then(function(values) {
+    values.forEach(function(res) {
 
+    })
+  });
+}
+
+function extractSourceMaps(stackTraces) {
+  let promises = [];
+  stackTraces.forEach(function(stackTraceLine) {
+    let sourceMapUrl = urlRegex.exec(stackTraceLine)[0];
+    if (!sourceMapCache.has(sourceMapUrl) && !requestCache.has(sourceMapUrl)) {
+      let promise = http.get(sourceMapUrl);
+      requestCache.add(sourceMapUrl, promise);
+      promises.push(promise);
+    }
+  });
+  return promises;
 }
 module.exports = unminify;
 
