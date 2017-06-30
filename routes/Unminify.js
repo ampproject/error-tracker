@@ -16,13 +16,13 @@
  * @fileoverview
  * Convert's stacktrace line, column number and file references from minified
  * version to unminified version.
- * @type sourceMapCache = {
+ * @type sourceMapConsumerCache = {
  *  key : url to JS file
- *  sourceMap : corresponding sourceMap
+ *  sourceMapConsumer : corresponding sourceMap
  * }
  * @type requestCache = {
- *  key : http request promise
- *  queue : queue of stack traces waiting for promise to use sourceMap
+ *  key : url of sourceMap requested
+ *  promise : promise waiting tobe resolved
  * }
  * @type logJobs = {
  *   job : stackTrace event log to
@@ -33,71 +33,19 @@
 const sourceMap = require('source-map');
 const http = require('http');
 const urlRegex  = /(https:(.*).js)/g;
-let sourceMapCache = new Map();
+let sourceMapConsumerCache = new Map();
 let requestCache = new Map();
 let logJobs = [];
-
 let rawSourceMap;
 
-/**
- * @param {string} stackTraceLine
- * @return {promise}
- */
-function selectSourceMapVersion(stackTraceLine) {
-  let promisedSourceMap;
-  let sourceMapUrl = urlRegex.exec(stackTraceLine)[0];
-  if(sourceMapCache.has(sourceMapUrl)) {
-    return sourceMapCache.get(sourceMapUrl);
-  }
-  if(requestCache.has(sourceMapUrl)) {
-    requestCache.get(sourceMapUrl).push(stackTraceLine);
-  } else {
-    promisedSourceMap = http.get(sourceMapUrl + '.map');
-    requestCache.set(sourceMapUrl, promisedSourceMap);
-  }
-  
 
-
-}
-
-function getRawSourceMap() {
-  // to select appropriate source map based on version
-  rawSourceMap ={};
-  return rawSourceMap;
-}
 
 /***
  * @param {string} stackTraceLine
- */
-function cache(stackTraceLine) {
-  // Add stacktrace to the cache
-}
-
-/**
- * @param {string} stackTraceLine
+ * @param {Object} sourceMapConsumer
  * @return {string}
  */
-function retrieveCache(stackTraceLine) {
-  // retrieve and return unminified stacktrace from the cache.
-  return '';
-}
-
-/**
- * @param {string} stackTraceLine
- * @return {boolean}
- */
-function cached(stackTraceLine) {
-  // Check if stackTraceLine has previously been cached.
-  return false;
-}
-
-/***
- * @param {string} stackTraceLine
- * @param {Object} sourceMap
- * @return {string}
- */
-function unminifyLine(stackTraceLine, sourceMap) {
-  const sourceMapConsumer  = new sourceMap.SourceMapConsumer(selectSourceMapVersion(stackTraceLine));
+function unminifyLine(stackTraceLine, sourceMapConsumer) {
   let location = stackTraceLine.match(/:(\d+):(\d+)/g)[0];
   let locations = location.split(':');
   let originalPosition = sourceMapConsumer.originalPositionFor({
@@ -120,11 +68,28 @@ function unminify(entry) {
   });
 }
 
+/**
+ * @return {Promise}
+ */
+function getFromInMemory(url) {
+  return Promise.resolve(sourceMapConsumerCache.get(url));
+}
+
+function getFromNetwork(url) {
+  const req = http.get(url);
+  req.then((res) => {
+    return new sourceMap.SourceMapConsumer(JSON.parse());
+  })
+}
+
 function extractSourceMaps(stackTraces) {
   let promises = [];
   stackTraces.forEach(function(stackTraceLine) {
     let sourceMapUrl = urlRegex.exec(stackTraceLine)[0];
-    if (!sourceMapCache.has(sourceMapUrl) && !requestCache.has(sourceMapUrl)) {
+    if (sourceMapConsumerCache.has(sourceMapUrl)) {
+
+    }
+    if (!sourceMapConsumerCache.has(sourceMapUrl) && !requestCache.has(sourceMapUrl)) {
       let promise = http.get(sourceMapUrl);
       requestCache.add(sourceMapUrl, promise);
       promises.push(promise);
