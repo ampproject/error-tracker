@@ -78,8 +78,10 @@ function getFromInMemory(url) {
 function getFromNetwork(url) {
   const req = http.get(url);
   req.then((res) => {
-    return new sourceMap.SourceMapConsumer(JSON.parse());
-  })
+    return new sourceMap.SourceMapConsumer(JSON.parse(res.body));
+  });
+  requestCache.add(url, req);
+  return req;
 }
 
 function extractSourceMaps(stackTraces) {
@@ -87,12 +89,11 @@ function extractSourceMaps(stackTraces) {
   stackTraces.forEach(function(stackTraceLine) {
     let sourceMapUrl = urlRegex.exec(stackTraceLine)[0];
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
-
-    }
-    if (!sourceMapConsumerCache.has(sourceMapUrl) && !requestCache.has(sourceMapUrl)) {
-      let promise = http.get(sourceMapUrl);
-      requestCache.add(sourceMapUrl, promise);
-      promises.push(promise);
+      promises.push(getFromInMemory(sourceMapUrl));
+    } else if (requestCache.has(sourceMapUrl)) {
+      promises.push(requestCache.get(sourceMapUrl));
+    } else {
+      promises.push(getFromNetwork(sourceMapUrl));
     }
   });
   return promises;
