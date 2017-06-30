@@ -49,7 +49,6 @@ function ignoreMessageOrException(message, exception) {
 }
 
 /**
- * @desc converts stack traces and standardizes them to chrome like.
  * @param {string} exception
  * @return {string} standardized exception
  */
@@ -58,7 +57,7 @@ function stackTraceConversion(exception) {
   let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
   let validException = '';
   let match;
-  let validExceptions  = [];
+  let validExceptions = [];
   if (chromeStackTraceRegex.test(exception)) {
     // Reset the state of the regex to capture all matches.
     chromeStackTraceRegex.lastIndex = 0;
@@ -247,7 +246,7 @@ function getHandler(req, res, next) {
         + url.parse(req.url, true).query['v'], err);
     }
   });
-  if (params.debug  === '1') {
+  if (params.debug === '1') {
     res.set('Content-Type', 'application/json; charset=ISO-8859-1');
     res.status(statusCodes.OK);
     res.send(

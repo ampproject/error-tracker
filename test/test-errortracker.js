@@ -353,7 +353,6 @@ describe('Test stacktrace conversions are done correctly', function() {
   it('Should ignore stack traces with no line number and column number',
       function() {
         expect(stackTrace.stackTraceConversion(testInput[2])).to.equal('');
-
       }
   );
 
