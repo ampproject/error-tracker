@@ -298,6 +298,7 @@ describe('Test stacktrace conversions are done correctly', function() {
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
     at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
+
     `Zd@https://cdn.ampproject.org/v0.js:5:204
     error@https://cdn.ampproject.org/v0.js:5:314
     jh@https://cdn.ampproject.org/v0.js:237:205
@@ -315,6 +316,7 @@ describe('Test stacktrace conversions are done correctly', function() {
     [native code]
     https://cdn.ampproject.org/v0.js:115:170
     promiseReactionJob@[native code]`,
+
     `[native code]
     https://cdn.ampproject.org/v0.js:115:170
     promiseReactionJob@[native code]`,
