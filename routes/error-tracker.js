@@ -26,8 +26,6 @@ const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-const mozillaSafariMidString = '@';
-const chromeEtAlString = ' at ';
 
 /**
  * @enum {int}
@@ -53,24 +51,20 @@ function ignoreMessageOrException(message, exception) {
  * @return {string} standardized exception
  */
 function stackTraceConversion(exception) {
-  let chromeStackTraceRegex = /\s*at (?:([^\n]*) )?([^\n]+):(\d+):(\d+)[^]/gm;
-  let mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
+  const location = '([^ \\n]+):(\\d+):(\\d+)';
+  const chromeStackTraceRegex = new RegExp(`^\\s*at (.+ )?(?:${location}|\\(${location}\\))$`, 'gm');
+  const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
   let validException = '';
   let match;
   let validExceptions = [];
   if (chromeStackTraceRegex.test(exception)) {
-    // Reset the state of the regex to capture all matches.
-    chromeStackTraceRegex.lastIndex = 0;
-    while (match = chromeStackTraceRegex.exec(exception)) {
+    while ((match = chromeStackTraceRegex.exec(exception))) {
       validExceptions.push(match[0]);
     }
-    validException = validExceptions.join('');
-    // Remove first blank line
-    validException = validException.trim();
   } else {
     let otherMatch;
     while (otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
-      validExceptions.push(safariOrMozillaToChrome(otherMatch[0]));
+      validExceptions.push(safariOrMozillaToChrome(otherMatch));
     }
     validException = validExceptions.join('\n');
   }
@@ -78,15 +72,11 @@ function stackTraceConversion(exception) {
 }
 
 /**
- * @param {string} exception
+ * @param {string} match
  * @return {string} chromeLikeException
  */
-function safariOrMozillaToChrome(exception) {
-  let context = exception.substring(0,
-      exception.indexOf(mozillaSafariMidString));
-  let notContext = exception.substring(exception.
-      indexOf(mozillaSafariMidString) + 1);
-  return chromeEtAlString + context + ' ' + notContext;
+function safariOrMozillaToChrome(match) {
+  return ` at ${match[1]} ${match[2]}:${match[3]}:${match[4]}`;
 }
 
 /**
@@ -197,7 +187,7 @@ function getHandler(req, res, next) {
   exception = stackTraceConversion(exception);
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
-    res.send({error: 'Exception must have a valid stack trace'});
+    res.send('IGNORE');
     res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
@@ -258,7 +248,6 @@ function getHandler(req, res, next) {
     ).end();
   } else {
     res.sendStatus(statusCodes.NO_CONTENT).end();
-    return;
   }
   next();
 }

@@ -279,8 +279,7 @@ describe('Test how server responds to requests', function() {
        * has been updated is subject to change
        */
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
-      let payload = JSON.parse(res.response.text);
-      expect(payload.error).to.equal('Exception must have a valid stack trace');
+      expect(res.response.text).to.equal('IGNORE');
     });
   });
 });
@@ -320,7 +319,7 @@ describe('Test stacktrace conversions are done correctly', function() {
     promiseReactionJob@[native code]`,
   ];
   let expectedTestOutput = [
-    `at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    `    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
     at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
     at I (https://cdn.ampproject.org/rtv/031496877433269/v0.js:51:626)
