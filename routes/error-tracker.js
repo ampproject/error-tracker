@@ -26,6 +26,8 @@ const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
+const location = '([^ \\n]+):(\\d+):(\\d+)';
+const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
 
 /**
  * @enum {int}
@@ -47,36 +49,31 @@ function ignoreMessageOrException(message, exception) {
 }
 
 /**
- * @param {string} exception
- * @return {string} standardized exception
+ * @desc 
+ * @param {string} stackTrace
+ * @return {string} converted stackTrace
  */
-function stackTraceConversion(exception) {
-  const location = '([^ \\n]+):(\\d+):(\\d+)';
-  const chromeStackTraceRegex = new RegExp(`^\\s*at (.+ )?(?:${location}|\\(${location}\\))$`, 'gm');
-  const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
+function convertStackTrace(stackTrace) {
+  const chromeStackTraceRegex = new RegExp(`^\\s*at (.+ )?(?:(${location})|\\(${location}\\))$`, 'gm');
   let validException = '';
-  let match;
   let validExceptions = [];
-  if (chromeStackTraceRegex.test(exception)) {
-    while ((match = chromeStackTraceRegex.exec(exception))) {
+  if (chromeStackTraceRegex.test(stackTrace)) {
+    chromeStackTraceRegex.lastIndex = 0;
+    let match;
+    while ((match = chromeStackTraceRegex.exec(stackTrace))) {
       validExceptions.push(match[0]);
+      validException = validExceptions.join('\n');
     }
   } else {
     let otherMatch;
-    while (otherMatch = mozillaSafariStackTraceRegex.exec(exception)) {
-      validExceptions.push(safariOrMozillaToChrome(otherMatch));
+    while (otherMatch = mozillaSafariStackTraceRegex.exec(stackTrace)) {
+      validExceptions.push(
+          ` at ${otherMatch[1]} ${otherMatch[2]}:` +
+          `${otherMatch[3]}:${otherMatch[4]}`);
     }
     validException = validExceptions.join('\n');
   }
   return validException;
-}
-
-/**
- * @param {string} match
- * @return {string} chromeLikeException
- */
-function safariOrMozillaToChrome(match) {
-  return ` at ${match[1]} ${match[2]}:${match[3]}:${match[4]}`;
 }
 
 /**
@@ -184,7 +181,7 @@ function getHandler(req, res, next) {
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
-  exception = stackTraceConversion(exception);
+  exception = convertStackTrace(exception);
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE');
@@ -252,5 +249,5 @@ function getHandler(req, res, next) {
   next();
 }
 
-module.exports = getHandler;
-getHandler.stackTraceConversion = stackTraceConversion;
+module.exports.getHandler = getHandler;
+module.exports.convertStackTrace = convertStackTrace;
