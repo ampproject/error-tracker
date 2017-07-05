@@ -55,24 +55,21 @@ function ignoreMessageOrException(message, exception) {
 function convertStackTrace(stackTrace) {
   const chromeStackTraceRegex = new RegExp(
       `^\\s*at (.+ )?(?:(${location})|\\(${location}\\))$`, 'gm');
-  let validExceptions = [];
+  let validStackTrace = '';
   if (chromeStackTraceRegex.test(stackTrace)) {
     chromeStackTraceRegex.lastIndex = 0;
-    let match;
-    while ((match = chromeStackTraceRegex.exec(stackTrace))) {
-      validExceptions.push(match[0]);
-    }
-    validExceptions = validExceptions.join('\n');
+    validStackTrace = stackTrace.match(chromeStackTraceRegex).join('\n');
   } else {
+    let validStackTraceLines = [];
     let match;
     while ((match = mozillaSafariStackTraceRegex.exec(stackTrace))) {
-      validExceptions.push(
+      validStackTraceLines.push(
           ` at ${match[1]} ${match[2]}:` +
           `${match[3]}:${match[4]}`);
     }
-    validExceptions = validExceptions.join('\n');
+    validStackTrace = validStackTraceLines.join('\n');
   }
-  return validExceptions;
+  return validStackTrace;
 }
 
 /**
