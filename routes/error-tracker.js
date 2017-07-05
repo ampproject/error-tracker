@@ -28,6 +28,10 @@ const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const lineColumnNumbers = '([^ \\n]+):(\\d+):(\\d+)';
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
+const loggingClient = logging({
+  projectId: appEngineProjectId,
+});
+const log = loggingClient.log(logName);
 const chromeStackTraceRegex = new RegExp(
     `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
     'gm');
@@ -201,12 +205,14 @@ function firstHandler(req, res) {
       },
     },
   };
-
-  // get authentication context for logging
-  const loggingClient = logging({
-    projectId: appEngineProjectId,
-  });
-  const log = loggingClient.log(logName);
+  if (params.debug )
+  res.set('Content-Type', 'application/json; charset=ISO-8859-1');
+  res.status(statusCodes.OK).send(
+      JSON.stringify({
+        message: 'OK\n',
+        event: event,
+        throttleRate: throttleRate,
+      })).end();
   const metaData = {
     resource: {
       type: 'gae_app',
