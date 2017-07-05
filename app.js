@@ -21,6 +21,7 @@
 
 const express = require('express');
 const errorTracker = require('./routes/error-tracker');
+const statusCodes = require('http-status-codes');
 const router = express.Router();
 
 if (process.env.NODE_ENV === 'production') {
@@ -31,6 +32,9 @@ if (process.env.NODE_ENV === 'production') {
 
 const app = express();
 app.use(router);
+app.get('/', function(req, res) {
+  res.sendStatus(statusCodes.OK).end();
+});
 app.get('/r', errorTracker);
 app.listen(parseInt(process.env.port) || 3000,function() {
   console.log('App Started');
