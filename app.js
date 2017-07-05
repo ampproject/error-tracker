@@ -25,8 +25,8 @@ const statusCodes = require('http-status-codes');
 const router = express.Router();
 
 if (process.env.NODE_ENV === 'production') {
-  require('@google-cloud/trace-agent').start();
-  require('@google-cloud/debug-agent').start();
+  //require('@google-cloud/trace-agent').start();
+  //require('@google-cloud/debug-agent').start();
 }
 
 
