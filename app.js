@@ -30,9 +30,9 @@ if (process.env.NODE_ENV === 'production') {
 
 
 const app = express();
-const port = parseInt(process.env.port) || 3000;
+const port = parseInt(process.env.PORT) || 8080;
 
-app.get('/', function(req, res) {
+app.get('/_ah/health', function(req, res) {
   res.sendStatus(statusCodes.OK).end();
 });
 
@@ -40,6 +40,9 @@ app.get('/r', errorTracker);
 
 app.listen(port, function() {
   console.log('App Started on port ' + port);
+});
+app.listen(8443, function() {
+  console.log('App Started on port 8443');
 });
 
 module.exports = app;
