@@ -21,7 +21,7 @@ const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
-const unminify = require('Unminify');
+const unminify = require('Unminify').unminify;
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
@@ -76,6 +76,12 @@ function standardizeStackTrace(stackTrace) {
   return validStackTraceLines.join('\n');
 }
 
+/**
+ * Extracts relevant information from request, handles edge cases and prepares
+ * entry object to be logged after unminification.
+ * @param {Http.Request} req
+ * @param {Http.Response} res
+ */
 function firstHandler(req, res) {
   const params = req.query;
   if (params.m === '' && params.s === '') {
@@ -236,6 +242,9 @@ function firstHandler(req, res) {
   unminify(entry, params.m);
 }
 
+/**
+ * @param {log.Entry} entry
+ */
 function loggingHandler(entry) {
   log.write(entry, function(err) {
     if (err) {
@@ -243,9 +252,6 @@ function loggingHandler(entry) {
           + url.parse(entry.event.context.httpRequest.url, true).query['v'], err);
     }
   });
-
-
-
 }
 
 /**
@@ -256,7 +262,7 @@ function loggingHandler(entry) {
 function getHandler(req, res, next) {
   firstHandler(req, res);
   // event.message = unminify(event.message)
-  //loggingHandler(req, res);
+  // loggingHandler(req, res);
   next();
 }
 

@@ -29,7 +29,7 @@
 const sourceMap = require('source-map');
 const http = require('http');
 const log = require('error-tracker').loggingHandler;
-const urlRegex  = /(https:(.*).js)/g;
+const urlRegex = /(https:(.*).js)/g;
 let sourceMapConsumerCache = new Map();
 let requestCache = new Map();
 
@@ -52,6 +52,11 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
   return stackTraceLine;
 }
 
+/**
+ *
+ * @param {log.Entry} entry
+ * @param {string} error
+ */
 function unminify(entry, error) {
   let stackTraces = entry.data.message.split('\n');
   let stackTracesUrl = stackTraces.map(function(stackTrace) {
@@ -75,12 +80,17 @@ function unminify(entry, error) {
 }
 
 /**
- * @return {Promise}
+ * @param {string} url
+ * @return {Promise} Promise that resolves to a source map.
  */
 function getFromInMemory(url) {
   return Promise.resolve(sourceMapConsumerCache.get(url));
 }
 
+/**
+ * @param {string} url
+ * @return {Promise} Promise that resolves to a source map
+ */
 function getFromNetwork(url) {
   const req = http.get(url);
   req.then((res) => {
@@ -90,6 +100,11 @@ function getFromNetwork(url) {
   return req;
 }
 
+/**
+ *
+ * @param {Array} stackTraces
+ * @return {Array} Array of promises that resolve to source maps
+ */
 function extractSourceMaps(stackTraces) {
   let promises = [];
   stackTraces.forEach(function(sourceMapUrl) {
@@ -103,5 +118,6 @@ function extractSourceMaps(stackTraces) {
   });
   return promises;
 }
-module.exports = unminify;
+
+module.exports.unminify = unminify;
 
