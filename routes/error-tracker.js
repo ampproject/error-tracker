@@ -57,7 +57,7 @@ function ignoreMessageOrException(message, exception) {
  * @return {string} The converted stack trace.
  */
 function standardizeStackTrace(stackTrace) {
-  if (chromeStackTraceRegex.exec(stackTrace)) {
+  if (chromeStackTraceRegex.test(stackTrace)) {
     // Convert Firefox/Safari stack traces to Chrome format if necessary.
     return stackTrace.match(chromeStackTraceRegex).join('\n');
   }
