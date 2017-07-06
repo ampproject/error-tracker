@@ -29,7 +29,8 @@ const errorsToIgnore = ['stop_youtube',
 const lineColumnNumbers = '([^ \\n]+):(\\d+):(\\d+)';
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
 const chromeStackTraceRegex = new RegExp(
-    `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`, 'gm');
+    `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
+    'gm');
 
 /**
  * @enum {int}
