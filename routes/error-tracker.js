@@ -201,7 +201,6 @@ function getHandler(req, res, next) {
     },
   };
 
-
   // get authentication context for logging
   const loggingClient = logging({
     projectId: appEngineProjectId,
