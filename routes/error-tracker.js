@@ -56,9 +56,8 @@ function convertStackTrace(stackTrace) {
   const chromeStackTraceRegex = new RegExp(
       `^\\s*at (.+ )?(?:(${location})|\\(${location}\\))$`, 'gm');
   let validStackTrace = '';
-  if (chromeStackTraceRegex.test(stackTrace)) {
-    chromeStackTraceRegex.lastIndex = 0;
-    validStackTrace = stackTrace.match(chromeStackTraceRegex).join('\n');
+  if (chromeStackTraceRegex.exec(stackTrace)) {
+    return stackTrace.match(chromeStackTraceRegex).join('\n');
   } else {
     let validStackTraceLines = [];
     let match;
