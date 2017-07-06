@@ -58,7 +58,7 @@ function ignoreMessageOrException(message, exception) {
  */
 function standardizeStackTrace(stackTrace) {
   if (chromeStackTraceRegex.test(stackTrace)) {
-    // Convert Firefox/Safari stack traces to Chrome format if necessary.
+    // Discard garbage stack trace lines
     return stackTrace.match(chromeStackTraceRegex).join('\n');
   }
   let validStackTraceLines = [];
@@ -176,6 +176,7 @@ function getHandler(req, res, next) {
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
+  // Convert Firefox/Safari stack traces to Chrome format if necessary.
   exception = standardizeStackTrace(exception);
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
@@ -231,12 +232,7 @@ function getHandler(req, res, next) {
     res.set('Content-Type', 'application/json; charset=ISO-8859-1');
     res.status(statusCodes.OK);
     res.send(
-        JSON.stringify({
-          message: 'OK\n',
-          event: event,
-          throttleRate: throttleRate,
-        })
-    ).end();
+        JSON.stringify({message: 'OK\n', event, throttleRate})).end();
   } else {
     res.sendStatus(statusCodes.NO_CONTENT).end();
   }

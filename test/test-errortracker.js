@@ -186,13 +186,12 @@ describe('Test how server responds to requests', function() {
     return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
     }, function(res) {
-      /** chai-http errors with handling > 299 status codes hence errors can
-       * only be asserted in the catch block which modifies anatomy of response
-       * object. More information at
-       * https://github.com/chaijs/chai-http/issues/75.
-       * This is a hack and once the package has been updated is subject to
-       * change
-       **/
+      // chai-http errors with handling > 299 status codes hence errors can
+      // only be asserted in the catch block which modifies anatomy of response
+      // object. More information at
+      // https://github.com/chaijs/chai-http/issues/75.
+      // This is a hack and once the package has been updated is subject to
+      // change
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       let payload = JSON.parse(res.response.text);
       expect(payload.error)
@@ -231,13 +230,12 @@ describe('Test how server responds to requests', function() {
     return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
     }, function(res) {
-      /** chai-http errors with handling > 299 status codes hence errors can
-       * only be asserted in the catch block which modifies anatomy of response
-       * object. More information at
-       * https://github.com/chaijs/chai-http/issues/75.
-       * This is a hack and once the package
-       * has been updated is subject to change
-       **/
+      // chai-http errors with handling > 299 status codes hence errors can
+      // only be asserted in the catch block which modifies anatomy of response
+      // object. More information at
+      // https://github.com/chaijs/chai-http/issues/75.
+      // This is a hack and once the package has been updated is subject to
+      // change
       expect(res).to.have.status(statusCodes.BAD_REQUEST);
       expect(res.response).to.have.header('content-Type',
         'text/plain; charset=utf-8');
@@ -271,13 +269,12 @@ describe('Test how server responds to requests', function() {
     return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
     }, function(res) {
-      /** chai-http errors with handling > 299 status codes hence
-       * errors can only be asserted in the catch block which
-       * modifies anatomy of response
-       * object. More information at https://github.com/chaijs/chai-http/issues/75.
-       * This is a hack and once the package
-       * has been updated is subject to change
-       */
+      // chai-http errors with handling > 299 status codes hence errors can
+      // only be asserted in the catch block which modifies anatomy of response
+      // object. More information at
+      // https://github.com/chaijs/chai-http/issues/75.
+      // This is a hack and once the package has been updated is subject to
+      // change
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       expect(res.response.text).to.equal('IGNORE');
     });
@@ -285,8 +282,7 @@ describe('Test how server responds to requests', function() {
 });
 
 describe('Test stacktrace conversions are done correctly', function() {
-  let testInput = [
-    `Error: localStorage not supported.
+  const chromeStackTraceTestInput = `Error: localStorage not supported.
     at Error (native)
     at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
@@ -296,8 +292,8 @@ describe('Test stacktrace conversions are done correctly', function() {
     at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
-    `Zd@https://cdn.ampproject.org/v0.js:5:204
+    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
+  const mozillaStackTraceTestInput = `Zd@https://cdn.ampproject.org/v0.js:5:204
     error@https://cdn.ampproject.org/v0.js:5:314
     jh@https://cdn.ampproject.org/v0.js:237:205
     dc@https://cdn.ampproject.org/v0.js:53:69
@@ -313,13 +309,12 @@ describe('Test stacktrace conversions are done correctly', function() {
     $d@https://cdn.ampproject.org/v0.js:115:88
     [native code]
     https://cdn.ampproject.org/v0.js:115:170
-    promiseReactionJob@[native code]`,
-    `[native code]
+    promiseReactionJob@[native code]`;
+  const invalidStackTraceTestInput = `[native code]
     https://cdn.ampproject.org/v0.js:115:170
-    promiseReactionJob@[native code]`,
-  ];
-  let expectedTestOutput = [
-    `    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    promiseReactionJob@[native code]`;
+  const formatedChromeStackTraceOutput =
+      `    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
     at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
     at I (https://cdn.ampproject.org/rtv/031496877433269/v0.js:51:626)
@@ -327,8 +322,9 @@ describe('Test stacktrace conversions are done correctly', function() {
     at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
-    ` at Zd https://cdn.ampproject.org/v0.js:5:204
+    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
+  const formatedMozillaStackTraceOutput =
+      ` at Zd https://cdn.ampproject.org/v0.js:5:204
  at     error https://cdn.ampproject.org/v0.js:5:314
  at     jh https://cdn.ampproject.org/v0.js:237:205
  at     dc https://cdn.ampproject.org/v0.js:53:69
@@ -340,24 +336,23 @@ describe('Test stacktrace conversions are done correctly', function() {
  at     dc https://cdn.ampproject.org/v0.js:53:69
  at     I https://cdn.ampproject.org/v0.js:51:628
  at     pf https://cdn.ampproject.org/v0.js:112:411
- at     $d https://cdn.ampproject.org/v0.js:115:88`,
-  ];
+ at     $d https://cdn.ampproject.org/v0.js:115:88`;
 
   it('Should leave chrome and chrome like stack traces as they are',
       function() {
-        expect(stackTrace.convertStackTrace(testInput[0])).
-            to.equal(expectedTestOutput[0]);
+        expect(stackTrace.convertStackTrace(chromeStackTraceTestInput)).
+            to.equal(formatedChromeStackTraceOutput);
   });
 
   it('Should ignore stack traces with no line number and column number',
       function() {
-        expect(stackTrace.convertStackTrace(testInput[2])).to.equal('');
+        expect(stackTrace.convertStackTrace(invalidStackTraceTestInput)).to.equal('');
       }
   );
 
   it('Should convert safari and firefox stack traces to chrome like',
       function() {
-        expect(stackTrace.convertStackTrace(testInput[1])).
-            to.equal(expectedTestOutput[1]);
+        expect(stackTrace.convertStackTrace(mozillaStackTraceTestInput)).
+            to.equal(formatedMozillaStackTraceOutput);
   });
 });
