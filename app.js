@@ -35,7 +35,7 @@ app.get('/', function(req, res) {
   res.sendStatus(statusCodes.OK).end();
 });
 
-app.get('/r', errorTracker);
+app.get('/r', errorTracker.getHandler);
 
 app.listen(port, function() {
   console.log('App Started on port ' + port);
