@@ -30,8 +30,8 @@ if (process.env.NODE_ENV === 'production') {
 
 
 const app = express();
-const port = parseInt(process.env.port) || 3000;
-app.get('/', function(req, res) {
+const port = parseInt(process.env.PORT) || 8080;
+app.get('/_ah/health', function(req, res) {
   res.sendStatus(statusCodes.OK).end();
 });
 
