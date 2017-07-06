@@ -41,8 +41,5 @@ app.get('/r', errorTracker);
 app.listen(port, function() {
   console.log('App Started on port ' + port);
 });
-app.listen(8443, function() {
-  console.log('App Started on port 8443');
-});
 
 module.exports = app;
