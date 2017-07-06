@@ -28,6 +28,8 @@ const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const location = '([^ \\n]+):(\\d+):(\\d+)';
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
+const chromeStackTraceRegex = new RegExp(
+    `^\\s*at (.+ )?(?:(${location})|\\(${location}\\))$`, 'gm');
 
 /**
  * @enum {int}
@@ -53,8 +55,6 @@ function ignoreMessageOrException(message, exception) {
  * @return {string} converted stackTrace
  */
 function convertStackTrace(stackTrace) {
-  const chromeStackTraceRegex = new RegExp(
-      `^\\s*at (.+ )?(?:(${location})|\\(${location}\\))$`, 'gm');
   let validStackTrace = '';
   if (chromeStackTraceRegex.exec(stackTrace)) {
     return stackTrace.match(chromeStackTraceRegex).join('\n');
