@@ -26,10 +26,10 @@ const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-const location = '([^ \\n]+):(\\d+):(\\d+)';
+const lineColumnNumbers = '([^ \\n]+):(\\d+):(\\d+)';
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
 const chromeStackTraceRegex = new RegExp(
-    `^\\s*at (.+ )?(?:(${location})|\\(${location}\\))$`, 'gm');
+    `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`, 'gm');
 
 /**
  * @enum {int}
@@ -51,24 +51,23 @@ function ignoreMessageOrException(message, exception) {
 }
 
 /**
+ * Converts a stack trace to the standard Chrome stack trace format.
  * @param {string} stackTrace
- * @return {string} converted stackTrace
+ * @return {string} The converted stack trace.
  */
-function convertStackTrace(stackTrace) {
-  let validStackTrace = '';
+function standardizeStackTrace(stackTrace) {
   if (chromeStackTraceRegex.exec(stackTrace)) {
+    // Convert Firefox/Safari stack traces to Chrome format if necessary.
     return stackTrace.match(chromeStackTraceRegex).join('\n');
-  } else {
-    let validStackTraceLines = [];
-    let match;
-    while ((match = mozillaSafariStackTraceRegex.exec(stackTrace))) {
-      validStackTraceLines.push(
-          ` at ${match[1]} ${match[2]}:` +
-          `${match[3]}:${match[4]}`);
-    }
-    validStackTrace = validStackTraceLines.join('\n');
   }
-  return validStackTrace;
+  let validStackTraceLines = [];
+  let match;
+  while ((match = mozillaSafariStackTraceRegex.exec(stackTrace))) {
+    validStackTraceLines.push(
+        ` at ${match[1]} ${match[2]}:` +
+        `${match[3]}:${match[4]}`);
+  }
+  return validStackTraceLines.join('\n');
 }
 
 /**
@@ -176,7 +175,7 @@ function getHandler(req, res, next) {
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
-  exception = convertStackTrace(exception);
+  exception = standardizeStackTrace(exception);
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE');
@@ -244,4 +243,4 @@ function getHandler(req, res, next) {
 }
 
 module.exports.getHandler = getHandler;
-module.exports.convertStackTrace = convertStackTrace;
+module.exports.convertStackTrace = standardizeStackTrace;
