@@ -205,14 +205,17 @@ function firstHandler(req, res) {
       },
     },
   };
-  if (params.debug )
-  res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-  res.status(statusCodes.OK).send(
-      JSON.stringify({
-        message: 'OK\n',
-        event: event,
-        throttleRate: throttleRate,
-      })).end();
+  if (params.debug === '1' ) {
+    res.set('Content-Type', 'application/json; charset=ISO-8859-1');
+    res.status(statusCodes.OK).send(
+        JSON.stringify({
+          message: 'OK\n',
+          event: event,
+          throttleRate: throttleRate,
+        })).end();
+  } else {
+    res.sendStatus(statusCodes.NO_CONTENT).end();
+  }
   const metaData = {
     resource: {
       type: 'gae_app',
@@ -254,3 +257,4 @@ function getHandler(req, res, next) {
 
 module.exports.getHandler = getHandler;
 module.exports.convertStackTrace = standardizeStackTrace;
+module.exports.loggingHandler = loggingHandler;
