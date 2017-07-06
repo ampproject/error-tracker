@@ -24,37 +24,31 @@
  *  key : url of sourceMap requested
  *  promise : promise waiting tobe resolved
  * }
- * @type logJobs = {
- *   job : stackTrace event log to
- * }
- *
  */
 
 const sourceMap = require('source-map');
 const http = require('http');
+const log = require('error-tracker').loggingHandler;
 const urlRegex  = /(https:(.*).js)/g;
 let sourceMapConsumerCache = new Map();
 let requestCache = new Map();
-let logJobs = [];
-let rawSourceMap;
 
-
-
-/***
+/**
  * @param {string} stackTraceLine
  * @param {Object} sourceMapConsumer
- * @return {string}
+ * @return {string} Stack trace line with column, line number and file name
+ * references unminified.
  */
 function unminifyLine(stackTraceLine, sourceMapConsumer) {
-  let location = stackTraceLine.match(/:(\d+):(\d+)/g)[0];
-  let locations = location.split(':');
+  let lineColumnNumbers = stackTraceLine.match(/:(\d+):(\d+)/g)[0];
+  let locations = lineColumnNumbers.split(':');
   let originalPosition = sourceMapConsumer.originalPositionFor({
     line: locations[1],
-    column: locations[2]
+    column: locations[2],
   });
   stackTraceLine.replace(urlRegex, originalPosition.source);
   let originalLocation = ':' + originalPosition.line + ':' + originalPosition.column;
-  stackTraceLine.replace(location, originalLocation);
+  stackTraceLine.replace(lineColumnNumbers, originalLocation);
   return stackTraceLine;
 }
 
@@ -69,6 +63,7 @@ function unminify(entry, error) {
     values.forEach(function(sourceMapConsumer) {
       if (!sourceMapConsumerCache.has(stackTracesUrl[i])) {
         sourceMapConsumerCache.set(stackTracesUrl[i], sourceMapConsumer);
+        requestCache.delete(stackTracesUrl[i]);
       }
       stackTraces[i] = unminifyLine(stackTraces[i],
           sourceMapConsumerCache.get(stackTraces[i]));
@@ -76,7 +71,7 @@ function unminify(entry, error) {
     });
   });
   entry.data.message = error + '\n' + stackTraces.join('\n');
-  // log(entry)
+  log(entry)
 }
 
 /**

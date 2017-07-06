@@ -21,6 +21,7 @@ const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
+const unminify = require('Unminify');
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
@@ -195,7 +196,6 @@ function firstHandler(req, res) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-  exception = params.m + '\n' + exception;
   let event = {
     serviceContext: {
       service: appEngineProjectId,
@@ -233,7 +233,7 @@ function firstHandler(req, res) {
     severity: severity,
   };
   let entry = log.entry(metaData, event);
-  //unminify(entry);
+  unminify(entry, params.m);
 }
 
 function loggingHandler(entry) {
