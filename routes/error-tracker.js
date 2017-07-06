@@ -177,6 +177,12 @@ function firstHandler(req, res) {
   }
 
   let exception = params.s;
+  if (ignoreMessageOrException(params.m, exception)) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.status(statusCodes.BAD_REQUEST);
+    res.send('IGNORE\n').end();
+    return;
+  }
   // If format does not end with :\d+ truncate up to the last newline.
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
@@ -189,7 +195,6 @@ function firstHandler(req, res) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-
   exception = params.m + '\n' + exception;
   let event = {
     serviceContext: {
