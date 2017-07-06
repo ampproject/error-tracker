@@ -313,7 +313,7 @@ describe('Test stacktrace conversions are done correctly', function() {
   const invalidStackTraceTestInput = `[native code]
     https://cdn.ampproject.org/v0.js:115:170
     promiseReactionJob@[native code]`;
-  const formatedChromeStackTraceOutput =
+  const formattedChromeStackTraceOutput =
       `    at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
     at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
@@ -323,7 +323,7 @@ describe('Test stacktrace conversions are done correctly', function() {
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
     at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
-  const formatedMozillaStackTraceOutput =
+  const formattedMozillaStackTraceOutput =
       ` at Zd https://cdn.ampproject.org/v0.js:5:204
  at     error https://cdn.ampproject.org/v0.js:5:314
  at     jh https://cdn.ampproject.org/v0.js:237:205
@@ -341,18 +341,19 @@ describe('Test stacktrace conversions are done correctly', function() {
   it('Should leave chrome and chrome like stack traces as they are',
       function() {
         expect(stackTrace.convertStackTrace(chromeStackTraceTestInput)).
-            to.equal(formatedChromeStackTraceOutput);
+            to.equal(formattedChromeStackTraceOutput);
   });
 
   it('Should ignore stack traces with no line number and column number',
       function() {
-        expect(stackTrace.convertStackTrace(invalidStackTraceTestInput)).to.equal('');
+        expect(stackTrace.convertStackTrace(invalidStackTraceTestInput))
+            .to.equal('');
       }
   );
 
   it('Should convert safari and firefox stack traces to chrome like',
       function() {
         expect(stackTrace.convertStackTrace(mozillaStackTraceTestInput)).
-            to.equal(formatedMozillaStackTraceOutput);
+            to.equal(formattedMozillaStackTraceOutput);
   });
 });
