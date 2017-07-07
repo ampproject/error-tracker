@@ -47,7 +47,8 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
     column: locations[2],
   });
   stackTraceLine.replace(urlRegex, originalPosition.source);
-  let originalLocation = ':' + originalPosition.line + ':' + originalPosition.column;
+  let originalLocation = ':' + originalPosition.line + ':'
+      + originalPosition.column;
   stackTraceLine.replace(lineColumnNumbers, originalLocation);
   return stackTraceLine;
 }
@@ -76,7 +77,7 @@ function unminify(entry, error) {
     });
   });
   entry.data.message = error + '\n' + stackTraces.join('\n');
-  log(entry)
+  log(entry);
 }
 
 /**
