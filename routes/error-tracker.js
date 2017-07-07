@@ -62,6 +62,10 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
+  if(!params.r){
+    res.sendStatus(statusCodes.BAD_REQUEST).end();
+    return;
+  }
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -191,6 +195,7 @@ function getHandler(req, res, next) {
       res.end();
       winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
         + url.parse(req.url, true).query['v'], err);
+      return;
     }
   });
 
