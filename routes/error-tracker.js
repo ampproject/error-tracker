@@ -21,7 +21,7 @@ const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
-const unminify = require('Unminify').unminify;
+// const unminify = require('Unminify').unminify;
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
@@ -239,7 +239,7 @@ function firstHandler(req, res) {
     severity: severity,
   };
   let entry = log.entry(metaData, event);
-  unminify(entry, params.m);
+  // unminify(entry, params.m);
 }
 
 /**
