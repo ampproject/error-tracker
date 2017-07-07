@@ -103,7 +103,9 @@ function getFromInMemory(url) {
  */
 function getFromNetwork(url) {
   const req = https.get(url, function(res, err) {
-    return new sourceMap.SourceMapConsumer(JSON.parse(res.body));
+    if(err){
+      return new sourceMap.SourceMapConsumer(JSON.parse(res.body));
+    }
   });
   requestCache.set(url, req);
   return req;
