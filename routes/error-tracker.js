@@ -55,6 +55,10 @@ function ignoreMessageOrException(message, exception) {
  */
 function getHandler(req, res, next) {
   const params = req.query;
+    if (!params.v) {
+    res.sendStatus(statusCodes.BAD_REQUEST).end();
+    return;
+  }
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
