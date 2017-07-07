@@ -26,10 +26,18 @@
  * }
  */
 
+const winston = require('winston');
+const url = require('url');
 const sourceMap = require('source-map');
-const http = require('http');
-const log = require('error-tracker').loggingHandler;
+const logging = require('@google-cloud/logging');
+const https = require('https');
 const urlRegex = /(https:(.*).js)/g;
+const appEngineProjectId = 'amp-error-reporting';
+const logName = 'javascript.errors';
+const loggingClient = logging({
+  projectId: appEngineProjectId,
+});
+const log = loggingClient.log(logName);
 let sourceMapConsumerCache = new Map();
 let requestCache = new Map();
 
@@ -57,6 +65,7 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
  *
  * @param {log.Entry} entry
  * @param {string} error
+ * @return {log.Entry} The log entry object with the stackTrace unminified.
  */
 function unminify(entry, error) {
   let stackTraces = entry.data.message.split('\n');
@@ -77,7 +86,7 @@ function unminify(entry, error) {
     });
   });
   entry.data.message = error + '\n' + stackTraces.join('\n');
-  log(entry);
+  loggingHandler(entry);
 }
 
 /**
@@ -93,11 +102,10 @@ function getFromInMemory(url) {
  * @return {Promise} Promise that resolves to a source map
  */
 function getFromNetwork(url) {
-  const req = http.get(url);
-  req.then((res) => {
+  const req = https.get(url, function(res, err) {
     return new sourceMap.SourceMapConsumer(JSON.parse(res.body));
   });
-  requestCache.add(url, req);
+  requestCache.set(url, req);
   return req;
 }
 
@@ -120,5 +128,17 @@ function extractSourceMaps(stackTraces) {
   return promises;
 }
 
+/**
+ * @param {log.Entry} entry
+ */
+function loggingHandler(entry) {
+  log.write(entry, function(err) {
+    if (err) {
+      winston.error(appEngineProjectId,
+          'Cannot write to Google Cloud Logging: ' + url.parse(
+              entry.event.context.httpRequest.url, true).query['v'], err);
+    }
+  });
+}
 module.exports.unminify = unminify;
 

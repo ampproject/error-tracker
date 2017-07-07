@@ -21,7 +21,7 @@ const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
-// const unminify = require('Unminify').unminify;
+const unminify = require('./unminify');
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
@@ -240,20 +240,7 @@ function firstHandler(req, res) {
   };
   let entry = log.entry(metaData, event);
   console.log(entry);
-  // unminify(entry, params.m);
-}
-
-/**
- * @param {log.Entry} entry
- */
-function loggingHandler(entry) {
-  log.write(entry, function(err) {
-    if (err) {
-      winston.error(appEngineProjectId,
-          'Cannot write to Google Cloud Logging: ' + url.parse(
-              entry.event.context.httpRequest.url, true).query['v'], err);
-    }
-  });
+  unminify.unminify(entry, params.m);
 }
 
 /**
@@ -270,4 +257,3 @@ function getHandler(req, res, next) {
 
 module.exports.getHandler = getHandler;
 module.exports.convertStackTrace = standardizeStackTrace;
-module.exports.loggingHandler = loggingHandler;
