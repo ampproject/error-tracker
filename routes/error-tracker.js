@@ -250,8 +250,8 @@ function loggingHandler(entry) {
   log.write(entry, function(err) {
     if (err) {
       winston.error(appEngineProjectId,
-          'Cannot write to Google Cloud Logging: '
-          + url.parse(entry.event.context.httpRequest.url, true).query['v'], err);
+          'Cannot write to Google Cloud Logging: ' + url.parse(
+              entry.event.context.httpRequest.url, true).query['v'], err);
     }
   });
 }
