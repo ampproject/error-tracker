@@ -23,6 +23,7 @@ const statusCodes = require('http-status-codes');
 const url = require('url');
 const unminify = require('./unminify');
 const appEngineProjectId = 'amp-error-reporting';
+const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
@@ -31,6 +32,10 @@ const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
 const chromeStackTraceRegex = new RegExp(
     `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
     'gm');
+const loggingClient = logging({
+  projectId: appEngineProjectId,
+});
+const log = loggingClient.log(logName);
 
 /**
  * @enum {int}
@@ -233,7 +238,6 @@ function firstHandler(req, res) {
     severity: severity,
   };
   let entry = log.entry(metaData, event);
-  console.log(entry);
   unminify.unminify(entry, params.m);
 }
 

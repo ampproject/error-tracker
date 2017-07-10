@@ -102,9 +102,9 @@ function extractSourceMaps(sourceMapUrls) {
 
 /**
  * @param {log.Entry} entry
- * @param {string} error
+ * @param {string} errorMessage
  */
-function unminify(entry, error) {
+function unminify(entry, errorMessage) {
   let match;
   let stackTracesUrl = [];
   while((match = urlRegex.exec(entry.data.message))){
@@ -124,7 +124,7 @@ function unminify(entry, error) {
       i++;
     });
   });
-  entry.data.message = error + '\n' + stackTraces.join('\n');
+  entry.data.message = errorMessage + '\n' + stackTraces.join('\n');
   loggingHandler(entry);
 }
 
