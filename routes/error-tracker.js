@@ -21,6 +21,7 @@
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const unminify = require('./unminify');
+const logging = require('@google-cloud/logging');
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
