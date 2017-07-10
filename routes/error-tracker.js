@@ -51,9 +51,8 @@ function ignoreMessageOrException(message, exception) {
 /**
  * @param {httpRequest} req
  * @param {response} res
- * @param {middleware} next
  */
-function getHandler(req, res, next) {
+function getHandler(req, res) {
   const params = req.query;
     if (!params.v) {
     res.sendStatus(statusCodes.BAD_REQUEST).end();
@@ -212,7 +211,6 @@ function getHandler(req, res, next) {
   } else {
     res.sendStatus(statusCodes.NO_CONTENT).end();
   }
-  next();
 }
 
 module.exports = getHandler;
