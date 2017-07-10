@@ -79,6 +79,20 @@ function standardizeStackTrace(stackTrace) {
  */
 function firstHandler(req, res) {
   const params = req.query;
+  if (!params.r) {
+    res.sendStatus(statusCodes.BAD_REQUEST).end();
+    return;
+  }
+  if (!params.v) {
+    res.sendStatus(statusCodes.BAD_REQUEST).end();
+    return;
+  }
+  // Don't log testing traffic in production
+  if (params.v.includes('$internalRuntimeVersion$')) {
+    res.sendStatus(statusCodes.NO_CONTENT);
+    res.end();
+    return;
+  }
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
@@ -86,27 +100,12 @@ function firstHandler(req, res) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-  // Don't log testing traffic in production
-  if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
-    res.end();
-    return;
-  }
-
   if (ignoreMessageOrException(params.m, params.s)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE\n').end();
     return;
   }
-
-  // Don't log testing traffic in production
-  if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
-    res.end();
-    return;
-  }
-
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
