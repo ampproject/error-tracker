@@ -250,7 +250,7 @@ function getHandler(req, res, next) {
   firstHandler(req, res);
   // event.message = unminify(event.message)
   // loggingHandler(req, res);
-  next();
+  // next();
 }
 
 module.exports.getHandler = getHandler;
