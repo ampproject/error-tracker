@@ -107,7 +107,7 @@ function extractSourceMaps(sourceMapUrls) {
 function unminify(entry, errorMessage) {
   let match;
   let stackTracesUrl = [];
-  while((match = urlRegex.exec(entry.data.message))){
+  while ((match = urlRegex.exec(entry.data.message))) {
     stackTracesUrl.push(match[0] + '.map');
   }
   const stackTraces = entry.data.message.split('\n');

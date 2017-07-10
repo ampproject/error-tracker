@@ -20,7 +20,6 @@
 
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
-const url = require('url');
 const unminify = require('./unminify');
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
