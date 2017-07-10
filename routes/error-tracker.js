@@ -14,25 +14,20 @@
 
 /**
  * @fileoverview
- * Handle error requests from clients and log them.
+ * Receive requests, handle edge cases, extract information and send it
+ * to unmininification.
  */
 
-const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const url = require('url');
 const unminify = require('./unminify');
 const appEngineProjectId = 'amp-error-reporting';
-const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const lineColumnNumbers = '([^ \\n]+):(\\d+):(\\d+)';
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
-const loggingClient = logging({
-  projectId: appEngineProjectId,
-});
-const log = loggingClient.log(logName);
 const chromeStackTraceRegex = new RegExp(
     `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
     'gm');
@@ -78,7 +73,7 @@ function standardizeStackTrace(stackTrace) {
 
 /**
  * Extracts relevant information from request, handles edge cases and prepares
- * entry object to be logged after unminification.
+ * entry object to be logged and sends it to unminification.
  * @param {Http.Request} req
  * @param {Http.Response} res
  */

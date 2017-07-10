@@ -103,14 +103,15 @@ function extractSourceMaps(sourceMapUrls) {
 /**
  * @param {log.Entry} entry
  * @param {string} error
- * @return {log.Entry} The log entry object with the stackTrace unminified.
  */
 function unminify(entry, error) {
-  let stackTraces = entry.data.message.split('\n');
-  let stackTracesUrl = stackTraces.map(function(stackTrace) {
-    return urlRegex.exec(stackTrace)[0];
-  });
-  let promises = extractSourceMaps(stackTracesUrl);
+  let match;
+  let stackTracesUrl = [];
+  while((match = urlRegex.exec(entry.data.message))){
+    stackTracesUrl.push(match[0] + '.map');
+  }
+  const stackTraces = entry.data.message.split('\n');
+  const promises = extractSourceMaps(stackTracesUrl);
   Promise.all(promises).then(function(values) {
     let i = 0;
     values.forEach(function(sourceMapConsumer) {
