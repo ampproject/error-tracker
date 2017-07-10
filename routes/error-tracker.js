@@ -59,6 +59,12 @@ function getHandler(req, res, next) {
     res.sendStatus(statusCodes.BAD_REQUEST).end();
     return;
   }
+  // Don't log testing traffic in production
+  if (params.v.includes('$internalRuntimeVersion$')) {
+    res.sendStatus(statusCodes.NO_CONTENT);
+    res.end();
+    return;
+  }
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
@@ -66,7 +72,7 @@ function getHandler(req, res, next) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-  if(!params.r){
+  if (!params.r) {
     res.sendStatus(statusCodes.BAD_REQUEST).end();
     return;
   }
@@ -168,13 +174,6 @@ function getHandler(req, res, next) {
     return;
   }
 
-  // Don't log testing traffic in production
-  if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
-    res.end();
-    return;
-  }
-
   // get authentication context for logging
   const loggingClient = logging({
     projectId: appEngineProjectId,
@@ -199,7 +198,6 @@ function getHandler(req, res, next) {
       res.end();
       winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
         + url.parse(req.url, true).query['v'], err);
-      return;
     }
   });
 
