@@ -15,14 +15,14 @@
 /**
  * @fileoverview
  * Convert's stacktrace line, column number and file references from minified
- * version to unminified version.
+ * to unminified.
  * @type sourceMapConsumerCache = {
  *  key : url to JS file
- *  sourceMapConsumer : corresponding sourceMap
+ *  sourceMapConsumer : corresponding sourceMapConsumer.
  * }
  * @type requestCache = {
  *  key : url of sourceMap requested
- *  promise : promise waiting tobe resolved
+ *  promise : promise that resolves to sourceMapConsumer
  * }
  */
 
@@ -32,6 +32,7 @@ const sourceMap = require('source-map');
 const logging = require('@google-cloud/logging');
 const https = require('https');
 const urlRegex = /(https:(.*).js)/g;
+const lineColumnNumberRegex = /:(\d+):(\d+)/g;
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
 const loggingClient = logging({
@@ -48,21 +49,58 @@ let requestCache = new Map();
  * references unminified.
  */
 function unminifyLine(stackTraceLine, sourceMapConsumer) {
-  let lineColumnNumbers = stackTraceLine.match(/:(\d+):(\d+)/g)[0];
-  let locations = lineColumnNumbers.split(':');
-  let originalPosition = sourceMapConsumer.originalPositionFor({
-    line: locations[1],
-    column: locations[2],
+  const lineColumnNumbers = lineColumnNumberRegex.exec(stackTraceLine);
+  const originalPosition = sourceMapConsumer.originalPositionFor({
+    line: lineColumnNumbers[1],
+    column: lineColumnNumbers[2],
   });
   stackTraceLine.replace(urlRegex, originalPosition.source);
-  let originalLocation = ':' + originalPosition.line + ':'
+  const originalLocation = ':' + originalPosition.line + ':'
       + originalPosition.column;
-  stackTraceLine.replace(lineColumnNumbers, originalLocation);
-  return stackTraceLine;
+  return stackTraceLine.replace(lineColumnNumbers[0], originalLocation);
 }
 
 /**
- *
+ * @param {string} url
+ * @return {Promise} Promise that resolves to a source map.
+ */
+function getFromInMemory(url) {
+  return Promise.resolve(sourceMapConsumerCache.get(url));
+}
+
+/**
+ * @param {string} url
+ * @return {Promise} Promise that resolves to a source map.
+ */
+function getFromNetwork(url) {
+  const req = https.get(url, function(res) {
+    return new sourceMap.SourceMapConsumer(JSON.parse(res.body));
+  }).on('error', function(err) {
+    winston.log(err);
+  });
+  requestCache.set(url, req);
+  return req;
+}
+
+/**
+ * @param {Array} sourceMapUrls
+ * @return {Array} Array of promises that resolve to source maps
+ */
+function extractSourceMaps(sourceMapUrls) {
+  let promises = [];
+  sourceMapUrls.forEach(function(sourceMapUrl) {
+    if (sourceMapConsumerCache.has(sourceMapUrl)) {
+      promises.push(getFromInMemory(sourceMapUrl));
+    } else if (requestCache.has(sourceMapUrl)) {
+      promises.push(requestCache.get(sourceMapUrl));
+    } else {
+      promises.push(getFromNetwork(sourceMapUrl));
+    }
+  });
+  return promises;
+}
+
+/**
  * @param {log.Entry} entry
  * @param {string} error
  * @return {log.Entry} The log entry object with the stackTrace unminified.
@@ -87,47 +125,6 @@ function unminify(entry, error) {
   });
   entry.data.message = error + '\n' + stackTraces.join('\n');
   loggingHandler(entry);
-}
-
-/**
- * @param {string} url
- * @return {Promise} Promise that resolves to a source map.
- */
-function getFromInMemory(url) {
-  return Promise.resolve(sourceMapConsumerCache.get(url));
-}
-
-/**
- * @param {string} url
- * @return {Promise} Promise that resolves to a source map
- */
-function getFromNetwork(url) {
-  const req = https.get(url, function(res, err) {
-    if(err){
-      return new sourceMap.SourceMapConsumer(JSON.parse(res.body));
-    }
-  });
-  requestCache.set(url, req);
-  return req;
-}
-
-/**
- *
- * @param {Array} stackTraces
- * @return {Array} Array of promises that resolve to source maps
- */
-function extractSourceMaps(stackTraces) {
-  let promises = [];
-  stackTraces.forEach(function(sourceMapUrl) {
-    if (sourceMapConsumerCache.has(sourceMapUrl)) {
-      promises.push(getFromInMemory(sourceMapUrl));
-    } else if (requestCache.has(sourceMapUrl)) {
-      promises.push(requestCache.get(sourceMapUrl));
-    } else {
-      promises.push(getFromNetwork(sourceMapUrl));
-    }
-  });
-  return promises;
 }
 
 /**
