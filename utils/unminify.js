@@ -30,6 +30,7 @@ const winston = require('winston');
 const url = require('url');
 const sourceMap = require('source-map');
 const logging = require('@google-cloud/logging');
+const request = require('./request').request;
 const https = require('https');
 const urlRegex = /(https:(.*).js)/g;
 const lineColumnNumberRegex = /:(\d+):(\d+)/g;
@@ -51,10 +52,10 @@ let requestCache = new Map();
 function unminifyLine(stackTraceLine, sourceMapConsumer) {
   const lineColumnNumbers = lineColumnNumberRegex.exec(stackTraceLine);
   const originalPosition = sourceMapConsumer.originalPositionFor({
-    line: lineColumnNumbers[1],
-    column: lineColumnNumbers[2],
+    line: parseInt(lineColumnNumbers[1]),
+    column: parseInt(lineColumnNumbers[2]),
   });
-  stackTraceLine.replace(urlRegex, originalPosition.source);
+  stackTraceLine = stackTraceLine.replace(urlRegex, originalPosition.source);
   const originalLocation = ':' + originalPosition.line + ':'
       + originalPosition.column;
   return stackTraceLine.replace(lineColumnNumbers[0], originalLocation);
@@ -73,13 +74,22 @@ function getFromInMemory(url) {
  * @return {Promise} Promise that resolves to a source map.
  */
 function getFromNetwork(url) {
-  const req = https.get(url, function(res) {
-    return new sourceMap.SourceMapConsumer(JSON.parse(res.body));
-  }).on('error', function(err) {
-    winston.log(err);
+  const reqPromise = new Promise((res, rej) => {
+    function callback(err, _, body) {
+      if (err) {
+        rej(err);
+      } else {
+        try {
+          res(new sourceMap.SourceMapConsumer(JSON.parse(body)));
+        } catch (e) {
+          rej(e)
+        }
+      }
+    }
+    request(url, callback);
   });
-  requestCache.set(url, req);
-  return req;
+  requestCache.set(url, reqPromise);
+  return reqPromise;
 }
 
 /**
@@ -141,4 +151,6 @@ function loggingHandler(entry) {
   });
 }
 module.exports.unminify = unminify;
+module.exports.unminifyLine = unminifyLine;
+module.exports.extractSourceMaps = extractSourceMaps;
 
