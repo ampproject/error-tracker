@@ -20,7 +20,6 @@ const sourceMap = require('source-map');
 const chai = require('chai');
 const sinon = require('sinon');
 const Request = require('../utils/request');
-const http = require('http');
 const describe = mocha.describe;
 const it = mocha.it;
 const before = mocha.before;
@@ -34,17 +33,17 @@ describe('Test unminification', function() {
     names: ['bar', 'baz', 'n'],
     sources: ['one.js', 'two.js'],
     sourceRoot: 'http://example.com/www/js/',
-    mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA'
+    mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,' +
+       'OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
 
   before(function() {
-    //sinon.stub(request).yields(null, null, rawSourceMap);
+    // sinon.stub(request).yields(null, null, rawSourceMap);
     sinon.stub(Request, 'request').yields(null, null, JSON.stringify(rawSourceMap));
   });
 
   // tests
   it('Should unminify stack trace lines given source maps', function() {
-
     const sourceMapConsumer = new sourceMap.SourceMapConsumer(rawSourceMap);
     expect(unminify.unminifyLine(' at https://example.com/www/js/min.js:2:28',
         sourceMapConsumer)).to.equal(
@@ -52,21 +51,25 @@ describe('Test unminification', function() {
   });
 
   it('Should make only one network request per source map', function() {
-    const stackTrace = ['http://example.com/www/js/two.js',
-      'http://example.com/www/js/two.js'];
+    const stackTrace = ['http://example.com/www/js/two.js.map',
+      'http://example.com/www/js/two.js.map'];
     const promises = unminify.extractSourceMaps(stackTrace);
     console.log(promises);
     expect(promises[0] === promises[1]);
   });
 
   it('Should use source map from cache if cached', function() {
-    const stackTrace = ['https://cdn.ampproject.org/v0.js:2:28',
-      'http://example.com/www/js/two.js:2:10',
-      'http://example.com/www/js/two.js:15:28'];
+    const stackTrace = ['https://cdn.ampproject.org/v0.js.map',
+      'http://example.com/www/js/two.js.map',
+      'http://example.com/www/js/two.js.map'];
     const promises = unminify.extractSourceMaps(stackTrace);
+    promises[0].then(function(val) {
+      console.log(val);
+    });
     Promise.all(promises).then(function(values) {
       expect(values[0] === values[1]);
+      console.log('I was here.');
       console.log(values);
-    })
-  })
+    });
+  });
 });

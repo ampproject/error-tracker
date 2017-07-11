@@ -31,7 +31,6 @@ const url = require('url');
 const sourceMap = require('source-map');
 const logging = require('@google-cloud/logging');
 const request = require('./request').request;
-const https = require('https');
 const urlRegex = /(https:(.*).js)/g;
 const lineColumnNumberRegex = /:(\d+):(\d+)/g;
 const appEngineProjectId = 'amp-error-reporting';
@@ -107,6 +106,7 @@ function extractSourceMaps(sourceMapUrls) {
       promises.push(getFromNetwork(sourceMapUrl));
     }
   });
+  console.log(promises);
   return promises;
 }
 
