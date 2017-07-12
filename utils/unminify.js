@@ -81,7 +81,7 @@ function getFromNetwork(url) {
           sourceMapConsumerCache.set(url, sourceMapConsumer);
           res(sourceMapConsumer);
         } catch (e) {
-          rej(e)
+          rej(e);
         }
       }
     }
