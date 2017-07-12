@@ -237,21 +237,21 @@ function firstHandler(req, res) {
     },
     severity: severity,
   };
+  //let entry = log.entry(metaData, event);
+  unminify.unminify(exception).then(function(unminifiedException) {
+    exception = unminifiedException + params.m;
+  }, function(err) {
+
+  });
   let entry = log.entry(metaData, event);
-  unminify.unminify(entry, params.m);
+  log.write(entry, function(err) {
+    if (err) {
+      winston.error(appEngineProjectId,
+          'Cannot write to Google Cloud Logging: ' + url.parse(
+              entry.event.context.httpRequest.url, true).query['v'], err);
+    }
+  });
 }
 
-/**
- * @param {httpRequest} req
- * @param {response} res
- * @param {middleware} next
- */
-function getHandler(req, res, next) {
-  firstHandler(req, res);
-  // event.message = unminify(event.message)
-  // loggingHandler(req, res);
-  // next();
-}
-
-module.exports.getHandler = getHandler;
+module.exports.getHandler = firstHandler;
 module.exports.convertStackTrace = standardizeStackTrace;

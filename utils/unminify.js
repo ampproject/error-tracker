@@ -31,14 +31,6 @@ const url = require('url');
 const sourceMap = require('source-map');
 const logging = require('@google-cloud/logging');
 const Request = require('./request');
-const urlRegex = /(https:(.*).js)/g;
-const lineColumnNumberRegex = /:(\d+):(\d+)/g;
-const appEngineProjectId = 'amp-error-reporting';
-const logName = 'javascript.errors';
-const loggingClient = logging({
-  projectId: appEngineProjectId,
-});
-const log = loggingClient.log(logName);
 let sourceMapConsumerCache = new Map();
 let requestCache = new Map();
 
@@ -49,6 +41,8 @@ let requestCache = new Map();
  * references unminified.
  */
 function unminifyLine(stackTraceLine, sourceMapConsumer) {
+  const urlRegex = /(https:(.*).js)/g;
+  const lineColumnNumberRegex = /:(\d+):(\d+)/g;
   const lineColumnNumbers = lineColumnNumberRegex.exec(stackTraceLine);
   const originalPosition = sourceMapConsumer.originalPositionFor({
     line: parseInt(lineColumnNumbers[1]),
@@ -113,45 +107,32 @@ function extractSourceMaps(sourceMapUrls) {
 }
 
 /**
- * @param {log.Entry} entry
- * @param {string} errorMessage
+ * @param {string} stackTrace
+ * @return {Promise} Promise that resolves to unminified stack trace.
  */
-function unminify(entry, errorMessage) {
+function unminify(stackTrace) {
+  const urlRegex = /(https:(.*).js)/g;
   let match;
   let stackTracesUrl = [];
-  while ((match = urlRegex.exec(entry.data.message))) {
+  while ((match = urlRegex.exec(stackTrace))) {
     stackTracesUrl.push(match[0] + '.map');
   }
-  const stackTraces = entry.data.message.split('\n');
+  let stackTraceLines = stackTrace.split('\n');
   const promises = extractSourceMaps(stackTracesUrl);
-  Promise.all(promises).then(function(values) {
+  return Promise.all(promises).then(function(values) {
     let i = 0;
     values.forEach(function(sourceMapConsumer) {
-      if (!sourceMapConsumerCache.has(stackTracesUrl[i])) {
-        sourceMapConsumerCache.set(stackTracesUrl[i], sourceMapConsumer);
-        requestCache.delete(stackTracesUrl[i]);
-      }
-      stackTraces[i] = unminifyLine(stackTraces[i],
-          sourceMapConsumerCache.get(stackTraces[i]));
+      stackTraceLines[i] = unminifyLine(stackTraceLines[i],
+          sourceMapConsumer);
       i++;
     });
+    return stackTraceLines.join('\n');
+  }).catch(function(error) {
+    return stackTrace;
   });
-  entry.data.message = errorMessage + '\n' + stackTraces.join('\n');
-  loggingHandler(entry);
+
 }
 
-/**
- * @param {log.Entry} entry
- */
-function loggingHandler(entry) {
-  log.write(entry, function(err) {
-    if (err) {
-      winston.error(appEngineProjectId,
-          'Cannot write to Google Cloud Logging: ' + url.parse(
-              entry.event.context.httpRequest.url, true).query['v'], err);
-    }
-  });
-}
 module.exports.unminify = unminify;
 module.exports.unminifyLine = unminifyLine;
 module.exports.extractSourceMaps = extractSourceMaps;

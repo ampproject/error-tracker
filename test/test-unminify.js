@@ -50,7 +50,7 @@ describe('Test unminification', function() {
   });
 
   // tests
-  it('Should unminify stack trace lines given source maps', function() {
+  it('Should unminify a stack trace line given source map', function() {
     const sourceMapConsumer = new sourceMap.SourceMapConsumer(rawSourceMap);
     expect(unminify.unminifyLine(' at https://example.com/www/js/min.js:2:28',
         sourceMapConsumer)).to.equal(
@@ -73,6 +73,25 @@ describe('Test unminification', function() {
     const promises = unminify.extractSourceMaps(stackTrace);
     Promise.all(promises).then(function(values) {
       expect(values[0] === values[3]).to.equal(true);
+    });
+  });
+
+  it('Should unminify a stack trace', function() {
+    const stackTrace = ` at https://examplet.com/www/js/min.js:2:28
+      at https://example.com/www/js/min.js:2:28
+      at https://examples.com/www/js/min.js:2:28
+      at https://examplee.com/www/js/min.js:2:28
+      at https://exampler.com/www/js/min.js:2:28
+      at https://examplen.com/www/js/min.js:2:28 `;
+    const unminifiedStackTrace = ` at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10 `;
+    return unminify.unminify(stackTrace).then(function(val) {
+      console.log(val);
+      expect(val).to.equal(unminifiedStackTrace);
     });
   });
 });
