@@ -23,6 +23,7 @@ const Request = require('../utils/request');
 const describe = mocha.describe;
 const it = mocha.it;
 const before = mocha.before;
+const after = mocha.after;
 const expect = chai.expect;
 
 
@@ -36,10 +37,16 @@ describe('Test unminification', function() {
     mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,' +
        'OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
+  let stub;
 
-  before(function() {
-    // sinon.stub(request).yields(null, null, rawSourceMap);
-    sinon.stub(Request, 'request').yields(null, null, JSON.stringify(rawSourceMap));
+  before(function(done) {
+    stub = sinon.stub(Request, 'request').yields(null, null, JSON.stringify(rawSourceMap));
+    done();
+  });
+
+  after(function(done) {
+    stub.restore();
+    done();
   });
 
   // tests
@@ -54,22 +61,18 @@ describe('Test unminification', function() {
     const stackTrace = ['http://example.com/www/js/two.js.map',
       'http://example.com/www/js/two.js.map'];
     const promises = unminify.extractSourceMaps(stackTrace);
-    console.log(promises);
-    expect(promises[0] === promises[1]);
+    expect(promises[0] === promises[1]).to.equal(true);
   });
 
   it('Should use source map from cache if cached', function() {
-    const stackTrace = ['https://cdn.ampproject.org/v0.js.map',
-      'http://example.com/www/js/two.js.map',
-      'http://example.com/www/js/two.js.map'];
+    const stackTrace = [
+        'http://example.com/www/js/two.js.map',
+        'http://example.com/www/js/one.js.map',
+        'http://example.com/www/js/two.js.map',
+        'http://example.com/www/js/two.js.map'];
     const promises = unminify.extractSourceMaps(stackTrace);
-    promises[0].then(function(val) {
-      console.log(val);
-    });
     Promise.all(promises).then(function(values) {
-      expect(values[0] === values[1]);
-      console.log('I was here.');
-      console.log(values);
+      expect(values[0] === values[3]).to.equal(true);
     });
   });
 });

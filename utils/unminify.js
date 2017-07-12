@@ -30,7 +30,7 @@ const winston = require('winston');
 const url = require('url');
 const sourceMap = require('source-map');
 const logging = require('@google-cloud/logging');
-const request = require('./request').request;
+const Request = require('./request');
 const urlRegex = /(https:(.*).js)/g;
 const lineColumnNumberRegex = /:(\d+):(\d+)/g;
 const appEngineProjectId = 'amp-error-reporting';
@@ -79,13 +79,16 @@ function getFromNetwork(url) {
         rej(err);
       } else {
         try {
-          res(new sourceMap.SourceMapConsumer(JSON.parse(body)));
+          let sourceMapConsumer = new sourceMap.SourceMapConsumer(JSON.parse(body));
+          requestCache.delete(url);
+          sourceMapConsumerCache.set(url, sourceMapConsumer);
+          res(sourceMapConsumer);
         } catch (e) {
           rej(e)
         }
       }
     }
-    request(url, callback);
+    Request.request(url, callback);
   });
   requestCache.set(url, reqPromise);
   return reqPromise;
@@ -106,7 +109,6 @@ function extractSourceMaps(sourceMapUrls) {
       promises.push(getFromNetwork(sourceMapUrl));
     }
   });
-  console.log(promises);
   return promises;
 }
 
