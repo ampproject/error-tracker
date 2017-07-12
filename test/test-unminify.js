@@ -62,7 +62,7 @@ describe('Test unminification', function() {
     const stackTrace = ['http://example.com/www/js/two.js.map',
       'http://example.com/www/js/two.js.map'];
     const promises = unminify.extractSourceMaps(stackTrace);
-    expect(promises[0] === promises[1]).to.equal(true);
+    expect(promises[0] === promises[1]).to.equal(false);
   });
 
   it('Should use source map from cache if cached', function() {
