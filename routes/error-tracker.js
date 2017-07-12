@@ -237,7 +237,6 @@ function firstHandler(req, res) {
     },
     severity: severity,
   };
-  //let entry = log.entry(metaData, event);
   unminify.unminify(exception).then(function(unminifiedException) {
     exception = unminifiedException + params.m;
   }, function(err) {

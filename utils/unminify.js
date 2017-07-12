@@ -26,10 +26,7 @@
  * }
  */
 
-const winston = require('winston');
-const url = require('url');
 const sourceMap = require('source-map');
-const logging = require('@google-cloud/logging');
 const Request = require('./request');
 let sourceMapConsumerCache = new Map();
 let requestCache = new Map();
@@ -68,12 +65,18 @@ function getFromInMemory(url) {
  */
 function getFromNetwork(url) {
   const reqPromise = new Promise((res, rej) => {
+    /**
+     * @param {error} err
+     * @param {response} _
+     * @param {body} body
+     */
     function callback(err, _, body) {
       if (err) {
         rej(err);
       } else {
         try {
-          let sourceMapConsumer = new sourceMap.SourceMapConsumer(JSON.parse(body));
+          let sourceMapConsumer = new sourceMap.SourceMapConsumer(
+              JSON.parse(body));
           requestCache.delete(url);
           sourceMapConsumerCache.set(url, sourceMapConsumer);
           res(sourceMapConsumer);
@@ -130,7 +133,6 @@ function unminify(stackTrace) {
   }).catch(function(error) {
     return stackTrace;
   });
-
 }
 
 module.exports.unminify = unminify;

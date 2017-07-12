@@ -40,7 +40,8 @@ describe('Test unminification', function() {
   let stub;
 
   before(function(done) {
-    stub = sinon.stub(Request, 'request').yields(null, null, JSON.stringify(rawSourceMap));
+    stub = sinon.stub(Request, 'request').
+      yields(null, null, JSON.stringify(rawSourceMap));
     done();
   });
 
