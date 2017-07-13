@@ -253,6 +253,7 @@ function firstHandler(req, res) {
       }
     });
   }).catch(function(err) {
+    console.log(err);
   });
 }
 
