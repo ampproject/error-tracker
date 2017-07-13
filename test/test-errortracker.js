@@ -53,18 +53,12 @@ describe('Test how server responds to requests', function() {
     sinon.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
-  });
-
-  beforeEach(function() {
     sinon.stub(log, 'write').yields(false);
-  });
-
-  afterEach(function() {
-    log.write.restore();
   });
 
   after(function() {
     Math.random.restore();
+    log.write.restore();
   });
 
   it('Should log 1% of user errors', function() {
