@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * @fileoverview
- * App.js file that handles routing and basic error handling
- */
-
 const express = require('express');
 const errorTracker = require('./routes/error-tracker');
 const statusCodes = require('http-status-codes');
