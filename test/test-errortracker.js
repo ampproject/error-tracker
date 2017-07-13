@@ -53,7 +53,6 @@ describe('Test how server responds to requests', function() {
     sinon.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
-
   });
 
   beforeEach(function() {
@@ -84,7 +83,7 @@ describe('Test how server responds to requests', function() {
       expect(payload.throttleRate).to.equal(0.01);
     }, function(res) {
       console.log(res);
-    })
+    });
   });
 
   it('Should ignore 99% of user errors', function() {
