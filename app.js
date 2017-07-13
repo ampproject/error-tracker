@@ -28,7 +28,6 @@ if (process.env.NODE_ENV === 'production') {
   require('@google-cloud/debug-agent').start();
 }
 
-
 const app = express();
 const port = parseInt(process.env.PORT) || 8080;
 app.get('/_ah/health', function(req, res) {

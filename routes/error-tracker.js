@@ -240,8 +240,9 @@ function firstHandler(req, res) {
   };
   unminify.unminify(exception).then(function(unminifiedException) {
     exception = params.m + '\n' + unminifiedException;
-  }, function(err) {
+  }).catch(function(err) {
     exception = params.m + '\n' + exception;
+    console.log(err);
   });
   let entry = log.entry(metaData, event);
   log.write(entry, function(err) {
