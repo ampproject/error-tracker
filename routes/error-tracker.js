@@ -240,12 +240,18 @@ function firstHandler(req, res) {
     console.log(err);
   });
   let entry = log.entry(metaData, event);
-  log.write(entry, function(err) {
-    if (err) {
-      winston.error(appEngineProjectId,
-          'Cannot write to Google Cloud Logging: ' + url.parse(
-              req.url.toString(), true).query['v'], err);
-    }
+  return new Promise(function(res, rej) {
+    log.write(entry, function(err) {
+      if(err) {
+        winston.error(appEngineProjectId,
+            'Cannot write to Google Cloud Logging: ' + url.parse(
+                req.url.toString(), true).query['v'], err);
+        rej(err);
+      } else {
+        res(err);
+      }
+    })
+  }).catch(function(err) {
   });
 }
 
