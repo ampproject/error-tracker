@@ -21,10 +21,8 @@
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const unminify = require('../utils/unminify');
-// const url = require('url');
-const logging = require('@google-cloud/logging');
-const appEngineProjectId = 'amp-error-reporting';
-const logName = 'javascript.errors';
+const log = require('../utils/log');
+const url = require('url');
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
@@ -33,10 +31,7 @@ const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
 const chromeStackTraceRegex = new RegExp(
     `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
     'gm');
-const loggingClient = logging({
-  projectId: appEngineProjectId,
-});
-const log = loggingClient.log(logName);
+const appEngineProjectId = 'amp-error-reporting';
 
 /**
  * @enum {int}
@@ -247,9 +242,9 @@ function firstHandler(req, res) {
   let entry = log.entry(metaData, event);
   log.write(entry, function(err) {
     if (err) {
-      // winston.error(appEngineProjectId,
-      //     'Cannot write to Google Cloud Logging: ' + url.parse(
-      //         entry.event.context.httpRequest.url, true).query['v'], err);
+      winston.error(appEngineProjectId,
+          'Cannot write to Google Cloud Logging: ' + url.parse(
+              req.url.toString(), true).query['v'], err);
     }
   });
 }
