@@ -77,7 +77,7 @@ function standardizeStackTrace(stackTrace) {
  * entry object to be logged and sends it to unminification.
  * @param {Http.Request} req
  * @param {Http.Response} res
- * @return {Promise} Promise that rejects on logging error
+ * @return { void|Promise } May return a promise that rejects on logging error
  */
 function firstHandler(req, res) {
   const params = req.query;
@@ -249,7 +249,7 @@ function firstHandler(req, res) {
                 req.url.toString(), true).query['v'], err);
         rej(err);
       } else {
-        res(err);
+        res();
       }
     });
   }).catch(function(err) {
