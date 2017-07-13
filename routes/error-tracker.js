@@ -77,6 +77,7 @@ function standardizeStackTrace(stackTrace) {
  * entry object to be logged and sends it to unminification.
  * @param {Http.Request} req
  * @param {Http.Response} res
+ * @return {Promise} Promise that rejects on logging error
  */
 function firstHandler(req, res) {
   const params = req.query;
@@ -242,7 +243,7 @@ function firstHandler(req, res) {
   let entry = log.entry(metaData, event);
   return new Promise(function(res, rej) {
     log.write(entry, function(err) {
-      if(err) {
+      if (err) {
         winston.error(appEngineProjectId,
             'Cannot write to Google Cloud Logging: ' + url.parse(
                 req.url.toString(), true).query['v'], err);
@@ -250,7 +251,7 @@ function firstHandler(req, res) {
       } else {
         res(err);
       }
-    })
+    });
   }).catch(function(err) {
   });
 }
