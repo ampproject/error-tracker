@@ -20,12 +20,15 @@ const mocha = require('mocha');
 const statusCodes = require('http-status-codes');
 const app = require('../app');
 const sinon = require('sinon');
+const stackTrace = require('../routes/error-tracker');
+const log = require('../utils/log');
 const describe = mocha.describe;
 const before = mocha.before;
+const beforeEach = mocha.beforeEach;
+const afterEach = mocha.afterEach;
 const after = mocha.after;
-const expect = chai.expect;
 const it = mocha.it;
-const stackTrace = require('../routes/error-tracker');
+const expect = chai.expect;
 
 process.env.NODE_ENV = 'test';
 chai.use(chaihttp);
@@ -50,6 +53,15 @@ describe('Test how server responds to requests', function() {
     sinon.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
+
+  });
+
+  beforeEach(function() {
+    sinon.stub(log, 'write').yields(false);
+  });
+
+  afterEach(function() {
+    log.write.restore();
   });
 
   after(function() {
@@ -70,7 +82,9 @@ describe('Test how server responds to requests', function() {
       expect(payload.event.serviceContext.version).to.includes('assert');
       expect(payload.message).to.equal('OK\n');
       expect(payload.throttleRate).to.equal(0.01);
-    });
+    }, function(res) {
+      console.log(res);
+    })
   });
 
   it('Should ignore 99% of user errors', function() {
