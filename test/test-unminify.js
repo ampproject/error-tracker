@@ -62,7 +62,6 @@ describe('Test unminification', function() {
     const stackTrace = ['http://example.com/www/js/two.js.map',
       'http://example.com/www/js/two.js.map'];
     const promises = unminify.extractSourceMaps(stackTrace);
-    console.log(promises);
     expect(promises[0] === promises[1]).to.equal(false);
   });
 
