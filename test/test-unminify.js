@@ -92,7 +92,6 @@ describe('Test unminification', function() {
       at http://example.com/www/js/two.js:2:10
       at http://example.com/www/js/two.js:2:10 `;
     return unminify.unminify(stackTrace).then(function(val) {
-      console.log(val);
       expect(val).to.equal(unminifiedStackTrace);
     });
   });
