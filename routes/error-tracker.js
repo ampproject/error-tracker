@@ -247,9 +247,9 @@ function firstHandler(req, res) {
   let entry = log.entry(metaData, event);
   log.write(entry, function(err) {
     if (err) {
-      winston.error(appEngineProjectId,
-          'Cannot write to Google Cloud Logging: ' + url.parse(
-              entry.event.context.httpRequest.url, true).query['v'], err);
+      // winston.error(appEngineProjectId,
+      //     'Cannot write to Google Cloud Logging: ' + url.parse(
+      //         entry.event.context.httpRequest.url, true).query['v'], err);
     }
   });
 }
