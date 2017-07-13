@@ -70,6 +70,8 @@ describe('Test how server responds to requests', function() {
       expect(payload.event.serviceContext.version).to.includes('assert');
       expect(payload.message).to.equal('OK\n');
       expect(payload.throttleRate).to.equal(0.01);
+    }, function(err) {
+      console.log(err);
     });
   });
 
