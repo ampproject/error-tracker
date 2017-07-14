@@ -37,21 +37,21 @@ describe('Test unminification', function() {
     mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,' +
        'OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
-  let stub;
 
-  before(function(done) {
-    stub = sinon.stub(Request, 'request').
-      yields(null, null, JSON.stringify(rawSourceMap));
-    done();
+  before(function() {
+    sinon.stub(Request, 'request').callsFake(function(url, callback) {
+      setTimeout(function() {
+        callback(null, null, JSON.stringify(rawSourceMap));
+      }, 10);
+    });
   });
 
   after(function(done) {
-    stub.restore();
+    Request.request.restore();
     done();
   });
 
-  // tests
-  it('Should unminify a stack trace line given source map', function() {
+  it('Should unminify a stack trace line given a source map', function() {
     const sourceMapConsumer = new sourceMap.SourceMapConsumer(rawSourceMap);
     expect(unminify.unminifyLine(' at https://example.com/www/js/min.js:2:28',
         sourceMapConsumer)).to.equal(
@@ -62,10 +62,10 @@ describe('Test unminification', function() {
     const stackTrace = ['http://example.com/www/js/two.js.map',
       'http://example.com/www/js/two.js.map'];
     const promises = unminify.extractSourceMaps(stackTrace);
-    expect(promises[0] === promises[1]).to.equal(false);
+    expect(promises[0] === promises[1]).to.equal(true);
   });
 
-  it('Should use source map from cache if cached', function() {
+  it('Should use source map from cache if already cached', function() {
     const stackTrace = [
         'http://example.com/www/js/two.js.map',
         'http://example.com/www/js/one.js.map',
