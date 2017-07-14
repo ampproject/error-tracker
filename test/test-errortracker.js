@@ -285,33 +285,6 @@ describe('Test how server responds to requests', function() {
       expect(res.response.text).to.equal('IGNORE');
     });
   });
-
-  it('Should unminify stack trace and log it', function() {
-    const stackTrace = `Error: localStorage not supported.
-    at Error (native)
-    at https://examplet.com/www/js/min.js:2:28
-      at https://example.com/www/js/min.js:2:28
-      at https://examples.com/www/js/min.js:2:28
-      at https://examplee.com/www/js/min.js:2:28
-      at https://exampler.com/www/js/min.js:2:28
-      at https://examplen.com/www/js/min.js:2:28 `;
-    query.a = 0;
-    query.ca = 1;
-    query['3p'] = 0;
-    query.debug = 1;
-    query.r = 'referer';
-    query.s = stackTrace;
-    randomVal = 0.00000000000000001;
-    return chai.request(app).get('/r').query(query).then(function(res) {
-      expect(res).to.have.status(statusCodes.OK);
-      expect(res).to.have.header('Content-Type',
-          'application/json; charset=utf-8');
-      let payload = JSON.parse(res.text);
-      expect(payload.event.serviceContext.version).includes('canary');
-      expect(payload.message === 'OK\n');
-      expect(payload.throttleRate).to.equal(1);
-    });
-  });
 });
 
 describe('Test stacktrace conversions are done correctly', function() {
