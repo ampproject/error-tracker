@@ -108,7 +108,6 @@ function getHandler(req, res) {
     res.end();
     return;
   }
-  
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -210,7 +209,6 @@ function getHandler(req, res) {
       },
     },
   };
-  
   // get authentication context for logging
   const loggingClient = logging({
     projectId: appEngineProjectId,
