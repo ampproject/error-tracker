@@ -74,10 +74,19 @@ function standardizeStackTrace(stackTrace) {
 /**
  * @param {httpRequest} req
  * @param {response} res
- * @param {middleware} next
  */
-function getHandler(req, res, next) {
+function getHandler(req, res) {
   const params = req.query;
+    if (!params.v) {
+    res.sendStatus(statusCodes.BAD_REQUEST).end();
+    return;
+  }
+  // Don't log testing traffic in production
+  if (params.v.includes('$internalRuntimeVersion$')) {
+    res.sendStatus(statusCodes.NO_CONTENT);
+    res.end();
+    return;
+  }
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
@@ -99,7 +108,7 @@ function getHandler(req, res, next) {
     res.end();
     return;
   }
-
+  
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -201,7 +210,7 @@ function getHandler(req, res, next) {
       },
     },
   };
-
+  
   // get authentication context for logging
   const loggingClient = logging({
     projectId: appEngineProjectId,
@@ -236,7 +245,6 @@ function getHandler(req, res, next) {
   } else {
     res.sendStatus(statusCodes.NO_CONTENT).end();
   }
-  next();
 }
 
 module.exports.getHandler = getHandler;
