@@ -23,7 +23,8 @@ const sinon = require('sinon');
 const stackTrace = require('../routes/error-tracker');
 const log = require('../utils/log');
 const describe = mocha.describe;
-
+const before = mocha.before;
+const after = mocha.after;
 const beforeEach = mocha.beforeEach;
 const afterEach = mocha.afterEach;
 const it = mocha.it;
@@ -34,6 +35,7 @@ chai.use(chaihttp);
 
 describe('Test how server responds to requests', function() {
   const sandbox = sinon.sandbox.create();
+  const logSandbox = sinon.sandbox.create();
   let stub;
   let query = {
     'l': 12,
@@ -50,17 +52,20 @@ describe('Test how server responds to requests', function() {
     'debug': 1,
   };
   let randomVal = 1;
+  before(function() {
+    logSandbox.stub(log, 'write').yields(false);
+  });
   beforeEach(function() {
     stub = sandbox.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
-    sandbox.stub(log, 'write').yields(false);
   });
-
-
   afterEach(function() {
     stub.reset();
     sandbox.restore();
+  });
+  after(function() {
+    logSandbox.restore();
   });
 
   it('Should log 1% of user errors', function() {
