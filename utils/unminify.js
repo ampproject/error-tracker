@@ -134,7 +134,7 @@ function unminify(stackTrace) {
       i++;
     });
     return stackTraceLines.join('\n');
-  }).catch(function(error) {
+  }, function(error) {
     return stackTrace;
   });
 }
