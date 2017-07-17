@@ -36,11 +36,10 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
   const urlRegex = /(https:(.*).js)/g;
   const lineColumnNumberRegex = /:(\d+):(\d+)/g;
   const lineColumnNumbers = lineColumnNumberRegex.exec(stackTraceLine);
-  const lineNumber = lineColumnNumbers[1];
-  const columnNumber = lineColumnNumbers[2];
+  [_, lineNumber, columnNumber] = lineColumnNumbers;
   const originalPosition = sourceMapConsumer.originalPositionFor({
-    line: parseInt(lineNumber),
-    column: parseInt(columnNumber),
+    line: parseInt(lineNumber, 10),
+    column: parseInt(columnNumber, 10),
   });
   stackTraceLine = stackTraceLine.replace(urlRegex, originalPosition.source);
   const originalLocation = ':' + originalPosition.line + ':'
@@ -54,17 +53,12 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
  */
 function getSourceMapFromNetwork(url) {
   const reqPromise = new Promise((res, rej) => {
-    /**
-     * @param {error} err
-     * @param {response} _
-     * @param {body} body
-     */
-    function callback(err, _, body) {
+    Request.request(url, function callback(err, _, body) {
       if (err) {
         rej(err);
       } else {
         try {
-          let sourceMapConsumer = new sourceMap.SourceMapConsumer(
+          const sourceMapConsumer = new sourceMap.SourceMapConsumer(
               JSON.parse(body));
           requestCache.delete(url);
           sourceMapConsumerCache.set(url, sourceMapConsumer);
@@ -73,29 +67,26 @@ function getSourceMapFromNetwork(url) {
           rej(e);
         }
       }
-    }
-    Request.request(url, callback);
+    });
   });
   requestCache.set(url, reqPromise);
   return reqPromise;
 }
 
 /**
- * @param {Array} sourceMapUrls
- * @return {Array} Array of promises that resolve to source maps
+ * @param {!Array<!string>} sourceMapUrls
+ * @return {!Array<!Promise>} Array of promises that resolve to source maps
  */
 function extractSourceMaps(sourceMapUrls) {
-  const promises = [];
-  sourceMapUrls.forEach(function(sourceMapUrl) {
+  return sourceMapUrls.map(function(sourceMapUrl) {
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
-      promises.push(Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl)));
+      return Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl));
     } else if (requestCache.has(sourceMapUrl)) {
-      promises.push(requestCache.get(sourceMapUrl));
+      return requestCache.get(sourceMapUrl);
     } else {
-      promises.push(getSourceMapFromNetwork(sourceMapUrl));
+     return getSourceMapFromNetwork(sourceMapUrl);
     }
   });
-  return promises;
 }
 
 /**
@@ -112,14 +103,12 @@ function unminify(stackTrace) {
   const stackTraceLines = stackTrace.split('\n');
   const promises = extractSourceMaps(stackTracesUrl);
   return Promise.all(promises).then(function(values) {
-    let i = 0;
-    values.forEach(function(sourceMapConsumer) {
+    values.forEach(function(sourceMapConsumer, i) {
       stackTraceLines[i] = unminifyLine(stackTraceLines[i],
           sourceMapConsumer);
-      i++;
     });
     return stackTraceLines.join('\n');
-  }, function(error) {
+  }, function() {
     return stackTrace;
   });
 }

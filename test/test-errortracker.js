@@ -27,12 +27,12 @@ const before = mocha.before;
 const after = mocha.after;
 const it = mocha.it;
 const expect = chai.expect;
-const sandbox = sinon.sandbox.create();
 
 process.env.NODE_ENV = 'test';
 chai.use(chaihttp);
 
 describe('Test how server responds to requests', function() {
+  const sandbox = sinon.sandbox.create();
   let query = {
     'l': 12,
     'a': 1,

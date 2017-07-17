@@ -76,36 +76,35 @@ function standardizeStackTrace(stackTrace) {
  * entry object to be logged and sends it to unminification.
  * @param {Http.Request} req
  * @param {Http.Response} res
- * @return {void|Promise} May return a promise that rejects on logging error
+ * @return {?Promise} May return a promise that rejects on logging error
  */
-function firstHandler(req, res) {
+function getHandler(req, res) {
   const params = req.query;
   if (!params.r) {
     res.sendStatus(statusCodes.BAD_REQUEST).end();
-    return;
+    return null;
   }
   if (!params.v) {
     res.sendStatus(statusCodes.BAD_REQUEST).end();
-    return;
-  }
-  // Don't log testing traffic in production
-  if (params.v.includes('$internalRuntimeVersion$')) {
+    return null;
+  } else if (params.v.includes('$internalRuntimeVersion$')) {
     res.sendStatus(statusCodes.NO_CONTENT);
     res.end();
-    return;
+    return null;
   }
+
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
     res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
-    return;
+    return null;
   }
   if (ignoreMessageOrException(params.m, params.s)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE\n').end();
-    return;
+    return null;
   }
   const referer = params.r;
   let errorType = 'default';
@@ -175,7 +174,7 @@ function firstHandler(req, res) {
     res.status(statusCodes.OK)
         .send('THROTTLED\n')
         .end();
-    return;
+    return null;
   }
 
   let exception = params.s;
@@ -183,11 +182,7 @@ function firstHandler(req, res) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE\n').end();
-    return;
-  }
-  // If format does not end with :\d+ truncate up to the last newline.
-  if (!exception.match(/:\d+$/)) {
-    exception = exception.replace(/\n.*$/, '');
+    return null;
   }
   // Convert Firefox/Safari stack traces to Chrome format if necessary.
   exception = standardizeStackTrace(exception);
@@ -196,7 +191,7 @@ function firstHandler(req, res) {
     res.send('IGNORE');
     res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
-    return;
+    return null;
   }
   const event = {
     serviceContext: {
@@ -212,7 +207,7 @@ function firstHandler(req, res) {
       },
     },
   };
-  if (params.debug === '1' ) {
+  if (params.debug === '1') {
     res.set('Content-Type', 'application/json; charset=ISO-8859-1');
     res.status(statusCodes.OK).send(
         JSON.stringify({
@@ -247,15 +242,14 @@ function firstHandler(req, res) {
         winston.error(appEngineProjectId,
             'Cannot write to Google Cloud Logging: ' + url.parse(
                 req.url.toString(), true).query['v'], err);
+        console.log(err);
         rej(err);
       } else {
         res();
       }
     });
-  }).catch(function(err) {
-    console.log(err);
   });
 }
 
-module.exports.getHandler = firstHandler;
+module.exports.getHandler = getHandler;
 module.exports.convertStackTrace = standardizeStackTrace;
