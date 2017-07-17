@@ -16,13 +16,6 @@
  * @fileoverview
  * Convert's stacktrace line, column number and file references from minified
  * to unminified. Caches requests for and source maps and once obtained.
- * @type sourceMapConsumerCache = {
- *  key : url to JS file
- *  sourceMapConsumer : corresponding sourceMapConsumer.
- * }
- * @type requestCache = {
- *  key : url of sourceMap requested
- *  promise : promise that resolves to sourceMapConsumer
  * }
  */
 
@@ -53,14 +46,6 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
   const originalLocation = ':' + originalPosition.line + ':'
       + originalPosition.column;
   return stackTraceLine.replace(lineColumnNumbers[0], originalLocation);
-}
-
-/**
- * @param {string} url
- * @return {Promise} Promise that resolves to a source map.
- */
-function getFromInMemory(url) {
-  return Promise.resolve(sourceMapConsumerCache.get(url));
 }
 
 /**
@@ -103,7 +88,7 @@ function extractSourceMaps(sourceMapUrls) {
   const promises = [];
   sourceMapUrls.forEach(function(sourceMapUrl) {
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
-      promises.push(getFromInMemory(sourceMapUrl));
+      promises.push(Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl)));
     } else if (requestCache.has(sourceMapUrl)) {
       promises.push(requestCache.get(sourceMapUrl));
     } else {
