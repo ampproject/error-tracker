@@ -189,7 +189,6 @@ function firstHandler(req, res) {
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
-  
   // Convert Firefox/Safari stack traces to Chrome format if necessary.
   exception = standardizeStackTrace(exception);
   if (!exception) {
