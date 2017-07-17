@@ -231,22 +231,36 @@ function getHandler(req, res) {
   };
   unminify.unminify(exception).then(function(unminifiedException) {
     exception = params.m + '\n' + unminifiedException;
+    const entry = log.entry(metaData, event);
+    return new Promise(function(res, rej) {
+      log.write(entry, function(err) {
+        if (err) {
+          winston.error(appEngineProjectId,
+              'Cannot write to Google Cloud Logging: ' + url.parse(
+                  req.url.toString(), true).query['v'], err);
+          console.log(err);
+          rej(err);
+        } else {
+          res();
+        }
+      });
+    });
   }, function(err) {
     exception = params.m + '\n' + exception;
     console.log(err);
-  });
-  const entry = log.entry(metaData, event);
-  return new Promise(function(res, rej) {
-    log.write(entry, function(err) {
-      if (err) {
-        winston.error(appEngineProjectId,
-            'Cannot write to Google Cloud Logging: ' + url.parse(
-                req.url.toString(), true).query['v'], err);
-        console.log(err);
-        rej(err);
-      } else {
-        res();
-      }
+    const entry = log.entry(metaData, event);
+    return new Promise(function(res, rej) {
+      log.write(entry, function(err) {
+        if (err) {
+          winston.error(appEngineProjectId,
+              'Cannot write to Google Cloud Logging: ' + url.parse(
+                  req.url.toString(), true).query['v'], err);
+          console.log(err);
+          rej(err);
+        } else {
+          res();
+        }
+      });
     });
   });
 }
