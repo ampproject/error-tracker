@@ -81,14 +81,14 @@ function standardizeStackTrace(stackTrace) {
 function getHandler(req, res) {
   const params = req.query;
   if (!params.r) {
-    res.sendStatus(statusCodes.BAD_REQUEST);
+    res.sendStatus(statusCodes.BAD_REQUEST).end();
     return null;
   }
   if (!params.v) {
-    res.sendStatus(statusCodes.BAD_REQUEST);
+    res.sendStatus(statusCodes.BAD_REQUEST).end();
     return null;
   } else if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
+    res.sendStatus(statusCodes.NO_CONTENT).end();
     return null;
   }
 
@@ -212,7 +212,7 @@ function getHandler(req, res) {
           throttleRate: throttleRate,
         }));
   } else {
-    res.sendStatus(statusCodes.NO_CONTENT);
+    res.sendStatus(statusCodes.NO_CONTENT).end();
   }
   const metaData = {
     resource: {
