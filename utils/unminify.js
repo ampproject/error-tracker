@@ -120,7 +120,7 @@ function extractSourceMaps(sourceMapUrls) {
 function unminify(stackTrace) {
   const urlRegex = /(https:(.*).js)/g;
   let match;
-  let stackTracesUrl = [];
+  const stackTracesUrl = [];
   while ((match = urlRegex.exec(stackTrace))) {
     stackTracesUrl.push(match[0] + '.map');
   }
