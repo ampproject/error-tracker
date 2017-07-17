@@ -32,7 +32,6 @@ const chromeStackTraceRegex = new RegExp(
     `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
     'gm');
 const appEngineProjectId = 'amp-error-reporting';
-
 /**
  * @enum {int}
  */
@@ -190,6 +189,8 @@ function firstHandler(req, res) {
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
+  
+  // Convert Firefox/Safari stack traces to Chrome format if necessary.
   exception = standardizeStackTrace(exception);
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
