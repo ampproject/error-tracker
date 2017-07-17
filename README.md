@@ -18,4 +18,6 @@ $ node error-tracker.js
 
 This tool does not collect any user data or information. 
 
-Licensed under the Apache 2.0 license 
+ Licensed under the Apache 2.0 license
+ 
+       http://www.apache.org/licenses/LICENSE-2.0

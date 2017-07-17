@@ -1,10 +1,8 @@
 /**
- * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
- *
+ * Copyright 2017 The AMP Authors. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -28,6 +26,11 @@ const logName = 'javascript.errors';
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
+const lineColumnNumbers = '([^ \\n]+):(\\d+):(\\d+)';
+const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
+const chromeStackTraceRegex = new RegExp(
+    `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
+    'gm');
 
 /**
  * @enum {int}
@@ -46,6 +49,26 @@ function ignoreMessageOrException(message, exception) {
   return errorsToIgnore.some(function(msg) {
     return message.includes(msg) || exception.includes(msg);
   });
+}
+
+/**
+ * Converts a stack trace to the standard Chrome stack trace format.
+ * @param {string} stackTrace
+ * @return {string} The converted stack trace.
+ */
+function standardizeStackTrace(stackTrace) {
+  if (chromeStackTraceRegex.test(stackTrace)) {
+    // Discard garbage stack trace lines
+    return stackTrace.match(chromeStackTraceRegex).join('\n');
+  }
+  let validStackTraceLines = [];
+  let match;
+  while ((match = mozillaSafariStackTraceRegex.exec(stackTrace))) {
+    validStackTraceLines.push(
+        ` at ${match[1]} ${match[2]}:` +
+        `${match[3]}:${match[4]}`);
+  }
+  return validStackTraceLines.join('\n');
 }
 
 /**
@@ -71,8 +94,18 @@ function getHandler(req, res) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-  if (!params.r) {
-    res.sendStatus(statusCodes.BAD_REQUEST).end();
+
+  if (ignoreMessageOrException(params.m, params.s)) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.status(statusCodes.BAD_REQUEST);
+    res.send('IGNORE\n').end();
+    return;
+  }
+
+  // Don't log testing traffic in production
+  if (params.v.includes('$internalRuntimeVersion$')) {
+    res.sendStatus(statusCodes.NO_CONTENT);
+    res.end();
     return;
   }
   const referer = params.r;
@@ -88,8 +121,8 @@ function getHandler(req, res) {
   let severity = SEVERITY.INFO;
   let isCdn = false;
   if (referer.startsWith('https://cdn.ampproject.org/') ||
-    referer.includes('.cdn.ampproject.org/') ||
-    referer.includes('.ampproject.net/')) {
+      referer.includes('.cdn.ampproject.org/') ||
+      referer.includes('.ampproject.net/')) {
     severity = SEVERITY.ERROR;
     errorType += '-cdn';
     isCdn = true;
@@ -141,8 +174,8 @@ function getHandler(req, res) {
   if (sample > throttleRate) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.OK)
-      .send('THROTTLED\n')
-      .end();
+        .send('THROTTLED\n')
+        .end();
     return;
   }
 
@@ -151,6 +184,17 @@ function getHandler(req, res) {
   if (!exception.match(/:\d+$/)) {
     exception = exception.replace(/\n.*$/, '');
   }
+  // Convert Firefox/Safari stack traces to Chrome format if necessary.
+  exception = standardizeStackTrace(exception);
+  if (!exception) {
+    res.status(statusCodes.BAD_REQUEST);
+    res.send('IGNORE');
+    res.end();
+    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
+    return;
+  }
+
+  exception = params.m + '\n' + exception;
   const event = {
     serviceContext: {
       service: appEngineProjectId,
@@ -165,14 +209,6 @@ function getHandler(req, res) {
       },
     },
   };
-
-  if (ignoreMessageOrException(params.m, exception)) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE\n').end();
-    return;
-  }
-
   // get authentication context for logging
   const loggingClient = logging({
     projectId: appEngineProjectId,
@@ -199,18 +235,15 @@ function getHandler(req, res) {
         + url.parse(req.url, true).query['v'], err);
     }
   });
-
   if (params.debug === '1') {
     res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-    res.status(statusCodes.OK).send(
-      JSON.stringify({
-        message: 'OK\n',
-        event: event,
-        throttleRate: throttleRate,
-      })).end();
+    res.status(statusCodes.OK);
+    res.send(
+        JSON.stringify({message: 'OK\n', event, throttleRate})).end();
   } else {
     res.sendStatus(statusCodes.NO_CONTENT).end();
   }
 }
 
-module.exports = getHandler;
+module.exports.getHandler = getHandler;
+module.exports.convertStackTrace = standardizeStackTrace;
