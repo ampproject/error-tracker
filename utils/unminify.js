@@ -15,7 +15,7 @@
 /**
  * @fileoverview
  * Convert's stacktrace line, column number and file references from minified
- * to unminified.
+ * to unminified. Caches requests for and source maps and once obtained.
  * @type sourceMapConsumerCache = {
  *  key : url to JS file
  *  sourceMapConsumer : corresponding sourceMapConsumer.
@@ -28,8 +28,10 @@
 
 const sourceMap = require('source-map');
 const Request = require('./request');
-let sourceMapConsumerCache = new Map();
-let requestCache = new Map();
+/**@type {!sourceMap<url, sourceMap>}*/
+const sourceMapConsumerCache = new Map();
+/**@type {!request<url, Promise>}*/
+const requestCache = new Map();
 
 /**
  * @param {string} stackTraceLine
@@ -41,9 +43,11 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
   const urlRegex = /(https:(.*).js)/g;
   const lineColumnNumberRegex = /:(\d+):(\d+)/g;
   const lineColumnNumbers = lineColumnNumberRegex.exec(stackTraceLine);
+  const lineNumber = lineColumnNumbers[1];
+  const columnNumber = lineColumnNumbers[2];
   const originalPosition = sourceMapConsumer.originalPositionFor({
-    line: parseInt(lineColumnNumbers[1]),
-    column: parseInt(lineColumnNumbers[2]),
+    line: parseInt(lineNumber),
+    column: parseInt(columnNumber),
   });
   stackTraceLine = stackTraceLine.replace(urlRegex, originalPosition.source);
   const originalLocation = ':' + originalPosition.line + ':'
@@ -63,7 +67,7 @@ function getFromInMemory(url) {
  * @param {string} url
  * @return {Promise} Promise that resolves to a source map.
  */
-function getFromNetwork(url) {
+function getSourceMapFromNetwork(url) {
   const reqPromise = new Promise((res, rej) => {
     /**
      * @param {error} err
@@ -96,14 +100,14 @@ function getFromNetwork(url) {
  * @return {Array} Array of promises that resolve to source maps
  */
 function extractSourceMaps(sourceMapUrls) {
-  let promises = [];
+  const promises = [];
   sourceMapUrls.forEach(function(sourceMapUrl) {
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
       promises.push(getFromInMemory(sourceMapUrl));
     } else if (requestCache.has(sourceMapUrl)) {
       promises.push(requestCache.get(sourceMapUrl));
     } else {
-      promises.push(getFromNetwork(sourceMapUrl));
+      promises.push(getSourceMapFromNetwork(sourceMapUrl));
     }
   });
   return promises;
@@ -120,7 +124,7 @@ function unminify(stackTrace) {
   while ((match = urlRegex.exec(stackTrace))) {
     stackTracesUrl.push(match[0] + '.map');
   }
-  let stackTraceLines = stackTrace.split('\n');
+  const stackTraceLines = stackTrace.split('\n');
   const promises = extractSourceMaps(stackTracesUrl);
   return Promise.all(promises).then(function(values) {
     let i = 0;

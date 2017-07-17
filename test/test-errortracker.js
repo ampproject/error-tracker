@@ -27,6 +27,7 @@ const before = mocha.before;
 const after = mocha.after;
 const it = mocha.it;
 const expect = chai.expect;
+const sandbox = sinon.sandbox.create();
 
 process.env.NODE_ENV = 'test';
 chai.use(chaihttp);
@@ -48,15 +49,14 @@ describe('Test how server responds to requests', function() {
   };
   let randomVal = 1;
   before(function() {
-    sinon.stub(Math, 'random').callsFake(function() {
+    sandbox.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
-    sinon.stub(log, 'write').yields(false);
+    sandbox.stub(log, 'write').yields(false);
   });
 
   after(function() {
-    Math.random.restore();
-    log.write.restore();
+    sandbox.restore();
   });
 
   it('Should log 1% of user errors', function() {

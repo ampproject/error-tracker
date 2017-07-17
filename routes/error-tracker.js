@@ -76,7 +76,7 @@ function standardizeStackTrace(stackTrace) {
  * entry object to be logged and sends it to unminification.
  * @param {Http.Request} req
  * @param {Http.Response} res
- * @return { void|Promise } May return a promise that rejects on logging error
+ * @return {void|Promise} May return a promise that rejects on logging error
  */
 function firstHandler(req, res) {
   const params = req.query;
@@ -198,7 +198,7 @@ function firstHandler(req, res) {
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return;
   }
-  let event = {
+  const event = {
     serviceContext: {
       service: appEngineProjectId,
       version: errorType + '-' + params.v,
@@ -236,11 +236,11 @@ function firstHandler(req, res) {
   };
   unminify.unminify(exception).then(function(unminifiedException) {
     exception = params.m + '\n' + unminifiedException;
-  }).catch(function(err) {
+  }, function(err) {
     exception = params.m + '\n' + exception;
     console.log(err);
   });
-  let entry = log.entry(metaData, event);
+  const entry = log.entry(metaData, event);
   return new Promise(function(res, rej) {
     log.write(entry, function(err) {
       if (err) {

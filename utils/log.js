@@ -1,7 +1,4 @@
 /**
- * Created by rigwanzojunior on 7/13/17.
- */
-/**
  * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/**
+ * @fileoverview exports log object to enable stubbing of write method
+ */
 const logging = require('@google-cloud/logging');
 const appEngineProjectId = 'amp-error-reporting';
 const logName = 'javascript.errors';
