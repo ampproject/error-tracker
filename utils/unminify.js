@@ -28,9 +28,9 @@
 
 const sourceMap = require('source-map');
 const Request = require('./request');
-/**@type {!sourceMap<url, sourceMap>}*/
+/** @type {!sourceMap<url, sourceMap>}*/
 const sourceMapConsumerCache = new Map();
-/**@type {!request<url, Promise>}*/
+/** @type {!request<url, Promise>}*/
 const requestCache = new Map();
 
 /**
