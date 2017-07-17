@@ -58,7 +58,7 @@ function ignoreMessageOrException(message, exception) {
  */
 function standardizeStackTrace(stackTrace) {
   if (chromeStackTraceRegex.test(stackTrace)) {
-    // Convert Firefox/Safari stack traces to Chrome format if necessary.
+    // Discard garbage stack trace lines
     return stackTrace.match(chromeStackTraceRegex).join('\n');
   }
   let validStackTraceLines = [];
@@ -81,29 +81,27 @@ function standardizeStackTrace(stackTrace) {
 function getHandler(req, res) {
   const params = req.query;
   if (!params.r) {
-    res.sendStatus(statusCodes.BAD_REQUEST).end();
+    res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
   if (!params.v) {
-    res.sendStatus(statusCodes.BAD_REQUEST).end();
+    res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   } else if (params.v.includes('$internalRuntimeVersion$')) {
     res.sendStatus(statusCodes.NO_CONTENT);
-    res.end();
     return null;
   }
 
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
-    res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return null;
   }
   if (ignoreMessageOrException(params.m, params.s)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE\n').end();
+    res.send('IGNORE\n');
     return null;
   }
   const referer = params.r;
@@ -172,8 +170,7 @@ function getHandler(req, res) {
   if (sample > throttleRate) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.OK)
-        .send('THROTTLED\n')
-        .end();
+        .send('THROTTLED\n');
     return null;
   }
 
@@ -181,7 +178,7 @@ function getHandler(req, res) {
   if (ignoreMessageOrException(params.m, exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE\n').end();
+    res.send('IGNORE\n');
     return null;
   }
   // Convert Firefox/Safari stack traces to Chrome format if necessary.
@@ -189,7 +186,6 @@ function getHandler(req, res) {
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE');
-    res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return null;
   }
@@ -214,9 +210,9 @@ function getHandler(req, res) {
           message: 'OK\n',
           event: event,
           throttleRate: throttleRate,
-        })).end();
+        }));
   } else {
-    res.sendStatus(statusCodes.NO_CONTENT).end();
+    res.sendStatus(statusCodes.NO_CONTENT);
   }
   const metaData = {
     resource: {
