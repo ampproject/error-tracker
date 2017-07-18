@@ -23,8 +23,6 @@ const sinon = require('sinon');
 const stackTrace = require('../routes/error-tracker');
 const log = require('../utils/log');
 const describe = mocha.describe;
-const before = mocha.before;
-const after = mocha.after;
 const beforeEach = mocha.beforeEach;
 const afterEach = mocha.afterEach;
 const it = mocha.it;
@@ -35,7 +33,6 @@ chai.use(chaihttp);
 
 describe('Test how server responds to requests', function() {
   const sandbox = sinon.sandbox.create();
-  // const logSandbox = sinon.sandbox.create();
   let stub;
   let query = {
     'l': 12,
@@ -52,9 +49,6 @@ describe('Test how server responds to requests', function() {
     'debug': 1,
   };
   let randomVal = 1;
-  before(function() {
-    // logSandbox.stub(log, 'write').yields(false);
-  });
   beforeEach(function() {
     stub = sandbox.stub(Math, 'random').callsFake(function() {
       return randomVal;
@@ -64,9 +58,6 @@ describe('Test how server responds to requests', function() {
   afterEach(function() {
     stub.reset();
     sandbox.restore();
-  });
-  after(function() {
-    // logSandbox.restore();
   });
 
   it('Should log 1% of user errors', function() {
@@ -282,13 +273,12 @@ describe('Test how server responds to requests', function() {
     return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
     }, function(res) {
-      /** chai-http errors with handling > 299 status codes hence
-       * errors can only be asserted in the catch block which
-       * modifies anatomy of response
-       * object. More information at https://github.com/chaijs/chai-http/issues/75.
-       * This is a hack and once the package
-       * has been updated is subject to change
-       */
+      // chai-http errors with handling > 299 status codes hence
+      // errors can only be asserted in the catch block which
+      // modifies anatomy of response
+      // object. More information at https://github.com/chaijs/chai-http/issues/75.
+      // This is a hack and once the package
+      // has been updated is subject to change
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       expect(res.response.text).to.equal('IGNORE');
     });
