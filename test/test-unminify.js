@@ -37,9 +37,9 @@ describe('Test unminification', function() {
     mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,' +
        'OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
-
+  const sandbox = sinon.sandbox.create();
   before(function() {
-    sinon.stub(Request, 'request').callsFake(function(url, callback) {
+    sandbox.stub(Request, 'request').callsFake(function(url, callback) {
       setTimeout(function() {
         callback(null, null, JSON.stringify(rawSourceMap));
       }, 10);
@@ -47,7 +47,7 @@ describe('Test unminification', function() {
   });
 
   after(function(done) {
-    Request.request.restore();
+    sandbox.restore();
     done();
   });
 

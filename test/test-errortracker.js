@@ -35,7 +35,7 @@ chai.use(chaihttp);
 
 describe('Test how server responds to requests', function() {
   const sandbox = sinon.sandbox.create();
-  const logSandbox = sinon.sandbox.create();
+  // const logSandbox = sinon.sandbox.create();
   let stub;
   let query = {
     'l': 12,
@@ -53,19 +53,20 @@ describe('Test how server responds to requests', function() {
   };
   let randomVal = 1;
   before(function() {
-    logSandbox.stub(log, 'write').yields(false);
+    // logSandbox.stub(log, 'write').yields(false);
   });
   beforeEach(function() {
     stub = sandbox.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
+    sandbox.stub(log, 'write').yields(false);
   });
   afterEach(function() {
     stub.reset();
     sandbox.restore();
   });
   after(function() {
-    logSandbox.restore();
+    // logSandbox.restore();
   });
 
   it('Should log 1% of user errors', function() {
