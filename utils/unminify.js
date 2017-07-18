@@ -21,6 +21,7 @@
 
 const sourceMap = require('source-map');
 const Request = require('./request');
+const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
 /** @type {!sourceMap<url, sourceMap>}*/
 const sourceMapConsumerCache = new Map();
 /** @type {!request<url, Promise>}*/
@@ -33,18 +34,20 @@ const requestCache = new Map();
  * references unminified.
  */
 function unminifyLine(stackTraceLine, sourceMapConsumer) {
-  const urlRegex = /(https:(.*).js)/g;
-  const lineColumnNumberRegex = /:(\d+):(\d+)/g;
-  const lineColumnNumbers = lineColumnNumberRegex.exec(stackTraceLine);
-  [_, lineNumber, columnNumber] = lineColumnNumbers;
+  const chromeStackTraceRegex = new RegExp(
+      `^\\s*at (.+ )?(?:((${lineColumnNumbersRegex}))|` +
+      `\\((${lineColumnNumbersRegex}\\)))$`, 'gm');
+  [_, _, _, _, sourceUrl, lineNumber, columnNumber] =
+      chromeStackTraceRegex.exec(stackTraceLine);
+  const currentPosition = ':' + lineNumber + ':' + columnNumber;
   const originalPosition = sourceMapConsumer.originalPositionFor({
     line: parseInt(lineNumber, 10),
     column: parseInt(columnNumber, 10),
   });
-  stackTraceLine = stackTraceLine.replace(urlRegex, originalPosition.source);
+  stackTraceLine = stackTraceLine.replace(sourceUrl, originalPosition.source);
   const originalLocation = ':' + originalPosition.line + ':'
       + originalPosition.column;
-  return stackTraceLine.replace(lineColumnNumbers[0], originalLocation);
+  return stackTraceLine.replace(currentPosition, originalLocation);
 }
 
 /**
@@ -94,11 +97,13 @@ function extractSourceMaps(sourceMapUrls) {
  * @return {Promise} Promise that resolves to unminified stack trace.
  */
 function unminify(stackTrace) {
-  const urlRegex = /(https:(.*).js)/g;
+  const chromeStackTraceRegex = new RegExp(
+      `^\\s*at (.+ )?(?:((${lineColumnNumbersRegex}))|\\` +
+      `((${lineColumnNumbersRegex}\\)))$`, 'gm');
   let match;
   const stackTracesUrl = [];
-  while ((match = urlRegex.exec(stackTrace))) {
-    stackTracesUrl.push(match[0] + '.map');
+  while ((match = chromeStackTraceRegex.exec(stackTrace))) {
+    stackTracesUrl.push(match[4] + '.map');
   }
   const stackTraceLines = stackTrace.split('\n');
   const promises = extractSourceMaps(stackTracesUrl);

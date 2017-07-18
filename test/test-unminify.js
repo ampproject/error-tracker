@@ -83,13 +83,13 @@ describe('Test unminification', function() {
       at https://examples.com/www/js/min.js:2:28
       at https://examplee.com/www/js/min.js:2:28
       at https://exampler.com/www/js/min.js:2:28
-      at https://examplen.com/www/js/min.js:2:28 `;
+      at https://examplen.com/www/js/min.js:2:28`;
     const unminifiedStackTrace = ` at http://example.com/www/js/two.js:2:10
       at http://example.com/www/js/two.js:2:10
       at http://example.com/www/js/two.js:2:10
       at http://example.com/www/js/two.js:2:10
       at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10 `;
+      at http://example.com/www/js/two.js:2:10`;
     return unminify.unminify(stackTrace).then(function(val) {
       expect(val).to.equal(unminifiedStackTrace);
     });
