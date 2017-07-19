@@ -26,11 +26,8 @@ const url = require('url');
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-const lineColumnNumbers = '([^ \\n]+):(\\d+):(\\d+)';
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
-const chromeStackTraceRegex = new RegExp(
-    `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
-    'gm');
+const chromeStackTraceRegex = require('../utils/regex').chromeRegex();
 const appEngineProjectId = 'amp-error-reporting';
 /**
  * @enum {int}
@@ -74,20 +71,17 @@ function standardizeStackTrace(stackTrace) {
 /**
  * Extracts relevant information from request, handles edge cases and prepares
  * entry object to be logged and sends it to unminification.
- * @param {Http.Request} req
- * @param {Http.Response} res
+ * @param {Request} req
+ * @param {Response} res
  * @return {?Promise} May return a promise that rejects on logging error
  */
 function getHandler(req, res) {
   const params = req.query;
-  if (!params.r) {
+  if (!params.r || !params.v) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
-  if (!params.v) {
-    res.sendStatus(statusCodes.BAD_REQUEST);
-    return null;
-  } else if (params.v.includes('$internalRuntimeVersion$')) {
+  if (params.v.includes('$internalRuntimeVersion$')) {
     res.sendStatus(statusCodes.NO_CONTENT);
     return null;
   }
@@ -169,8 +163,7 @@ function getHandler(req, res) {
   }
   if (sample > throttleRate) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.OK)
-        .send('THROTTLED\n');
+    res.status(statusCodes.OK).send('THROTTLED\n');
     return null;
   }
 
@@ -205,12 +198,7 @@ function getHandler(req, res) {
   };
   if (params.debug === '1') {
     res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-    res.status(statusCodes.OK).send(
-        JSON.stringify({
-          message: 'OK\n',
-          event: event,
-          throttleRate: throttleRate,
-        }));
+    res.status(statusCodes.OK).send({message: 'OK\n', event, throttleRate});
   } else {
     res.sendStatus(statusCodes.NO_CONTENT);
   }
@@ -228,16 +216,16 @@ function getHandler(req, res) {
   unminify.unminify(exception).then(function(unminifiedException) {
     exception = params.m + '\n' + unminifiedException;
     const entry = log.entry(metaData, event);
-    return new Promise(function(res, rej) {
+    return new Promise(function(resolve, reject) {
       log.write(entry, function(err) {
         if (err) {
           winston.error(appEngineProjectId,
               'Cannot write to Google Cloud Logging: ' + url.parse(
                   req.url.toString(), true).query['v'], err);
           console.log(err);
-          rej(err);
+          reject(err);
         } else {
-          res();
+          resolve();
         }
       });
     });

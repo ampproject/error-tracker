@@ -16,12 +16,17 @@
  * @fileoverview
  * Convert's stacktrace line, column number and file references from minified
  * to unminified. Caches requests for and source maps and once obtained.
+ * @type location{
+ * string: lineNumber
+ * string: columnNumber
+ * string: sourceMapUrl
+ * string: sourceUrl
  * }
  */
 
 const sourceMap = require('source-map');
 const Request = require('./request');
-const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
+const chromeRegex = require('./regex');
 /** @type {!sourceMap<url, sourceMap>}*/
 const sourceMapConsumerCache = new Map();
 /** @type {!request<url, Promise>}*/
@@ -29,22 +34,20 @@ const requestCache = new Map();
 
 /**
  * @param {string} stackTraceLine
+ * @param {location} stackLocation
  * @param {Object} sourceMapConsumer
  * @return {string} Stack trace line with column, line number and file name
  * references unminified.
  */
-function unminifyLine(stackTraceLine, sourceMapConsumer) {
-  const chromeStackTraceRegex = new RegExp(
-      `^\\s*at (.+ )?(?:((${lineColumnNumbersRegex}))|` +
-      `\\((${lineColumnNumbersRegex}\\)))$`, 'gm');
-  [_, _, _, _, sourceUrl, lineNumber, columnNumber] =
-      chromeStackTraceRegex.exec(stackTraceLine);
-  const currentPosition = ':' + lineNumber + ':' + columnNumber;
+function unminifyLine(stackTraceLine, stackLocation, sourceMapConsumer) {
+  const currentPosition = ':' + stackLocation.lineNumber + ':' +
+      stackLocation.columnNumber;
   const originalPosition = sourceMapConsumer.originalPositionFor({
-    line: parseInt(lineNumber, 10),
-    column: parseInt(columnNumber, 10),
+    line: stackLocation.lineNumber,
+    column: stackLocation.columnNumber,
   });
-  stackTraceLine = stackTraceLine.replace(sourceUrl, originalPosition.source);
+  stackTraceLine = stackTraceLine.replace(stackLocation.sourceUrl,
+      originalPosition.source);
   const originalLocation = ':' + originalPosition.line + ':'
       + originalPosition.column;
   return stackTraceLine.replace(currentPosition, originalLocation);
@@ -55,19 +58,19 @@ function unminifyLine(stackTraceLine, sourceMapConsumer) {
  * @return {Promise} Promise that resolves to a source map.
  */
 function getSourceMapFromNetwork(url) {
-  const reqPromise = new Promise((res, rej) => {
+  const reqPromise = new Promise((resolve, reject) => {
     Request.request(url, function callback(err, _, body) {
       if (err) {
-        rej(err);
+        reject(err);
       } else {
         try {
           const sourceMapConsumer = new sourceMap.SourceMapConsumer(
               JSON.parse(body));
           requestCache.delete(url);
           sourceMapConsumerCache.set(url, sourceMapConsumer);
-          res(sourceMapConsumer);
+          resolve(sourceMapConsumer);
         } catch (e) {
-          rej(e);
+          reject(e);
         }
       }
     });
@@ -77,17 +80,18 @@ function getSourceMapFromNetwork(url) {
 }
 
 /**
- * @param {!Array<!string>} sourceMapUrls
+ * @param {!Array<!location>} stackLocations
  * @return {!Array<!Promise>} Array of promises that resolve to source maps
  */
-function extractSourceMaps(sourceMapUrls) {
-  return sourceMapUrls.map(function(sourceMapUrl) {
-    if (sourceMapConsumerCache.has(sourceMapUrl)) {
-      return Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl));
-    } else if (requestCache.has(sourceMapUrl)) {
-      return requestCache.get(sourceMapUrl);
+function extractSourceMaps(stackLocations) {
+  return stackLocations.map(function(stackLocation) {
+    if (sourceMapConsumerCache.has(stackLocation.sourceMapUrl)) {
+      return Promise.resolve(sourceMapConsumerCache.get(
+          stackLocation.sourceMapUrl));
+    } else if (requestCache.has(stackLocation.sourceMapUrl)) {
+      return requestCache.get(stackLocation.sourceMapUrl);
     } else {
-     return getSourceMapFromNetwork(sourceMapUrl);
+     return getSourceMapFromNetwork(stackLocation.sourceMapUrl);
     }
   });
 }
@@ -97,20 +101,23 @@ function extractSourceMaps(sourceMapUrls) {
  * @return {Promise} Promise that resolves to unminified stack trace.
  */
 function unminify(stackTrace) {
-  const chromeStackTraceRegex = new RegExp(
-      `^\\s*at (.+ )?(?:((${lineColumnNumbersRegex}))|\\` +
-      `((${lineColumnNumbersRegex}\\)))$`, 'gm');
+  const chromeStackTraceRegex = chromeRegex.chromeRegex();
   let match;
-  const stackTracesUrl = [];
+  const stackLocations = [];
   while ((match = chromeStackTraceRegex.exec(stackTrace))) {
-    stackTracesUrl.push(match[4] + '.map');
+    stackLocations.push({
+      sourceMapUrl: match[4] + '.map',
+      sourceUrl: match[4],
+      lineNumber: parseInt(match[5], 10),
+      columnNumber: parseInt(match[6], 10),
+    });
   }
   const stackTraceLines = stackTrace.split('\n');
-  const promises = extractSourceMaps(stackTracesUrl);
+  const promises = extractSourceMaps(stackLocations);
   return Promise.all(promises).then(function(values) {
     values.forEach(function(sourceMapConsumer, i) {
       stackTraceLines[i] = unminifyLine(stackTraceLines[i],
-          sourceMapConsumer);
+          stackLocations[i], sourceMapConsumer);
     });
     return stackTraceLines.join('\n');
   }, function() {
@@ -118,7 +125,4 @@ function unminify(stackTrace) {
   });
 }
 
-module.exports.unminify = unminify;
-module.exports.unminifyLine = unminifyLine;
-module.exports.extractSourceMaps = extractSourceMaps;
-
+module.exports = {unminify, unminifyLine, extractSourceMaps};
