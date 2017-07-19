@@ -21,8 +21,9 @@
 const sourceMap = require('source-map');
 const Request = require('./request');
 const chromeRegex = require('./regex');
+const Cache = require('./cache').Cache;
 /** @type {!sourceMap<url, sourceMap>}*/
-const sourceMapConsumerCache = new Map();
+const sourceMapConsumerCache = new Cache();
 /** @type {!request<url, Promise>}*/
 const requestCache = new Map();
 
