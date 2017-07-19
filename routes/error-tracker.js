@@ -235,5 +235,4 @@ function getHandler(req, res) {
   });
 }
 
-module.exports.getHandler = getHandler;
-module.exports.convertStackTrace = standardizeStackTrace;
+module.exports = {getHandler, standardizeStackTrace};

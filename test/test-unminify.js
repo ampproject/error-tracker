@@ -53,10 +53,10 @@ describe('Test unminification', function() {
 
   it('Should unminify a stack trace line given a source map', function() {
     const sourceMapConsumer = new sourceMap.SourceMapConsumer(rawSourceMap);
-    expect(unminify.unminifyLine(' at https://example.com/www/js/min.js:2:28',
-        {lineNumber: 2, columnNumber: 28, sourceUrl:
-            'https://example.com/www/js/min.js'}, sourceMapConsumer)).to.equal(
-            ' at http://example.com/www/js/two.js:2:10');
+    expect(unminify.unminifyLine({lineNumber: 2, columnNumber: 28, sourceUrl:
+        'https://example.com/www/js/min.js', stackTraceLine:
+        ' at https://example.com/www/js/min.js:2:28'}, sourceMapConsumer)).
+        to.equal(' at http://example.com/www/js/two.js:2:10');
   });
 
   it('Should make only one network request per source map', function() {

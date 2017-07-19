@@ -344,20 +344,20 @@ describe('Test stacktrace conversions are done correctly', function() {
 
   it('Should leave chrome and chrome like stack traces as they are',
       function() {
-        expect(stackTrace.convertStackTrace(chromeStackTraceTestInput)).
+        expect(stackTrace.standardizeStackTrace(chromeStackTraceTestInput)).
             to.equal(formattedChromeStackTraceOutput);
   });
 
   it('Should ignore stack traces with no line number and column number',
       function() {
-        expect(stackTrace.convertStackTrace(invalidStackTraceTestInput))
+        expect(stackTrace.standardizeStackTrace(invalidStackTraceTestInput))
             .to.equal('');
       }
   );
 
   it('Should convert safari and firefox stack traces to chrome like',
       function() {
-        expect(stackTrace.convertStackTrace(mozillaStackTraceTestInput)).
+        expect(stackTrace.standardizeStackTrace(mozillaStackTraceTestInput)).
             to.equal(formattedMozillaStackTraceOutput);
   });
 });
