@@ -15,7 +15,7 @@
 /** Class wraps JS Map object to ensure no entry stays in map more than 2
  *  weeks without retrieval */
 class Cache {
-  /** */
+  /** Comment*/
   constructor() {
     this.expiryTime = 1209600;
     this.map = new Map();
