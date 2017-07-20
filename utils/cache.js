@@ -17,7 +17,7 @@
 class Cache {
   /** Comment*/
   constructor() {
-    this.expiryTime = 1209600;
+    this.expiryTime = 1.21e+6;
     this.map = new Map();
   }
 
@@ -26,10 +26,11 @@ class Cache {
    * @param {Object} value
    */
   set(key, value) {
-    this.debounce(function() {
+    this.map.set(key, value);
+    this.debounced = this.debounce(function(map) {
       map.delete(key);
     }, this.expiryTime);
-    this.map.set(key, value);
+    this.debounced(this.map);
   }
 
   /**
@@ -37,9 +38,7 @@ class Cache {
    * @return {Object} value
    */
   get(key) {
-    this.debounce(function() {
-      map.delete(key);
-    }, this.expiryTime);
+    this.debounced(this.map);
     return this.map.get(key);
   }
 
@@ -49,6 +48,13 @@ class Cache {
    */
   has(key) {
     return this.map.has(key);
+  }
+
+  /**
+   * @return {number} Size of Cache
+   */
+  size() {
+    return this.map.size;
   }
 
   /**
@@ -66,7 +72,7 @@ class Cache {
      */
     function fire(args) {
       nextCallArgs = null;
-      callback.spread(null, args);
+      callback.apply(null, args);
     }
 
     /**
