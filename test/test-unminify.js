@@ -66,7 +66,7 @@ describe('Test unminification', function() {
     expect(promises[0] === promises[1]).to.equal(true);
   });
 
-  it('Should use source map from cache if already cached', function() {
+  it('Should use a source map from cache if already cached', function() {
     const stackTrace = [
         'http://example.com/www/js/two.js.map',
         'http://example.com/www/js/one.js.map',
