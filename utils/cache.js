@@ -72,7 +72,7 @@ class Cache {
      */
     function fire(args) {
       nextCallArgs = null;
-      callback.apply(null, args);
+      callback(...args);
     }
 
     /**
