@@ -37,6 +37,30 @@ const SEVERITY = {
 };
 
 /**
+ * @param {string} stackTrace
+ * @param {string} version
+ * @return {string} Stacktrace with all the v0.js urls versioned
+ * - 'at     error https://cdn.ampproject.org/v0.js:5:314' becomes
+ *  'at     error https://cdn.ampproject.org/rtv/031496877433269//v0.js:5:314'
+ */
+function versionStackTrace(stackTrace, version) {
+  const regex = /(\/)?(rtv\/(\d+))?(\/(v0|v1).js)/gm;
+  let versionedStackTrace = '';
+  let match;
+  let index = 0;
+  while (match = regex.exec(stackTrace)) {
+    if (!match[2]) {
+      versionedStackTrace = versionedStackTrace + stackTrace.substring(
+          index, match.index) + '/rtv/' + version + '/';
+    } else {
+      versionedStackTrace = versionedStackTrace + stackTrace.substring(index, match.index);
+    }
+    index = match.index;
+  }
+  return versionedStackTrace + stackTrace.substring(index);
+}
+
+/**
  * @param {string} message
  * @param {string} exception
  * @return {boolean}
@@ -233,4 +257,4 @@ function getHandler(req, res) {
   });
 }
 
-module.exports = {getHandler, standardizeStackTrace};
+module.exports = {getHandler, standardizeStackTrace, versionStackTrace};

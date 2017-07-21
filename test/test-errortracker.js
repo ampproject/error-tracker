@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for the specific language governing permissions andc
  * limitations under the License.
  */
 
@@ -357,5 +357,26 @@ describe('Test stacktrace conversions are done correctly', function() {
       function() {
         expect(stackTrace.standardizeStackTrace(mozillaStackTraceTestInput)).
             to.equal(formattedMozillaStackTraceOutput);
+  });
+});
+
+describe('Test stacktrace are versioned correctly', function() {
+  it('Should version v0.js urls', function() {
+    const testInput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at Zd https://cdn.ampproject.org/v0.js:5:204
+    at  error https://cdn.ampproject.org/v0.js:5:314
+    at  jh https://cdn.ampproject.org/v0.js:237:205
+    at  dc https://cdn.ampproject.org/v0.js:53:69 `;
+    const testOutput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at Zd https://cdn.ampproject.org/rtv/031496877433269//v0.js:5:204
+    at  error https://cdn.ampproject.org/rtv/031496877433269//v0.js:5:314
+    at  jh https://cdn.ampproject.org/rtv/031496877433269//v0.js:237:205
+    at  dc https://cdn.ampproject.org/rtv/031496877433269//v0.js:53:69 `;
+    expect(stackTrace.versionStackTrace(testInput, '031496877433269'))
+      .to.equal(testOutput);
   });
 });
