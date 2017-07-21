@@ -53,7 +53,8 @@ function versionStackTrace(stackTrace, version) {
       versionedStackTrace = versionedStackTrace + stackTrace.substring(
           index, match.index) + '/rtv/' + version + '/';
     } else {
-      versionedStackTrace = versionedStackTrace + stackTrace.substring(index, match.index);
+      versionedStackTrace = versionedStackTrace +
+        stackTrace.substring(index, match.index);
     }
     index = match.index;
   }
