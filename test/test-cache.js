@@ -93,15 +93,15 @@ describe('Cache cleans up unused entries periodically', function() {
   it('Should delete entry that has not been accessed in 2 weeks', function() {
      const cacheMap = new Cache();
      cacheMap.set(4, 'Four');
-     clock.tick(1219600);
+     clock.tick(1209600000);
      expect(cacheMap.size()).to.equal(0);
   });
   it('Should reset lifetime of entry if accessed before 2 weeks', function() {
     const cacheMap = new Cache();
     cacheMap.set(4, 'four');
-    clock.tick(1200000);
+    clock.tick(1200000000);
     cacheMap.get(4);
-    clock.tick(1200000);
+    clock.tick(1200000000);
     expect(cacheMap.size()).to.equal(1);
   });
 });

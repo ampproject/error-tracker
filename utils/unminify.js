@@ -40,11 +40,11 @@ function unminifyLine(stackLocation, sourceMapConsumer) {
     line: stackLocation.lineNumber,
     column: stackLocation.columnNumber,
   });
-  stackLocation.stackTraceLine = stackLocation.stackTraceLine.replace(
+  let stackTraceLine = stackLocation.stackTraceLine.replace(
       stackLocation.sourceUrl, originalPosition.source);
   const originalLocation = ':' + originalPosition.line + ':'
       + originalPosition.column;
-  return stackLocation.stackTraceLine.replace(currentPosition,
+  return stackTraceLine.replace(currentPosition,
       originalLocation);
 }
 
@@ -65,6 +65,7 @@ function getSourceMapFromNetwork(url) {
           sourceMapConsumerCache.set(url, sourceMapConsumer);
           resolve(sourceMapConsumer);
         } catch (e) {
+          requestCache.delete(url);
           reject(e);
         }
       }
@@ -116,11 +117,10 @@ function unminify(stackTrace) {
       stackTraceLine: match[0],
     });
   }
-  const stackTraceLines = [];
   const promises = extractSourceMaps(stackLocations);
   return Promise.all(promises).then(function(values) {
-    values.forEach(function(sourceMapConsumer, i) {
-      stackTraceLines.push(unminifyLine(stackLocations[i], sourceMapConsumer));
+    const stackTraceLines = values.map(function(sourceMapConsumer, i) {
+      return unminifyLine(stackLocations[i], sourceMapConsumer);
     });
     return stackTraceLines.join('\n');
   }, function() {

@@ -26,7 +26,6 @@ const before = mocha.before;
 const after = mocha.after;
 const expect = chai.expect;
 
-
 describe('Test unminification', function() {
   const rawSourceMap = {
     version: 3,
@@ -46,9 +45,8 @@ describe('Test unminification', function() {
     });
   });
 
-  after(function(done) {
+  after(function() {
     sandbox.restore();
-    done();
   });
 
   it('Should unminify a stack trace line given a source map', function() {
@@ -58,27 +56,43 @@ describe('Test unminification', function() {
           columnNumber: 28,
           sourceUrl: 'https://example.com/www/js/min.js',
           stackTraceLine: ' at https://example.com/www/js/min.js:2:28',
+          sourceMapUrl: 'https://example.com/www/js/min.js.map',
         };
     expect(unminify.unminifyLine(location, sourceMapConsumer)).
         to.equal(' at http://example.com/www/js/two.js:2:10');
   });
 
   it('Should make only one network request per source map', function() {
-    const stackTrace = ['http://example.com/www/js/two.js.map',
-      'http://example.com/www/js/two.js.map'];
-    const promises = unminify.extractSourceMaps(stackTrace);
-    expect(promises[0] === promises[1]).to.equal(true);
+    const stackLocations = [{
+      sourceMapUrl: 'http://example.com/www/js/two.js.map',
+    }, {
+      sourceMapUrl: 'http://example.com/www/js/two.js.map',
+    }];
+    const promises = unminify.extractSourceMaps(stackLocations);
+    expect(promises[0]).to.equal(promises[1]);
   });
 
   it('Should use a source map from cache if already cached', function() {
-    const stackTrace = [
-        'http://example.com/www/js/two.js.map',
-        'http://example.com/www/js/one.js.map',
-        'http://example.com/www/js/two.js.map',
-        'http://example.com/www/js/two.js.map'];
-    const promises = unminify.extractSourceMaps(stackTrace);
-    Promise.all(promises).then(function(values) {
-      expect(values[0] === values[3]).to.equal(true);
+    const stackLocations = [{
+      sourceMapUrl: 'http://example.com/www/js/two.js.map',
+    }, {
+      sourceMapUrl: 'http://example.com/www/js/one.js.map',
+    }];
+    const otherStackLocations = [{
+      sourceMapUrl: 'http://example.com/www/js/two.js.map',
+    }, {
+      sourceMapUrl: 'http://example.com/www/js/two.js.map',
+    }];
+    const promises = unminify.extractSourceMaps(stackLocations);
+    const otherPromises = unminify.extractSourceMaps(otherStackLocations);
+    return Promise.all(promises).then(function(firstValues) {
+      return Promise.all(otherPromises).then(function(secondValues) {
+        expect(firstValues[0]).to.equal(secondValues[0]);
+      }, function(err) {
+        console.log('Error ', err);
+      });
+    }, function(err) {
+      console.log('Error ', err);
     });
   });
 

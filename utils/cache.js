@@ -17,8 +17,9 @@
 class Cache {
   /** Create a cache around Map */
   constructor() {
-    this.expiryTime = 1.21e+6;
+    this.expiryTime = 1209600000;
     this.map = new Map();
+    this.deleteTriggers = new Map();
   }
 
   /**
@@ -27,10 +28,11 @@ class Cache {
    */
   set(key, value) {
     this.map.set(key, value);
-    this.debounced = this.debounce(function(map) {
+    const debounced = this.debounce(function(map) {
       map.delete(key);
     }, this.expiryTime);
-    this.debounced(this.map);
+    debounced(this.map);
+    this.deleteTriggers.set(key, debounced);
   }
 
   /**
@@ -38,7 +40,9 @@ class Cache {
    * @return {Object} value
    */
   get(key) {
-    this.debounced(this.map);
+    const debounced = this.deleteTriggers.get(key);
+    debounced(this.map);
+    this.deleteTriggers.set(key, debounced);
     return this.map.get(key);
   }
 

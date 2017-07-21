@@ -22,7 +22,6 @@ const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const unminify = require('../utils/unminify');
 const log = require('../utils/log');
-const url = require('url');
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
@@ -95,7 +94,7 @@ function getHandler(req, res) {
   if (ignoreMessageOrException(params.m, params.s)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE\n');
+    res.send('IGNORE');
     return null;
   }
   const referer = params.r;
@@ -171,7 +170,7 @@ function getHandler(req, res) {
   if (ignoreMessageOrException(params.m, exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE\n');
+    res.send('IGNORE');
     return null;
   }
   // Convert Firefox/Safari stack traces to Chrome format if necessary.
@@ -197,7 +196,7 @@ function getHandler(req, res) {
     },
   };
   if (params.debug === '1') {
-    res.set('Content-Type', 'application/json; charset=ISO-8859-1');
+    res.set('Content-Type', 'application/json; charset=utf-8');
     res.status(statusCodes.OK).send({message: 'OK\n', event, throttleRate});
   } else {
     res.sendStatus(statusCodes.NO_CONTENT);
@@ -213,15 +212,14 @@ function getHandler(req, res) {
     },
     severity: severity,
   };
-  unminify.unminify(exception).then(function(unminifiedException) {
+  return unminify.unminify(exception).then(function(unminifiedException) {
     exception = params.m + '\n' + unminifiedException;
     const entry = log.entry(metaData, event);
     return new Promise(function(resolve, reject) {
       log.write(entry, function(err) {
         if (err) {
           winston.error(appEngineProjectId,
-              'Cannot write to Google Cloud Logging: ' + url.parse(
-                  req.url.toString(), true).query['v'], err);
+              'Cannot write to Google Cloud Logging: ' +params.v, err);
           console.log(err);
           reject(err);
         } else {
@@ -231,7 +229,7 @@ function getHandler(req, res) {
     });
   }, function(err) {
     exception = params.m + '\n' + exception;
-    console.log(err);
+    winston.error(exception, err);
   });
 }
 

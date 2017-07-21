@@ -33,7 +33,6 @@ chai.use(chaihttp);
 
 describe('Test how server responds to requests', function() {
   const sandbox = sinon.sandbox.create();
-  let stub;
   let query = {
     'l': 12,
     'a': 1,
@@ -50,13 +49,12 @@ describe('Test how server responds to requests', function() {
   };
   let randomVal = 1;
   beforeEach(function() {
-    stub = sandbox.stub(Math, 'random').callsFake(function() {
+    sandbox.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
-    sandbox.stub(log, 'write').yields(false);
+    sandbox.stub(log, 'write').yields(null);
   });
   afterEach(function() {
-    stub.reset();
     sandbox.restore();
   });
 
@@ -243,7 +241,7 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.status(statusCodes.BAD_REQUEST);
       expect(res.response).to.have.header('content-Type',
         'text/plain; charset=utf-8');
-      expect(res.response.text).to.equal('IGNORE\n');
+      expect(res.response.text).to.equal('IGNORE');
     });
   });
 
