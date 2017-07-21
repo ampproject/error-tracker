@@ -15,7 +15,7 @@
 /** Class wraps JS Map object to ensure no entry stays in map more than 2
  *  weeks without retrieval */
 class Cache {
-  /** Comment*/
+  /** Create a cache around Map */
   constructor() {
     this.expiryTime = 1.21e+6;
     this.map = new Map();
@@ -44,7 +44,7 @@ class Cache {
 
   /**
    * @param {key} key
-   * @return {boolean}
+   * @return {boolean} Whether Map has entry.
    */
   has(key) {
     return this.map.has(key);
@@ -76,7 +76,7 @@ class Cache {
     }
 
     /**
-     * @desc Fires
+     * @desc Fires when wait time is done
      */
     function waiter() {
       locker = 0;
