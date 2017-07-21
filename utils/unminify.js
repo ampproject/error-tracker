@@ -20,7 +20,7 @@
 
 const sourceMap = require('source-map');
 const Request = require('./request');
-const chromeRegex = require('./regex');
+const regex = require('./regex');
 const Cache = require('./cache').Cache;
 /** @type {!sourceMap<url, sourceMap>}*/
 const sourceMapConsumerCache = new Cache();
@@ -96,7 +96,7 @@ function extractSourceMaps(stackLocations) {
  * @return {Promise} Promise that resolves to unminified stack trace.
  */
 function unminify(stackTrace) {
-  const chromeStackTraceRegex = chromeRegex.chromeRegex();
+  const chromeStackTraceRegex = regex.chromeRegex();
   let match;
   const stackLocations = [];
   while ((match = chromeStackTraceRegex.exec(stackTrace))) {

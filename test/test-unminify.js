@@ -53,9 +53,13 @@ describe('Test unminification', function() {
 
   it('Should unminify a stack trace line given a source map', function() {
     const sourceMapConsumer = new sourceMap.SourceMapConsumer(rawSourceMap);
-    expect(unminify.unminifyLine({lineNumber: 2, columnNumber: 28, sourceUrl:
-        'https://example.com/www/js/min.js', stackTraceLine:
-        ' at https://example.com/www/js/min.js:2:28'}, sourceMapConsumer)).
+    const location = {
+          lineNumber: 2,
+          columnNumber: 28,
+          sourceUrl: 'https://example.com/www/js/min.js',
+          stackTraceLine: ' at https://example.com/www/js/min.js:2:28',
+        };
+    expect(unminify.unminifyLine(location, sourceMapConsumer)).
         to.equal(' at http://example.com/www/js/two.js:2:10');
   });
 

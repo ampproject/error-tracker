@@ -13,13 +13,14 @@
  */
 
 /**
- * @fileoverview  returns instance of chrome stack trace regex
+ * @fileoverview  Shared regular expression for stackTrace
  */
 
 const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
 
 /**
- * @return {RegExp} Returns new instance of chrome regex.
+ * @return {RegExp} Returns a Regexp that matches Chrome-style stacktrace
+ * lines.
  */
 function chromeRegex() {
    return new RegExp( `^\\s*at (.+ )?(?:((${lineColumnNumbersRegex}))|\\` +
