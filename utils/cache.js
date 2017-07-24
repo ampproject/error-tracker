@@ -12,6 +12,8 @@
  * limitations under the License.
  */
 
+const debounce = require('./debounce').debounce;
+
 /** Class wraps JS Map object to ensure no entry stays in map more than 2
  *  weeks without retrieval */
 class Cache {
@@ -20,6 +22,7 @@ class Cache {
     this.expiryTime = 1209600000;
     this.map = new Map();
     this.deleteTriggers = new Map();
+    this.debounce = debounce;
   }
 
   /**
@@ -59,46 +62,6 @@ class Cache {
    */
   size() {
     return this.map.size;
-  }
-
-  /**
-   * @param  {function} callback
-   * @param {int} minInterval
-   * @return {Function}
-   */
-  debounce(callback, minInterval) {
-    let locker = 0;
-    let timestamp = 0;
-    let nextCallArgs = null;
-
-    /**
-     * @param {args} args
-     */
-    function fire(args) {
-      nextCallArgs = null;
-      callback(...args);
-    }
-
-    /**
-     * @desc Fires when wait time is done
-     */
-    function waiter() {
-      locker = 0;
-      const remaining = minInterval - (Date.now() - timestamp);
-      if (remaining > 0) {
-        locker = setTimeout(waiter, remaining);
-      } else {
-        fire(nextCallArgs);
-      }
-    }
-
-    return function(...args) {
-      timestamp = Date.now();
-      nextCallArgs = args;
-      if (!locker) {
-        locker = setTimeout(waiter, minInterval);
-      }
-    };
   }
 }
 
