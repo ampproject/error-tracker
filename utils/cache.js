@@ -45,7 +45,7 @@ class Cache {
   get(key) {
     if (this.has(key)) {
       const debounced = this.deleteTriggers.get(key);
-      debounced(this.map);
+      debounced(this.map, this.deleteTriggers);
       return this.map.get(key);
     }
   }

@@ -26,7 +26,7 @@ const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
-const regex = /\/(rtv\/\d+\/)?v\d+(\/[\w-]+)?\.js/gm;
+const versionRegex = /\/(rtv\/\d+\/)?v\d+(\/[\w-]+)?\.js/gm;
 const chromeStackTraceRegex = require('../utils/regex').chromeRegex;
 const appEngineProjectId = 'amp-error-reporting';
 /**
@@ -45,7 +45,7 @@ const SEVERITY = {
  *  'at     error https://cdn.ampproject.org/rtv/031496877433269//v0.js:5:314'
  */
 function versionStackTrace(stackTrace, version) {
-  return stackTrace.replace(regex, function(match, group1) {
+  return stackTrace.replace(versionRegex, function(match, group1) {
     if (!group1) {
       return '/rtv/' + version + match;
     }

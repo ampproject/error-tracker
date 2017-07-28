@@ -50,4 +50,11 @@ describe('Cache cleans up unused entries periodically', function() {
     clock.tick(1200000000);
     expect(cacheMap.size()).to.equal(1);
   });
+  it('Should delete an entry that has been accessed after expiry', function() {
+    const cacheMap = new Cache();
+    cacheMap.set(4, 'Four');
+    cacheMap.get(4);
+    clock.tick(2 * 7 * 24 * 60 * 60 * 1000 + 2 * 1000);
+    expect(cacheMap.size()).to.equal(0);
+  });
 });
