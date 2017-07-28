@@ -245,8 +245,7 @@ function getHandler(req, res) {
       });
     });
   }, function(err) {
-    exception = params.m + '\n' + exception;
-    winston.error(exception, err);
+    winston.error(params.m + '\n' + exception, err);
   });
 }
 
