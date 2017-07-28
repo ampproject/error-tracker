@@ -56,4 +56,4 @@ function debounce(callback, minInterval) {
   };
 }
 
-module.exports = {debounce};
+exports.debounce = debounce;

@@ -26,7 +26,8 @@ const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
-const chromeStackTraceRegex = require('../utils/regex').chromeRegex();
+const regex = /\/(rtv\/\d+\/)?v\d+(\/[\w-]+)?\.js/gm;
+const chromeStackTraceRegex = require('../utils/regex').chromeRegex;
 const appEngineProjectId = 'amp-error-reporting';
 /**
  * @enum {int}
@@ -44,21 +45,12 @@ const SEVERITY = {
  *  'at     error https://cdn.ampproject.org/rtv/031496877433269//v0.js:5:314'
  */
 function versionStackTrace(stackTrace, version) {
-  const regex = /(\/)?(rtv\/(\d+))?(\/(v0|v1).js)/gm;
-  let versionedStackTrace = '';
-  let match;
-  let index = 0;
-  while (match = regex.exec(stackTrace)) {
-    if (!match[2]) {
-      versionedStackTrace = versionedStackTrace + stackTrace.substring(
-          index, match.index) + '/rtv/' + version + '/';
-    } else {
-      versionedStackTrace = versionedStackTrace +
-        stackTrace.substring(index, match.index);
+  return stackTrace.replace(regex, function(match, group1) {
+    if (!group1) {
+      return '/rtv/' + version + match;
     }
-    index = match.index;
-  }
-  return versionedStackTrace + stackTrace.substring(index);
+    return match;
+  });
 }
 
 /**
@@ -238,7 +230,7 @@ function getHandler(req, res) {
     severity: severity,
   };
   return unminify.unminify(exception).then(function(unminifiedException) {
-    exception = params.m + '\n' + unminifiedException;
+    event.message = params.m + '\n' + unminifiedException;
     const entry = log.entry(metaData, event);
     return new Promise(function(resolve, reject) {
       log.write(entry, function(err) {

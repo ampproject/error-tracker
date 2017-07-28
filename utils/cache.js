@@ -19,10 +19,9 @@ const debounce = require('./debounce').debounce;
 class Cache {
   /** Create a cache around Map */
   constructor() {
-    this.expiryTime = 1209600000;
+    this.expiryTime = 2 * 7 * 24 * 60 * 60 * 1000;
     this.map = new Map();
     this.deleteTriggers = new Map();
-    this.debounce = debounce;
   }
 
   /**
@@ -31,10 +30,11 @@ class Cache {
    */
   set(key, value) {
     this.map.set(key, value);
-    const debounced = this.debounce(function(map) {
+    const debounced = debounce(function(map, deleteTriggers) {
       map.delete(key);
+      deleteTriggers.delete(key);
     }, this.expiryTime);
-    debounced(this.map);
+    debounced(this.map, this.deleteTriggers);
     this.deleteTriggers.set(key, debounced);
   }
 
@@ -43,10 +43,11 @@ class Cache {
    * @return {Object} value
    */
   get(key) {
-    const debounced = this.deleteTriggers.get(key);
-    debounced(this.map);
-    this.deleteTriggers.set(key, debounced);
-    return this.map.get(key);
+    if (this.has(key)) {
+      const debounced = this.deleteTriggers.get(key);
+      debounced(this.map);
+      return this.map.get(key);
+    }
   }
 
   /**

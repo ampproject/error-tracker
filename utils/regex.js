@@ -17,14 +17,7 @@
  */
 
 const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
+const chromeRegex = new RegExp( `^\\s*at (.+ )?(?:((` +
+    `${lineColumnNumbersRegex}))|\\((${lineColumnNumbersRegex}\\)))$`, 'gm');
 
-/**
- * @return {RegExp} Returns a Regexp that matches Chrome-style stacktrace
- * lines.
- */
-function chromeRegex() {
-   return new RegExp( `^\\s*at (.+ )?(?:((${lineColumnNumbersRegex}))|\\` +
-      `((${lineColumnNumbersRegex}\\)))$`, 'gm');
-}
-
-module.exports.chromeRegex = chromeRegex;
+exports.chromeRegex = chromeRegex;
