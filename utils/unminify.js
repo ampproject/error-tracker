@@ -56,17 +56,16 @@ function unminifyLine(stackLocation, sourceMapConsumer) {
 function getSourceMapFromNetwork(url) {
   const reqPromise = new Promise((resolve, reject) => {
     Request.request(url, function callback(err, _, body) {
+      requestCache.delete(url);
       if (err) {
         reject(err);
       } else {
         try {
           const sourceMapConsumer = new sourceMap.SourceMapConsumer(
               JSON.parse(body));
-          requestCache.delete(url);
           sourceMapConsumerCache.set(url, sourceMapConsumer);
           resolve(sourceMapConsumer);
         } catch (e) {
-          requestCache.delete(url);
           reject(e);
         }
       }
