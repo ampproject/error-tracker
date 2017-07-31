@@ -14,24 +14,21 @@
 
 /**
  * @fileoverview
- * Handle error requests from clients and log them.
+ * Receive requests, handle edge cases, extract information and send it
+ * to unmininification.
  */
 
-const logging = require('@google-cloud/logging');
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
-const url = require('url');
-const appEngineProjectId = 'amp-error-reporting';
-const logName = 'javascript.errors';
+const unminify = require('../utils/unminify');
+const log = require('../utils/log');
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-const lineColumnNumbers = '([^ \\n]+):(\\d+):(\\d+)';
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
-const chromeStackTraceRegex = new RegExp(
-    `^\\s*at (.+ )?(?:(${lineColumnNumbers})|\\(${lineColumnNumbers}\\))$`,
-    'gm');
-
+const versionRegex = /\/(rtv\/\d+\/)?v\d+(\/[\w-]+)?\.js/gm;
+const chromeStackTraceRegex = require('../utils/regex').chromeRegex;
+const appEngineProjectId = 'amp-error-reporting';
 /**
  * @enum {int}
  */
@@ -39,6 +36,22 @@ const SEVERITY = {
   INFO: 200,
   ERROR: 500,
 };
+
+/**
+ * @param {string} stackTrace
+ * @param {string} version
+ * @return {string} Stacktrace with all the v0.js urls versioned
+ * - 'at     error https://cdn.ampproject.org/v0.js:5:314' becomes
+ *  'at     error https://cdn.ampproject.org/rtv/031496877433269//v0.js:5:314'
+ */
+function versionStackTrace(stackTrace, version) {
+  return stackTrace.replace(versionRegex, function(match, group1) {
+    if (!group1) {
+      return '/rtv/' + version + match;
+    }
+    return match;
+  });
+}
 
 /**
  * @param {string} message
@@ -72,41 +85,34 @@ function standardizeStackTrace(stackTrace) {
 }
 
 /**
- * @param {httpRequest} req
- * @param {response} res
+ * Extracts relevant information from request, handles edge cases and prepares
+ * entry object to be logged and sends it to unminification.
+ * @param {Request} req
+ * @param {Response} res
+ * @return {?Promise} May return a promise that rejects on logging error
  */
 function getHandler(req, res) {
   const params = req.query;
-    if (!params.v) {
-    res.sendStatus(statusCodes.BAD_REQUEST).end();
-    return;
+  if (!params.r || !params.v) {
+    res.sendStatus(statusCodes.BAD_REQUEST);
+    return null;
   }
-  // Don't log testing traffic in production
   if (params.v.includes('$internalRuntimeVersion$')) {
     res.sendStatus(statusCodes.NO_CONTENT);
-    res.end();
-    return;
+    return null;
   }
+
   if (params.m === '' && params.s === '') {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
-    res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
-    return;
+    return null;
   }
-
   if (ignoreMessageOrException(params.m, params.s)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE\n').end();
-    return;
-  }
-
-  // Don't log testing traffic in production
-  if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
-    res.end();
-    return;
+    res.send('IGNORE');
+    return null;
   }
   const referer = params.r;
   let errorType = 'default';
@@ -173,28 +179,25 @@ function getHandler(req, res) {
   }
   if (sample > throttleRate) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.OK)
-        .send('THROTTLED\n')
-        .end();
-    return;
+    res.status(statusCodes.OK).send('THROTTLED\n');
+    return null;
   }
 
   let exception = params.s;
-  // If format does not end with :\d+ truncate up to the last newline.
-  if (!exception.match(/:\d+$/)) {
-    exception = exception.replace(/\n.*$/, '');
+  if (ignoreMessageOrException(params.m, exception)) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.status(statusCodes.BAD_REQUEST);
+    res.send('IGNORE');
+    return null;
   }
   // Convert Firefox/Safari stack traces to Chrome format if necessary.
   exception = standardizeStackTrace(exception);
   if (!exception) {
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE');
-    res.end();
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
-    return;
+    return null;
   }
-
-  exception = params.m + '\n' + exception;
   const event = {
     serviceContext: {
       service: appEngineProjectId,
@@ -209,11 +212,12 @@ function getHandler(req, res) {
       },
     },
   };
-  // get authentication context for logging
-  const loggingClient = logging({
-    projectId: appEngineProjectId,
-  });
-  const log = loggingClient.log(logName);
+  if (params.debug === '1') {
+    res.set('Content-Type', 'application/json; charset=utf-8');
+    res.status(statusCodes.OK).send({message: 'OK\n', event, throttleRate});
+  } else {
+    res.sendStatus(statusCodes.NO_CONTENT);
+  }
   const metaData = {
     resource: {
       type: 'gae_app',
@@ -225,25 +229,24 @@ function getHandler(req, res) {
     },
     severity: severity,
   };
-  const entry = log.entry(metaData, event);
-  log.write(entry, function(err) {
-    if (err) {
-      res.status(statusCodes.INTERNAL_SERVER_ERROR);
-      res.send({error: 'Cannot write to Google Cloud Logging'});
-      res.end();
-      winston.error(appEngineProjectId, 'Cannot write to Google Cloud Logging: '
-        + url.parse(req.url, true).query['v'], err);
-    }
+  return unminify.unminify(exception).then(function(unminifiedException) {
+    event.message = params.m + '\n' + unminifiedException;
+    const entry = log.entry(metaData, event);
+    return new Promise(function(resolve, reject) {
+      log.write(entry, function(err) {
+        if (err) {
+          winston.error(appEngineProjectId,
+              'Cannot write to Google Cloud Logging: ' +params.v, err);
+          console.log(err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }, function(err) {
+    winston.error(params.m + '\n' + exception, err);
   });
-  if (params.debug === '1') {
-    res.set('Content-Type', 'application/json; charset=ISO-8859-1');
-    res.status(statusCodes.OK);
-    res.send(
-        JSON.stringify({message: 'OK\n', event, throttleRate})).end();
-  } else {
-    res.sendStatus(statusCodes.NO_CONTENT).end();
-  }
 }
 
-module.exports.getHandler = getHandler;
-module.exports.convertStackTrace = standardizeStackTrace;
+module.exports = {getHandler, standardizeStackTrace, versionStackTrace};

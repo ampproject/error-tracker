@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-const express = require('express');
-const errorTracker = require('./routes/error-tracker');
-const statusCodes = require('http-status-codes');
-
-if (process.env.NODE_ENV === 'production') {
-  require('@google-cloud/trace-agent').start();
-  require('@google-cloud/debug-agent').start();
-}
-
-const app = express();
-const port = parseInt(process.env.PORT) || 8080;
-app.get('/_ah/health', function(req, res) {
-  res.sendStatus(statusCodes.OK).end();
+/**
+ * @fileoverview exports log object to enable stubbing of write method
+ */
+const logging = require('@google-cloud/logging');
+const appEngineProjectId = 'amp-error-reporting';
+const logName = 'javascript.errors';
+const loggingClient = logging({
+  projectId: appEngineProjectId,
 });
-
-app.get('/r', errorTracker.getHandler);
-
-app.listen(port, function() {
-  console.log('App Started on port ' + port);
-});
-
-module.exports = app;
+const log = loggingClient.log(logName);
+module.exports = log;

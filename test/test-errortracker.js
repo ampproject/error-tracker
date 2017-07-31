@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for the specific language governing permissions andc
  * limitations under the License.
  */
 
@@ -20,17 +20,19 @@ const mocha = require('mocha');
 const statusCodes = require('http-status-codes');
 const app = require('../app');
 const sinon = require('sinon');
-const describe = mocha.describe;
-const before = mocha.before;
-const after = mocha.after;
-const expect = chai.expect;
-const it = mocha.it;
 const stackTrace = require('../routes/error-tracker');
+const log = require('../utils/log');
+const describe = mocha.describe;
+const beforeEach = mocha.beforeEach;
+const afterEach = mocha.afterEach;
+const it = mocha.it;
+const expect = chai.expect;
 
 process.env.NODE_ENV = 'test';
 chai.use(chaihttp);
 
 describe('Test how server responds to requests', function() {
+  const sandbox = sinon.sandbox.create();
   let query = {
     'l': 12,
     'a': 1,
@@ -46,14 +48,31 @@ describe('Test how server responds to requests', function() {
     'debug': 1,
   };
   let randomVal = 1;
-  before(function() {
-    sinon.stub(Math, 'random').callsFake(function() {
+  beforeEach(function() {
+    sandbox.stub(Math, 'random').callsFake(function() {
       return randomVal;
     });
+    sandbox.stub(log, 'write').yields(null);
+  });
+  afterEach(function() {
+    sandbox.restore();
   });
 
-  after(function() {
-    Math.random.restore();
+  it('Should log 1% of user errors', function() {
+    randomVal = 0.00000000000000001; // set sample to extremely small.
+    query.a = 1;
+    query.ca = 0;
+    query.debug = 1;
+    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
+    return chai.request(app).get('/r').query(query).then(function(res) {
+      expect(res).to.have.status(statusCodes.OK);
+      expect(res).to.have.header('Content-Type',
+          'application/json; charset=utf-8');
+      let payload = JSON.parse(res.text);
+      expect(payload.event.serviceContext.version).to.includes('assert');
+      expect(payload.message).to.equal('OK\n');
+      expect(payload.throttleRate).to.equal(0.01);
+    });
   });
 
   it('Should ignore 99% of user errors', function() {
@@ -67,23 +86,6 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.header('Content-Type', 'text/plain; charset=utf-8');
       expect(res).to.have.status(statusCodes.OK);
       expect(res.text).to.equal('THROTTLED\n');
-    });
-  });
-
-  it('Should log 1% of user errors', function() {
-    randomVal = 0.00000000000000001; // set sample to extremely small.
-    query.a = 1;
-    query.ca = 0;
-    query.debug = 1;
-    query.s = '  at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)';
-    return chai.request(app).get('/r').query(query).then(function(res) {
-      expect(res).to.have.status(statusCodes.OK);
-      expect(res).to.have.header('Content-Type',
-        'application/json; charset=utf-8');
-      let payload = JSON.parse(res.text);
-      expect(payload.event.serviceContext.version).to.includes('assert');
-      expect(payload.message).to.equal('OK\n');
-      expect(payload.throttleRate).to.equal(0.01);
     });
   });
 
@@ -239,7 +241,7 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.status(statusCodes.BAD_REQUEST);
       expect(res.response).to.have.header('content-Type',
         'text/plain; charset=utf-8');
-      expect(res.response.text).to.equal('IGNORE\n');
+      expect(res.response.text).to.equal('IGNORE');
     });
   });
 
@@ -269,12 +271,12 @@ describe('Test how server responds to requests', function() {
     return chai.request(app).get('/r').query(query).then(function(res) {
       throw new Error('Unreachable');
     }, function(res) {
-      // chai-http errors with handling > 299 status codes hence errors can
-      // only be asserted in the catch block which modifies anatomy of response
-      // object. More information at
-      // https://github.com/chaijs/chai-http/issues/75.
-      // This is a hack and once the package has been updated is subject to
-      // change
+      // chai-http errors with handling > 299 status codes hence
+      // errors can only be asserted in the catch block which
+      // modifies anatomy of response
+      // object. More information at https://github.com/chaijs/chai-http/issues/75.
+      // This is a hack and once the package
+      // has been updated is subject to change
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       expect(res.response.text).to.equal('IGNORE');
     });
@@ -340,20 +342,41 @@ describe('Test stacktrace conversions are done correctly', function() {
 
   it('Should leave chrome and chrome like stack traces as they are',
       function() {
-        expect(stackTrace.convertStackTrace(chromeStackTraceTestInput)).
+        expect(stackTrace.standardizeStackTrace(chromeStackTraceTestInput)).
             to.equal(formattedChromeStackTraceOutput);
   });
 
   it('Should ignore stack traces with no line number and column number',
       function() {
-        expect(stackTrace.convertStackTrace(invalidStackTraceTestInput))
+        expect(stackTrace.standardizeStackTrace(invalidStackTraceTestInput))
             .to.equal('');
       }
   );
 
   it('Should convert safari and firefox stack traces to chrome like',
       function() {
-        expect(stackTrace.convertStackTrace(mozillaStackTraceTestInput)).
+        expect(stackTrace.standardizeStackTrace(mozillaStackTraceTestInput)).
             to.equal(formattedMozillaStackTraceOutput);
+  });
+});
+
+describe('Test stacktrace are versioned correctly', function() {
+  it('Should version v0.js urls', function() {
+    const testInput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/123/v0/amp-component.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at Zd https://cdn.ampproject.org/v0.js:5:204
+    at  error https://cdn.ampproject.org/v0/amp-component.js:5:314
+    at  jh https://cdn.ampproject.org/v0.js:237:205
+    at  dc https://cdn.ampproject.org/v0.js:53:69 `;
+    const testOutput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/123/v0/amp-component.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at Zd https://cdn.ampproject.org/rtv/031496877433269/v0.js:5:204
+    at  error https://cdn.ampproject.org/rtv/031496877433269/v0/amp-component.js:5:314
+    at  jh https://cdn.ampproject.org/rtv/031496877433269/v0.js:237:205
+    at  dc https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:69 `;
+    expect(stackTrace.versionStackTrace(testInput, '031496877433269'))
+      .to.equal(testOutput);
   });
 });
