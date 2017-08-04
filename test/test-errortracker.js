@@ -380,3 +380,22 @@ describe('Test stacktrace are versioned correctly', function() {
       .to.equal(testOutput);
   });
 });
+
+describe('Test non js stacktraces are identified', function() {
+  const stack = `teteten@https://abc.cdn.ampproject.org/v/s/abc/doc?amp_js_v=0.1
+global code@https://abc.cdn.ampproject.org/v/s/abc/doc?amp_js_v=0.1`;
+  const chromeStackTraceTestInput = `at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at I (https://cdn.ampproject.org/rtv/031496877433269/v0.js:51:626)
+    at xi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:278)
+    at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
+    at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
+    at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
+    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
+  it('Should identify non js stacktraces', function() {
+    expect(stackTrace.isNonJSStackTrace(stack)).to.be.true;
+    expect(stackTrace.isNonJSStackTrace(chromeStackTraceTestInput)).to.be.false;
+  });
+
+});
