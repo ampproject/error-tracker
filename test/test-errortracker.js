@@ -47,6 +47,17 @@ describe('Test how server responds to requests', function() {
     'r': 'referrer',
     'debug': 1,
   };
+  const safariStackTrace = `file:///app/vendor.js:46140:60
+	invokeTask@file:///app/vendor.js:45914:42
+	onInvokeTask@file:///app/vendor.js:18559:47
+	invokeTask@file:///app/vendor.js:45913:54
+	runTask@file:///app/vendor.js:45814:57
+	drainMicroTaskQueue@file:///app/vendor.js:46046:42
+	promiseReactionJob@[native code]
+	UIApplicationMain@[native code]
+	start@file:///app/vendor.js:8354:30
+	bootstrapApp@file:///app/vendor.js:60192:26
+	bootstrapModuleFactory@file:///app/vendor.js:60173:26`;
   let randomVal = 1;
   beforeEach(function() {
     sandbox.stub(Math, 'random').callsFake(function() {
@@ -279,6 +290,35 @@ describe('Test how server responds to requests', function() {
       // has been updated is subject to change
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
       expect(res.response.text).to.equal('IGNORE');
+    });
+  });
+
+  it('Should not drop safari stack trace', function() {
+    const output = ` at 	invokeTask file:///app/vendor.js:45914:42
+ at 	onInvokeTask file:///app/vendor.js:18559:47
+ at 	invokeTask file:///app/vendor.js:45913:54
+ at 	runTask file:///app/vendor.js:45814:57
+ at 	drainMicroTaskQueue file:///app/vendor.js:46046:42
+ at 	start file:///app/vendor.js:8354:30
+ at 	bootstrapApp file:///app/vendor.js:60192:26
+ at 	bootstrapModuleFactory file:///app/vendor.js:60173:26`;
+    query.a = 0;
+    query.ca = 1;
+    query['3p'] = 0;
+    query.debug = 1;
+    query.r = 'referer';
+    query.s = safariStackTrace;
+    query.m = 'Error: Local storage';
+    randomVal = 0.00000000000000001;
+    return chai.request(app).get('/r').query(query).then(function(res) {
+      expect(res).to.have.status(statusCodes.OK);
+      expect(res).to.have.header('Content-Type',
+        'application/json; charset=utf-8');
+      let payload = JSON.parse(res.text);
+      expect(payload.event.serviceContext.version).includes('canary');
+      expect(payload.message === 'OK\n');
+      expect(payload.throttleRate).to.equal(1);
+      expect(payload.event.message).to.equal(output);
     });
   });
 });
