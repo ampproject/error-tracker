@@ -266,4 +266,5 @@ function getHandler(req, res) {
   });
 }
 
-module.exports = {getHandler, standardizeStackTrace, versionStackTrace, isNonJSStackTrace};
+module.exports = {getHandler, standardizeStackTrace, versionStackTrace,
+  isNonJSStackTrace};
