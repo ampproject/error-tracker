@@ -240,7 +240,7 @@ function getHandler(req, res) {
       type: 'gae_app',
       labels: {
         project_id: 'amp-error-reporting',
-        version_id: SERVER_START_TIME,
+        version_id: SERVER_START_TIME.toString(),
         module_id: 'default',
       },
     },
