@@ -397,5 +397,4 @@ global code@https://abc.cdn.ampproject.org/v/s/abc/doc?amp_js_v=0.1`;
     expect(stackTrace.isNonJSStackTrace(stack)).to.be.true;
     expect(stackTrace.isNonJSStackTrace(chromeStackTraceTestInput)).to.be.false;
   });
-
 });
