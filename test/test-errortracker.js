@@ -294,14 +294,14 @@ describe('Test how server responds to requests', function() {
   });
 
   it('Should not drop safari stack trace', function() {
-    const output = ` at 	invokeTask file:///app/vendor.js:45914:42
- at 	onInvokeTask file:///app/vendor.js:18559:47
- at 	invokeTask file:///app/vendor.js:45913:54
- at 	runTask file:///app/vendor.js:45814:57
- at 	drainMicroTaskQueue file:///app/vendor.js:46046:42
- at 	start file:///app/vendor.js:8354:30
- at 	bootstrapApp file:///app/vendor.js:60192:26
- at 	bootstrapModuleFactory file:///app/vendor.js:60173:26`;
+    const output = ` at 	invokeTask (file:///app/vendor.js:45914:42)
+ at 	onInvokeTask (file:///app/vendor.js:18559:47)
+ at 	invokeTask (file:///app/vendor.js:45913:54)
+ at 	runTask (file:///app/vendor.js:45814:57)
+ at 	drainMicroTaskQueue (file:///app/vendor.js:46046:42)
+ at 	start (file:///app/vendor.js:8354:30)
+ at 	bootstrapApp (file:///app/vendor.js:60192:26)
+ at 	bootstrapModuleFactory (file:///app/vendor.js:60173:26)`;
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
@@ -334,7 +334,7 @@ describe('Test stacktrace conversions are done correctly', function() {
     at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
+    at (https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188)`;
   const mozillaStackTraceTestInput = `Zd@https://cdn.ampproject.org/v0.js:5:204
     error@https://cdn.ampproject.org/v0.js:5:314
     jh@https://cdn.ampproject.org/v0.js:237:205
@@ -364,21 +364,21 @@ describe('Test stacktrace conversions are done correctly', function() {
     at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
+    at (https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188)`;
   const formattedMozillaStackTraceOutput =
-      ` at Zd https://cdn.ampproject.org/v0.js:5:204
- at     error https://cdn.ampproject.org/v0.js:5:314
- at     jh https://cdn.ampproject.org/v0.js:237:205
- at     dc https://cdn.ampproject.org/v0.js:53:69
- at     G https://cdn.ampproject.org/v0.js:51:510
- at     ph https://cdn.ampproject.org/v0.js:245:131
- at     dc https://cdn.ampproject.org/v0.js:53:69
- at     gc https://cdn.ampproject.org/v0.js:52:43
- at     bh https://cdn.ampproject.org/v0.js:226:461
- at     dc https://cdn.ampproject.org/v0.js:53:69
- at     I https://cdn.ampproject.org/v0.js:51:628
- at     pf https://cdn.ampproject.org/v0.js:112:411
- at     $d https://cdn.ampproject.org/v0.js:115:88`;
+      ` at Zd (https://cdn.ampproject.org/v0.js:5:204)
+ at     error (https://cdn.ampproject.org/v0.js:5:314)
+ at     jh (https://cdn.ampproject.org/v0.js:237:205)
+ at     dc (https://cdn.ampproject.org/v0.js:53:69)
+ at     G (https://cdn.ampproject.org/v0.js:51:510)
+ at     ph (https://cdn.ampproject.org/v0.js:245:131)
+ at     dc (https://cdn.ampproject.org/v0.js:53:69)
+ at     gc (https://cdn.ampproject.org/v0.js:52:43)
+ at     bh (https://cdn.ampproject.org/v0.js:226:461)
+ at     dc (https://cdn.ampproject.org/v0.js:53:69)
+ at     I (https://cdn.ampproject.org/v0.js:51:628)
+ at     pf (https://cdn.ampproject.org/v0.js:112:411)
+ at     $d (https://cdn.ampproject.org/v0.js:115:88)`;
 
   it('Should leave chrome and chrome like stack traces as they are',
       function() {
@@ -405,17 +405,17 @@ describe('Test stacktrace are versioned correctly', function() {
     const testInput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/123/v0/amp-component.js:298:365)
     at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
-    at Zd https://cdn.ampproject.org/v0.js:5:204
-    at  error https://cdn.ampproject.org/v0/amp-component.js:5:314
-    at  jh https://cdn.ampproject.org/v0.js:237:205
-    at  dc https://cdn.ampproject.org/v0.js:53:69 `;
+    at Zd (https://cdn.ampproject.org/v0.js:5:204)
+    at  error (https://cdn.ampproject.org/v0/amp-component.js:5:314)
+    at  jh (https://cdn.ampproject.org/v0.js:237:205)
+    at  dc (https://cdn.ampproject.org/v0.js:53:69) `;
     const testOutput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
     at new  (https://cdn.ampproject.org/rtv/123/v0/amp-component.js:298:365)
     at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
-    at Zd https://cdn.ampproject.org/rtv/031496877433269/v0.js:5:204
-    at  error https://cdn.ampproject.org/rtv/031496877433269/v0/amp-component.js:5:314
-    at  jh https://cdn.ampproject.org/rtv/031496877433269/v0.js:237:205
-    at  dc https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:69 `;
+    at Zd (https://cdn.ampproject.org/rtv/031496877433269/v0.js:5:204)
+    at  error (https://cdn.ampproject.org/rtv/031496877433269/v0/amp-component.js:5:314)
+    at  jh (https://cdn.ampproject.org/rtv/031496877433269/v0.js:237:205)
+    at  dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:69) `;
     expect(stackTrace.versionStackTrace(testInput, '031496877433269'))
       .to.equal(testOutput);
   });
@@ -432,7 +432,7 @@ global code@https://abc.cdn.ampproject.org/v/s/abc/doc?amp_js_v=0.1`;
     at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
+    at (https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188)`;
   it('Should identify non js stacktraces', function() {
     expect(stackTrace.isNonJSStackTrace(stack)).to.be.true;
     expect(stackTrace.isNonJSStackTrace(chromeStackTraceTestInput)).to.be.false;
