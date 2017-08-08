@@ -17,7 +17,7 @@
  * @fileoverview exports log object to enable stubbing of write method
  */
 const logging = require('@google-cloud/logging');
-const appEngineProjectId = 'amp-error-reporting';
+const appEngineProjectId = 'amp-error-reporting-js';
 const logName = 'javascript.errors';
 const loggingClient = logging({
   projectId: appEngineProjectId,
