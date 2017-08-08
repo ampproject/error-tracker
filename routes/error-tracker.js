@@ -29,7 +29,7 @@ const jsStackTrace = /\.js:\d+:\d+/;
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
 const versionRegex = /\/(rtv\/\d+\/)?v\d+(\/[\w-]+)?\.js/gm;
 const chromeStackTraceRegex = require('../utils/regex').chromeRegex;
-const appEngineProjectId = 'amp-error-reporting';
+const appEngineProjectId = 'amp-error-reporting-js';
 /**
  * @enum {int}
  */
@@ -239,7 +239,7 @@ function getHandler(req, res) {
     resource: {
       type: 'gae_app',
       labels: {
-        project_id: 'amp-error-reporting',
+        project_id: appEngineProjectId,
         version_id: SERVER_START_TIME.toString(),
         module_id: 'default',
       },
