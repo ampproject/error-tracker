@@ -217,7 +217,7 @@ function getHandler(req, res) {
   }
   const event = {
     serviceContext: {
-      service: appEngineProjectId,
+      service: errorType,
       version: errorType + '-' + params.v,
     },
     message: exception,
@@ -239,9 +239,7 @@ function getHandler(req, res) {
     resource: {
       type: 'gae_app',
       labels: {
-        project_id: appEngineProjectId,
         version_id: SERVER_START_TIME.toString(),
-        module_id: 'default',
       },
     },
     severity: severity,
