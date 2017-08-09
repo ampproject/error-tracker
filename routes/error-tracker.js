@@ -88,9 +88,15 @@ function standardizeStackTrace(stackTrace) {
   let validStackTraceLines = [];
   let match;
   while ((match = mozillaSafariStackTraceRegex.exec(stackTrace))) {
-    validStackTraceLines.push(
-        ` at ${match[1]} ${match[2]}:` +
-        `${match[3]}:${match[4]}`);
+    if (match[1]) {
+      validStackTraceLines.push(
+          ` at ${match[1]} (${match[2]}:` +
+          `${match[3]}:${match[4]})`);
+    } else {
+      validStackTraceLines.push(
+          ` at ${match[1]} ${match[2]}:` +
+          `${match[3]}:${match[4]}`);
+    }
   }
   return validStackTraceLines.join('\n');
 }
