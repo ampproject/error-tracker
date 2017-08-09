@@ -34,7 +34,7 @@ const appEngineProjectId = 'amp-error-reporting-js';
  * @enum {int}
  */
 const SEVERITY = {
-  INFO: 200,
+  WARNING: 400,
   ERROR: 500,
 };
 
@@ -88,9 +88,15 @@ function standardizeStackTrace(stackTrace) {
   let validStackTraceLines = [];
   let match;
   while ((match = mozillaSafariStackTraceRegex.exec(stackTrace))) {
-    validStackTraceLines.push(
-        ` at ${match[1]} ${match[2]}:` +
-        `${match[3]}:${match[4]}`);
+    if (match[1]) {
+      validStackTraceLines.push(
+          ` at ${match[1]} (${match[2]}:` +
+          `${match[3]}:${match[4]})`);
+    } else {
+      validStackTraceLines.push(
+          ` at ${match[1]} ${match[2]}:` +
+          `${match[3]}:${match[4]}`);
+    }
   }
   return validStackTraceLines.join('\n');
 }
@@ -104,7 +110,7 @@ function standardizeStackTrace(stackTrace) {
  */
 function getHandler(req, res) {
   const params = req.query;
-  if (!params.r || !params.v) {
+  if (!params.r || !params.v || !params.m || !params.s) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
@@ -113,12 +119,6 @@ function getHandler(req, res) {
     return null;
   }
 
-  if (params.m === '' && params.s === '') {
-    res.status(statusCodes.BAD_REQUEST);
-    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
-    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
-    return null;
-  }
   if (ignoreMessageOrException(params.m, params.s)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
@@ -135,7 +135,7 @@ function getHandler(req, res) {
 
   // if request comes from the cache and thus only from valid
   // AMP docs we log as "Error"
-  let severity = SEVERITY.INFO;
+  let severity = SEVERITY.WARNING;
   let isCdn = false;
   if (referer.startsWith('https://cdn.ampproject.org/') ||
       referer.includes('.cdn.ampproject.org/') ||
