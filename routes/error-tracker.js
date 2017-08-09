@@ -224,7 +224,7 @@ function getHandler(req, res) {
   const event = {
     serviceContext: {
       service: errorType,
-      version: errorType + '-' + params.v,
+      version: params.v,
     },
     message: exception,
     context: {
