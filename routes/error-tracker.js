@@ -34,7 +34,7 @@ const appEngineProjectId = 'amp-error-reporting-js';
  * @enum {int}
  */
 const SEVERITY = {
-  INFO: 200,
+  WARNING: 400,
   ERROR: 500,
 };
 
@@ -134,7 +134,7 @@ function getHandler(req, res) {
 
   // if request comes from the cache and thus only from valid
   // AMP docs we log as "Error"
-  let severity = SEVERITY.INFO;
+  let severity = SEVERITY.WARNING;
   let isCdn = false;
   if (referer.startsWith('https://cdn.ampproject.org/') ||
       referer.includes('.cdn.ampproject.org/') ||
