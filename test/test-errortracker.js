@@ -334,7 +334,7 @@ describe('Test stacktrace conversions are done correctly', function() {
     at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-    at (https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188)`;
+    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
   const mozillaStackTraceTestInput = `Zd@https://cdn.ampproject.org/v0.js:5:204
     error@https://cdn.ampproject.org/v0.js:5:314
     jh@https://cdn.ampproject.org/v0.js:237:205
@@ -364,7 +364,7 @@ describe('Test stacktrace conversions are done correctly', function() {
     at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-    at (https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188)`;
+    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
   const formattedMozillaStackTraceOutput =
       ` at Zd (https://cdn.ampproject.org/v0.js:5:204)
  at     error (https://cdn.ampproject.org/v0.js:5:314)
