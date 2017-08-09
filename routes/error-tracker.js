@@ -110,7 +110,7 @@ function standardizeStackTrace(stackTrace) {
  */
 function getHandler(req, res) {
   const params = req.query;
-  if (!params.r || !params.v) {
+  if (!params.r || !params.v ) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
@@ -119,7 +119,7 @@ function getHandler(req, res) {
     return null;
   }
 
-  if (params.m === '' && params.s === '') {
+  if (!params.m && !params.s) {
     res.status(statusCodes.BAD_REQUEST);
     res.send({error: 'One of \'message\' or \'exception\' must be present.'});
     winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
