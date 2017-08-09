@@ -432,7 +432,7 @@ global code@https://abc.cdn.ampproject.org/v/s/abc/doc?amp_js_v=0.1`;
     at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
     at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
     at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-    at (https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188)`;
+    at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`;
   it('Should identify non js stacktraces', function() {
     expect(stackTrace.isNonJSStackTrace(stack)).to.be.true;
     expect(stackTrace.isNonJSStackTrace(chromeStackTraceTestInput)).to.be.false;
