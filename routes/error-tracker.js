@@ -203,6 +203,7 @@ function getHandler(req, res) {
   }
   // Convert Firefox/Safari stack traces to Chrome format if necessary.
   exception = standardizeStackTrace(exception);
+  exception = versionStackTrace(exception, params.v);
   if (isNonJSStackTrace(exception)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);

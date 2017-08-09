@@ -318,6 +318,41 @@ describe('Test how server responds to requests', function() {
       expect(payload.event.message).to.equal(output);
     });
   });
+
+  it('Should version Stacktrace URLs', function() {
+    const testInput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/123/v0/amp-component.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at Zd (https://cdn.ampproject.org/v0.js:5:204)
+    at  error (https://cdn.ampproject.org/v0/amp-component.js:5:314)
+    at  jh (https://cdn.ampproject.org/v0.js:237:205)
+    at  dc (https://cdn.ampproject.org/v0.js:53:69) `;
+    const testOutput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/123/v0/amp-component.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at Zd (https://cdn.ampproject.org/rtv/031496877433269/v0.js:5:204)
+    at  error (https://cdn.ampproject.org/rtv/031496877433269/v0/amp-component.js:5:314)
+    at  jh (https://cdn.ampproject.org/rtv/031496877433269/v0.js:237:205)`;
+    query.v = '031496877433269';
+    query.a = 0;
+    query.ca = 1;
+    query['3p'] = 0;
+    query.debug = 1;
+    query.r = 'referer';
+    query.m = 'Error: Local storage';
+    randomVal = 0.00000000000000001;
+    query.s = testInput;
+    return chai.request(app).get('/r').query(query).then(function(res) {
+      expect(res).to.have.status(statusCodes.OK);
+      expect(res).to.have.header('Content-Type',
+          'application/json; charset=utf-8');
+      let payload = JSON.parse(res.text);
+      expect(payload.event.serviceContext.service).includes('canary');
+      expect(payload.message === 'OK\n');
+      expect(payload.throttleRate).to.equal(1);
+      expect(payload.event.message).to.equal(testOutput);
+    });
+  });
 });
 
 describe('Test stacktrace conversions are done correctly', function() {
