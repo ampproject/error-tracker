@@ -80,7 +80,7 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.header('Content-Type',
           'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
-      expect(payload.event.serviceContext.version).to.includes('assert');
+      expect(payload.event.serviceContext.service).to.includes('assert');
       expect(payload.message).to.equal('OK\n');
       expect(payload.throttleRate).to.equal(0.01);
     });
@@ -128,7 +128,7 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.header('Content-Type',
         'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
-      expect(payload.event.serviceContext.version).to.includes('3p');
+      expect(payload.event.serviceContext.service).to.includes('3p');
       expect(payload.message).to.includes('OK\n');
       expect(payload.throttleRate).to.equal(0.1);
     });
@@ -162,7 +162,7 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.header('Content-Type',
         'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
-      expect(payload.event.serviceContext.version).includes('cdn');
+      expect(payload.event.serviceContext.service).includes('cdn');
       expect(payload.message === 'OK\n');
       expect(payload.throttleRate).to.equal(0.1);
     });
@@ -181,7 +181,7 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.header('Content-Type',
         'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
-      expect(payload.event.serviceContext.version).includes('canary');
+      expect(payload.event.serviceContext.service).includes('canary');
       expect(payload.message === 'OK\n');
       expect(payload.throttleRate).to.equal(1);
     });
@@ -315,7 +315,7 @@ describe('Test how server responds to requests', function() {
       expect(res).to.have.header('Content-Type',
         'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
-      expect(payload.event.serviceContext.version).includes('canary');
+      expect(payload.event.serviceContext.service).includes('canary');
       expect(payload.message === 'OK\n');
       expect(payload.throttleRate).to.equal(1);
       expect(payload.event.message).to.equal(output);
