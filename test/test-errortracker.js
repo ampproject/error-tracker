@@ -206,9 +206,6 @@ describe('Test how server responds to requests', function() {
       // This is a hack and once the package has been updated is subject to
       // change
       expect(res).to.have.property('status', statusCodes.BAD_REQUEST);
-      let payload = JSON.parse(res.response.text);
-      expect(payload.error)
-        .to.equal('One of \'message\' or \'exception\' must be present.');
     });
   });
 

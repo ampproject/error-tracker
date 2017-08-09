@@ -110,19 +110,12 @@ function standardizeStackTrace(stackTrace) {
  */
 function getHandler(req, res) {
   const params = req.query;
-  if (!params.r || !params.v ) {
+  if (!params.r || !params.v || !params.m || !params.s) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
   if (params.v.includes('$internalRuntimeVersion$')) {
     res.sendStatus(statusCodes.NO_CONTENT);
-    return null;
-  }
-
-  if (!params.m && !params.s) {
-    res.status(statusCodes.BAD_REQUEST);
-    res.send({error: 'One of \'message\' or \'exception\' must be present.'});
-    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
     return null;
   }
   if (ignoreMessageOrException(params.m, params.s)) {
