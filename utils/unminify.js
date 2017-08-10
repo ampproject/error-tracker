@@ -39,12 +39,12 @@ function unminifyLine(stackLocation, sourceMapConsumer) {
     line: stackLocation.lineNumber,
     column: stackLocation.columnNumber,
   });
-  const originalLocation = ':' + originalPosition.line + ':'
-      + originalPosition.column;
   if (!originalPosition.source) {
     return stackLocation.stackTraceLine;
   }
-  let stackLine = ' at ';
+  const originalLocation = ':' + originalPosition.line + ':'
+      + originalPosition.column;
+  const stackLine = ' at ';
   if (originalPosition.name) {
    return stackLine + originalPosition.name + ' (' +
         originalPosition.source + originalLocation + ')';
