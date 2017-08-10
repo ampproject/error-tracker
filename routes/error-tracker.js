@@ -230,10 +230,7 @@ function getHandler(req, res) {
       },
     },
   };
-  if (params.debug === '1') {
-    res.set('Content-Type', 'application/json; charset=utf-8');
-    res.status(statusCodes.OK).send({message: 'OK\n', event, throttleRate});
-  } else {
+  if (params.debug !== '1') {
     res.sendStatus(statusCodes.NO_CONTENT);
   }
   const metaData = {
@@ -255,7 +252,13 @@ function getHandler(req, res) {
               'Cannot write to Google Cloud Logging: ' +params.v, err);
           console.log(err);
           reject(err);
-        } else {
+        } else if (params.debug === '1') {
+          res.set('Content-Type', 'application/json; charset=utf-8');
+          res.status(statusCodes.OK).send({
+            message: 'OK\n',
+            event: event,
+            throttleRate: throttleRate,
+          });
           resolve();
         }
       });

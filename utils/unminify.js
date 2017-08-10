@@ -41,6 +41,9 @@ function unminifyLine(stackLocation, sourceMapConsumer) {
     line: stackLocation.lineNumber,
     column: stackLocation.columnNumber,
   });
+  if (!originalPosition.source) {
+    return stackLocation.stackTraceLine;
+  }
   let stackTraceLine = stackLocation.stackTraceLine.replace(
       stackLocation.sourceUrl, originalPosition.source);
   const originalLocation = ':' + originalPosition.line + ':'
@@ -109,10 +112,10 @@ function unminify(stackTrace) {
      * }
      */
     stackLocations.push({
-      sourceMapUrl: match[4] + '.map',
-      sourceUrl: match[4],
-      lineNumber: parseInt(match[5], 10),
-      columnNumber: parseInt(match[6], 10),
+      sourceMapUrl: (match[2] || match[5]) + '.map',
+      sourceUrl: (match[2] || match[5]),
+      lineNumber: parseInt((match[3] || match[6]), 10),
+      columnNumber: parseInt((match[4] || match[7]), 10),
       stackTraceLine: match[0],
     });
   }

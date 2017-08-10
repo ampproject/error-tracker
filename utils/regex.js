@@ -17,7 +17,7 @@
  */
 
 const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
-const chromeRegex = new RegExp( `^\\s*at (.+ )?(?:((` +
-    `${lineColumnNumbersRegex}))|\\((${lineColumnNumbersRegex}\\)))$`, 'gm');
+const chromeRegex = new RegExp( `^\\s*at (.+ )?(?:` +
+    `${lineColumnNumbersRegex}|\\(${lineColumnNumbersRegex}\\))$`, 'gm');
 
 exports.chromeRegex = chromeRegex;
