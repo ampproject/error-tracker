@@ -309,12 +309,12 @@ describe('Test how server responds to requests', function() {
     query.s = safariStackTrace;
     query.m = 'Error: Local storage';
     randomVal = 0.00000000000000001;
-    const output =query.m + `\n at   s (http://example.com/www/js/two.js:2:10)
- at       invoke (http://example.com/www/js/two.js:2:10)
- at        (http://example.com/www/js/two.js:2:10)
- at       try (http://example.com/www/js/two.js:2:10)
- at       let (http://example.com/www/js/two.js:2:10)
- at       ten (http://example.com/www/js/two.js:2:10)`;
+    const output =query.m + `\n at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)`;
     return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
@@ -364,7 +364,7 @@ describe('Test how server responds to requests', function() {
 
   it('Should unminify Stacktraces', function() {
     const stackTrace = ` at https://examplet.com/www/js/min.js:2:28
-      at s (https://example.com/www/js/min.js:2:28)
+      at n (https://example.com/www/js/min.js:2:28)
       at https://examples.com/www/js/min.js:2:28
       at https://examplee.com/www/js/min.js:2:28
       at https://exampler.com/www/js/min.js:2:28
@@ -378,12 +378,12 @@ describe('Test how server responds to requests', function() {
     query.m = 'Error: Local storage';
     randomVal = 0.00000000000000001;
     query.s = stackTrace;
-    const unminifiedStackTrace = query.m + `\n at http://example.com/www/js/two.js:2:10
-      at s (http://example.com/www/js/two.js:2:10)
-      at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10`;
+    const unminifiedStackTrace = query.m + `\n at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)`;
     return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',

@@ -35,21 +35,21 @@ const requestCache = new Map();
  * references unminified.
  */
 function unminifyLine(stackLocation, sourceMapConsumer) {
-  const currentPosition = ':' + stackLocation.lineNumber + ':' +
-      stackLocation.columnNumber;
   const originalPosition = sourceMapConsumer.originalPositionFor({
     line: stackLocation.lineNumber,
     column: stackLocation.columnNumber,
   });
+  const originalLocation = ':' + originalPosition.line + ':'
+      + originalPosition.column;
   if (!originalPosition.source) {
     return stackLocation.stackTraceLine;
   }
-  let stackTraceLine = stackLocation.stackTraceLine.replace(
-      stackLocation.sourceUrl, originalPosition.source);
-  const originalLocation = ':' + originalPosition.line + ':'
-      + originalPosition.column;
-  return stackTraceLine.replace(currentPosition,
-      originalLocation);
+  let stackLine = ' at ';
+  if (originalPosition.name) {
+   return stackLine + originalPosition.name + ' (' +
+        originalPosition.source + originalLocation + ')';
+  }
+  return stackLine + originalPosition.source + originalLocation;
 }
 
 /**
