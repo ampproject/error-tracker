@@ -27,6 +27,7 @@ const beforeEach = mocha.beforeEach;
 const afterEach = mocha.afterEach;
 const it = mocha.it;
 const expect = chai.expect;
+const Request = require('../utils/request');
 
 process.env.NODE_ENV = 'test';
 chai.use(chaihttp);
@@ -47,6 +48,15 @@ describe('Test how server responds to requests', function() {
     'r': 'referrer',
     'debug': 1,
   };
+  const rawSourceMap = {
+    version: 3,
+    file: 'min.js',
+    names: ['bar', 'baz', 'n'],
+    sources: ['one.js', 'two.js'],
+    sourceRoot: 'http://example.com/www/js/',
+    mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,' +
+    'OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
+  };
   const safariStackTrace = `file:///app/vendor.js:46140:60
 	invokeTask@file:///app/vendor.js:45914:42
 	onInvokeTask@file:///app/vendor.js:18559:47
@@ -64,6 +74,11 @@ describe('Test how server responds to requests', function() {
       return randomVal;
     });
     sandbox.stub(log, 'write').yields(null);
+    sandbox.stub(Request, 'request').callsFake(function(url, callback) {
+      setTimeout(function() {
+        callback(null, null, JSON.stringify(rawSourceMap));
+      }, 10);
+    });
   });
   afterEach(function() {
     sandbox.restore();
@@ -126,7 +141,7 @@ describe('Test how server responds to requests', function() {
     return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
-        'application/json; charset=utf-8');
+          'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
       expect(payload.event.serviceContext.service).to.includes('3p');
       expect(payload.message).to.includes('OK\n');
@@ -160,7 +175,7 @@ describe('Test how server responds to requests', function() {
     return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
-        'application/json; charset=utf-8');
+          'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
       expect(payload.event.serviceContext.service).includes('cdn');
       expect(payload.message === 'OK\n');
@@ -179,7 +194,7 @@ describe('Test how server responds to requests', function() {
     return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
-        'application/json; charset=utf-8');
+          'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
       expect(payload.event.serviceContext.service).includes('canary');
       expect(payload.message === 'OK\n');
@@ -248,7 +263,7 @@ describe('Test how server responds to requests', function() {
       // change
       expect(res).to.have.status(statusCodes.BAD_REQUEST);
       expect(res.response).to.have.header('content-Type',
-        'text/plain; charset=utf-8');
+          'text/plain; charset=utf-8');
       expect(res.response.text).to.equal('IGNORE');
     });
   });
@@ -291,14 +306,6 @@ describe('Test how server responds to requests', function() {
   });
 
   it('Should not drop safari stack trace', function() {
-    const output = ` at 	invokeTask (file:///app/vendor.js:45914:42)
- at 	onInvokeTask (file:///app/vendor.js:18559:47)
- at 	invokeTask (file:///app/vendor.js:45913:54)
- at 	runTask (file:///app/vendor.js:45814:57)
- at 	drainMicroTaskQueue (file:///app/vendor.js:46046:42)
- at 	start (file:///app/vendor.js:8354:30)
- at 	bootstrapApp (file:///app/vendor.js:60192:26)
- at 	bootstrapModuleFactory (file:///app/vendor.js:60173:26)`;
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
@@ -307,10 +314,18 @@ describe('Test how server responds to requests', function() {
     query.s = safariStackTrace;
     query.m = 'Error: Local storage';
     randomVal = 0.00000000000000001;
+    const output =query.m + `\n at 	invokeTask (file:///app/vendor.js:45914:42)
+ at 	onInvokeTask (file:///app/vendor.js:18559:47)
+ at 	invokeTask (file:///app/vendor.js:45913:54)
+ at 	runTask (file:///app/vendor.js:45814:57)
+ at 	drainMicroTaskQueue (file:///app/vendor.js:46046:42)
+ at 	start (file:///app/vendor.js:8354:30)
+ at 	bootstrapApp (file:///app/vendor.js:60192:26)
+ at 	bootstrapModuleFactory (file:///app/vendor.js:60173:26)`;
     return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
-        'application/json; charset=utf-8');
+          'application/json; charset=utf-8');
       let payload = JSON.parse(res.text);
       expect(payload.event.serviceContext.service).includes('canary');
       expect(payload.message === 'OK\n');
@@ -327,13 +342,6 @@ describe('Test how server responds to requests', function() {
     at  error (https://cdn.ampproject.org/v0/amp-component.js:5:314)
     at  jh (https://cdn.ampproject.org/v0.js:237:205)
     at  dc (https://cdn.ampproject.org/v0.js:53:69) `;
-    const testOutput = ` at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
-    at new  (https://cdn.ampproject.org/rtv/123/v0/amp-component.js:298:365)
-    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
-    at Zd (https://cdn.ampproject.org/rtv/031496877433269/v0.js:5:204)
-    at  error (https://cdn.ampproject.org/rtv/031496877433269/v0/amp-component.js:5:314)
-    at  jh (https://cdn.ampproject.org/rtv/031496877433269/v0.js:237:205)`;
-    query.v = '031496877433269';
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
@@ -342,6 +350,13 @@ describe('Test how server responds to requests', function() {
     query.m = 'Error: Local storage';
     randomVal = 0.00000000000000001;
     query.s = testInput;
+    const testOutput = query.m + `\n at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+    at new  (https://cdn.ampproject.org/rtv/123/v0/amp-component.js:298:365)
+    at dc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:53:59)
+    at Zd (https://cdn.ampproject.org/rtv/031496877433269/v0.js:5:204)
+    at  error (https://cdn.ampproject.org/rtv/031496877433269/v0/amp-component.js:5:314)
+    at  jh (https://cdn.ampproject.org/rtv/031496877433269/v0.js:237:205)`;
+    query.v = '031496877433269';
     return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
@@ -351,6 +366,40 @@ describe('Test how server responds to requests', function() {
       expect(payload.message === 'OK\n');
       expect(payload.throttleRate).to.equal(1);
       expect(payload.event.message).to.equal(testOutput);
+    });
+  });
+
+  it('Should unminify Stacktraces', function() {
+    const stackTrace = ` at https://examplet.com/www/js/min.js:2:28
+      at https://example.com/www/js/min.js:2:28
+      at https://examples.com/www/js/min.js:2:28
+      at https://examplee.com/www/js/min.js:2:28
+      at https://exampler.com/www/js/min.js:2:28
+      at https://examplen.com/www/js/min.js:2:28`;
+    query.v = '031496877433269';
+    query.a = 0;
+    query.ca = 1;
+    query['3p'] = 0;
+    query.debug = 1;
+    query.r = 'referer';
+    query.m = 'Error: Local storage';
+    randomVal = 0.00000000000000001;
+    query.s = stackTrace;
+    const unminifiedStackTrace = query.m + `\n at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10
+      at http://example.com/www/js/two.js:2:10`;
+    return chai.request(app).get('/r').query(query).then(function(res) {
+      expect(res).to.have.status(statusCodes.OK);
+      expect(res).to.have.header('Content-Type',
+          'application/json; charset=utf-8');
+      let payload = JSON.parse(res.text);
+      expect(payload.event.serviceContext.service).includes('canary');
+      expect(payload.message === 'OK\n');
+      expect(payload.throttleRate).to.equal(1);
+      expect(payload.event.message).to.equal(unminifiedStackTrace);
     });
   });
 });
