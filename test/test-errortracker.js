@@ -57,17 +57,12 @@ describe('Test how server responds to requests', function() {
     mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,' +
     'OAAOC,IAAID;CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
-  const safariStackTrace = `file:///app/vendor.js:46140:60
-	invokeTask@file:///app/vendor.js:45914:42
-	onInvokeTask@file:///app/vendor.js:18559:47
-	invokeTask@file:///app/vendor.js:45913:54
-	runTask@file:///app/vendor.js:45814:57
-	drainMicroTaskQueue@file:///app/vendor.js:46046:42
-	promiseReactionJob@[native code]
-	UIApplicationMain@[native code]
-	start@file:///app/vendor.js:8354:30
-	bootstrapApp@file:///app/vendor.js:60192:26
-	bootstrapModuleFactory@file:///app/vendor.js:60173:26`;
+  const safariStackTrace = `  s@https://examplet.com/www/js/min.js:2:28
+      invoke@https://example.com/www/js/min.js:2:28
+      @https://examples.com/www/js/min.js:2:28
+      try@https://examplee.com/www/js/min.js:2:28
+      let@https://exampler.com/www/js/min.js:2:28
+      ten@https://examplen.com/www/js/min.js:2:28`;
   let randomVal = 1;
   beforeEach(function() {
     sandbox.stub(Math, 'random').callsFake(function() {
@@ -314,14 +309,12 @@ describe('Test how server responds to requests', function() {
     query.s = safariStackTrace;
     query.m = 'Error: Local storage';
     randomVal = 0.00000000000000001;
-    const output =query.m + `\n at 	invokeTask (file:///app/vendor.js:45914:42)
- at 	onInvokeTask (file:///app/vendor.js:18559:47)
- at 	invokeTask (file:///app/vendor.js:45913:54)
- at 	runTask (file:///app/vendor.js:45814:57)
- at 	drainMicroTaskQueue (file:///app/vendor.js:46046:42)
- at 	start (file:///app/vendor.js:8354:30)
- at 	bootstrapApp (file:///app/vendor.js:60192:26)
- at 	bootstrapModuleFactory (file:///app/vendor.js:60173:26)`;
+    const output =query.m + `\n at   s (http://example.com/www/js/two.js:2:10)
+ at       invoke (http://example.com/www/js/two.js:2:10)
+ at        (http://example.com/www/js/two.js:2:10)
+ at       try (http://example.com/www/js/two.js:2:10)
+ at       let (http://example.com/www/js/two.js:2:10)
+ at       ten (http://example.com/www/js/two.js:2:10)`;
     return chai.request(app).get('/r').query(query).then(function(res) {
       expect(res).to.have.status(statusCodes.OK);
       expect(res).to.have.header('Content-Type',
@@ -371,7 +364,7 @@ describe('Test how server responds to requests', function() {
 
   it('Should unminify Stacktraces', function() {
     const stackTrace = ` at https://examplet.com/www/js/min.js:2:28
-      at https://example.com/www/js/min.js:2:28
+      at s (https://example.com/www/js/min.js:2:28)
       at https://examples.com/www/js/min.js:2:28
       at https://examplee.com/www/js/min.js:2:28
       at https://exampler.com/www/js/min.js:2:28
@@ -386,7 +379,7 @@ describe('Test how server responds to requests', function() {
     randomVal = 0.00000000000000001;
     query.s = stackTrace;
     const unminifiedStackTrace = query.m + `\n at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10
+      at s (http://example.com/www/js/two.js:2:10)
       at http://example.com/www/js/two.js:2:10
       at http://example.com/www/js/two.js:2:10
       at http://example.com/www/js/two.js:2:10
