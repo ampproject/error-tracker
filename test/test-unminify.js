@@ -59,7 +59,7 @@ describe('Test unminification', function() {
           sourceMapUrl: 'https://example.com/www/js/min.js.map',
         };
     expect(unminify.unminifyLine(location, sourceMapConsumer)).
-        to.equal(' at http://example.com/www/js/two.js:2:10');
+        to.equal(' at n (http://example.com/www/js/two.js:2:10)');
   });
 
   it('Should make only one network request per source map', function() {
@@ -103,12 +103,12 @@ describe('Test unminification', function() {
       at https://examplee.com/www/js/min.js:2:28
       at https://exampler.com/www/js/min.js:2:28
       at https://examplen.com/www/js/min.js:2:28`;
-    const unminifiedStackTrace = ` at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10
-      at http://example.com/www/js/two.js:2:10`;
+    const unminifiedStackTrace = ` at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)
+ at n (http://example.com/www/js/two.js:2:10)`;
     return unminify.unminify(stackTrace).then(function(val) {
       expect(val).to.equal(unminifiedStackTrace);
     });
