@@ -282,7 +282,7 @@ describe('Test how server responds to requests', function() {
     query.a = 0;
     query.ca = 1;
     query['3p'] = 0;
-    query.s = 'exception@file.js';
+    query.s = 'exception@file.html:0:1';
     query.debug = 1;
     query.r = 'referer';
     query.m = 'message';
