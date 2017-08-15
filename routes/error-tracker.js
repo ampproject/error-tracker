@@ -25,7 +25,6 @@ const log = require('../utils/log');
 const SERVER_START_TIME = Date.now();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-const jsStackTrace = /\.js:\d+:\d+/;
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
 const versionRegex = /\/(rtv\/\d+\/)?v\d+(\/[\w-]+)?\.js/gm;
 const chromeStackTraceRegex = require('../utils/regex').chromeRegex;
@@ -60,7 +59,7 @@ function versionStackTrace(stackTrace, version) {
  */
 function isNonJSStackTrace(stackTrace) {
   return stackTrace.split('\n').some(function(line) {
-    return !jsStackTrace.test(line);
+    return !!line && /\.js:\d+:\d+/.test(line);
   });
 }
 
