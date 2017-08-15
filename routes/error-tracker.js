@@ -66,12 +66,12 @@ function isNonJSStackTrace(stackTrace) {
 
 /**
  * @param {string} message
- * @param {string} exception
+ * @param {string} stack
  * @return {boolean}
  */
-function ignoreMessageOrException(message, exception) {
+function ignoreMessageOrException(message, stack) {
   return errorsToIgnore.some(function(msg) {
-    return message.includes(msg) || exception.includes(msg);
+    return message.includes(msg) || stack.includes(msg);
   });
 }
 
@@ -110,7 +110,9 @@ function standardizeStackTrace(stackTrace) {
  */
 function getHandler(req, res) {
   const params = req.query;
-  if (!params.r || !params.v || !params.m || !params.s) {
+  let stack = params.s || '';
+
+  if (!params.r || !params.v || !params.m) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
@@ -118,13 +120,13 @@ function getHandler(req, res) {
     res.sendStatus(statusCodes.NO_CONTENT);
     return null;
   }
-
-  if (ignoreMessageOrException(params.m, params.s)) {
+  if (ignoreMessageOrException(params.m, stack)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE');
     return null;
   }
+
   const referer = params.r;
   let errorType = 'default';
   let isUserError = false;
@@ -194,34 +196,25 @@ function getHandler(req, res) {
     return null;
   }
 
-  let exception = params.s;
-  if (ignoreMessageOrException(params.m, exception)) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE');
-    return null;
-  }
   // Convert Firefox/Safari stack traces to Chrome format if necessary.
-  exception = standardizeStackTrace(exception);
-  exception = versionStackTrace(exception, params.v);
-  if (isNonJSStackTrace(exception)) {
+  stack = standardizeStackTrace(stack);
+  stack = versionStackTrace(stack, params.v);
+  if (isNonJSStackTrace(stack)) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.status(statusCodes.BAD_REQUEST);
     res.send('IGNORE');
     return null;
   }
-  if (!exception) {
-    res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE');
-    winston.log('Error', 'Malformed request: ' + params.v.toString(), req);
-    return null;
+  if (params.debug !== '1') {
+    res.sendStatus(statusCodes.NO_CONTENT);
   }
+
   const event = {
     serviceContext: {
       service: errorType,
       version: params.v,
     },
-    message: exception,
+    message: stack,
     context: {
       httpRequest: {
         url: req.url.toString(),
@@ -230,9 +223,6 @@ function getHandler(req, res) {
       },
     },
   };
-  if (params.debug !== '1') {
-    res.sendStatus(statusCodes.NO_CONTENT);
-  }
   const metaData = {
     resource: {
       type: 'gae_app',
@@ -242,7 +232,7 @@ function getHandler(req, res) {
     },
     severity: severity,
   };
-  return unminify.unminify(exception).then(function(unminifiedException) {
+  return unminify.unminify(stack).then(function(unminifiedException) {
     event.message = params.m + '\n' + unminifiedException;
     const entry = log.entry(metaData, event);
     return new Promise(function(resolve, reject) {
@@ -264,7 +254,7 @@ function getHandler(req, res) {
       });
     });
   }, function(err) {
-    winston.error(params.m + '\n' + exception, err);
+    winston.error(params.m + '\n' + stack, err);
   });
 }
 
