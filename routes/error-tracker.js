@@ -59,7 +59,7 @@ function versionStackTrace(stackTrace, version) {
  */
 function isNonJSStackTrace(stackTrace) {
   return stackTrace.split('\n').some(function(line) {
-    return !!line && /\.js:\d+:\d+/.test(line);
+    return !!line && !/\.js:\d+:\d+/.test(line);
   });
 }
 
