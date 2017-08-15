@@ -22,7 +22,7 @@ const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const unminify = require('../utils/unminify');
 const log = require('../utils/log');
-const SERVER_START_TIME = Date.now();
+const SERVER_START_TIME = Date.now().toString();
 const errorsToIgnore = ['stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
 const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
@@ -226,13 +226,14 @@ function getHandler(req, res) {
     resource: {
       type: 'gae_app',
       labels: {
-        version_id: SERVER_START_TIME.toString(),
+        version_id: SERVER_START_TIME,
       },
     },
     severity: severity,
   };
+
   return unminify.unminify(stack).then(function(unminifiedException) {
-    event.message = params.m + '\n' + unminifiedException;
+    event.message = (params.m + '\n' + unminifiedException).trim();
     const entry = log.entry(metaData, event);
     return new Promise(function(resolve, reject) {
       log.write(entry, function(err) {
