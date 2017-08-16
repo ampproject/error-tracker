@@ -12,14 +12,16 @@
  * limitations under the License.
  */
 
-const debounce = require('./debounce').debounce;
+const debounce = require('./debounce');
+const EXPIRATION = 2 * 7 * 24 * 60 * 60 * 1000;
 
-/** Class wraps JS Map object to ensure no entry stays in map more than 2
- *  weeks without retrieval */
+/**
+ * A wrapper around JS Map object to ensure no entry stays in map
+ * more than 2 weeks without retrieval
+ */
 class Cache {
-  /** Create a cache around Map */
+  /** */
   constructor() {
-    this.expiryTime = 2 * 7 * 24 * 60 * 60 * 1000;
     this.map = new Map();
     this.deleteTriggers = new Map();
   }
@@ -30,12 +32,13 @@ class Cache {
    */
   set(key, value) {
     this.map.set(key, value);
-    const debounced = debounce(function(map, deleteTriggers) {
-      map.delete(key);
-      deleteTriggers.delete(key);
-    }, this.expiryTime);
-    debounced(this.map, this.deleteTriggers);
-    this.deleteTriggers.set(key, debounced);
+
+    let deleter = this.deleteTriggers.get(key);
+    if (!deleter) {
+      deleter = debounce(() => this.delete(key), EXPIRATION);
+      this.deleteTriggers.set(key, deleter);
+    }
+    deleter();
   }
 
   /**
@@ -43,11 +46,19 @@ class Cache {
    * @return {Object} value
    */
   get(key) {
-    if (this.has(key)) {
-      const debounced = this.deleteTriggers.get(key);
-      debounced(this.map, this.deleteTriggers);
-      return this.map.get(key);
+    const deleter = this.deleteTriggers.get(key);
+    if (deleter) {
+      deleter();
     }
+    return this.map.get(key);
+  }
+
+  /**
+   * @param {key} key
+   */
+  delete(key) {
+    this.map.delete(key);
+    this.deleteTriggers.delete(key);
   }
 
   /**
@@ -61,9 +72,9 @@ class Cache {
   /**
    * @return {number} Size of Cache
    */
-  size() {
+  get size() {
     return this.map.size;
   }
 }
 
-module.exports = {Cache};
+module.exports = Cache;

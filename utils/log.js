@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
  * @fileoverview exports log object to enable stubbing of write method
  */
+
 const logging = require('@google-cloud/logging');
-const appEngineProjectId = 'amp-error-reporting-js';
-const logName = 'javascript.errors';
 const loggingClient = logging({
-  projectId: appEngineProjectId,
+  projectId: process.env.GCLOUD_PROJECT,
 });
-const log = loggingClient.log(logName);
+const log = loggingClient.log('javascript.errors');
 module.exports = log;

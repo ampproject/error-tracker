@@ -17,7 +17,7 @@
 const mocha = require('mocha');
 const sinon = require('sinon');
 const chai = require('chai');
-const Cache = require('../utils/cache').Cache;
+const Cache = require('../utils/cache');
 const it = mocha.it;
 const describe = mocha.describe;
 const expect = chai.expect;
@@ -37,24 +37,29 @@ describe('Cache cleans up unused entries periodically', function() {
   });
 
   it('Should delete entry that has not been accessed in 2 weeks', function() {
-     const cacheMap = new Cache();
-     cacheMap.set(4, 'Four');
-     clock.tick(2 * 7 * 24 * 60 * 60 * 1000 + 2 * 1000);
-     expect(cacheMap.size()).to.equal(0);
+    const cacheMap = new Cache();
+    cacheMap.set(4, 'Four');
+    clock.tick(2 * 7 * 24 * 60 * 60 * 1000 - 1);
+    expect(cacheMap.size).to.equal(1);
+    clock.tick(1);
+    expect(cacheMap.size).to.equal(0);
   });
+
   it('Should reset lifetime of entry if accessed before 2 weeks', function() {
     const cacheMap = new Cache();
     cacheMap.set(4, 'four');
-    clock.tick(1200000000);
+    clock.tick(2 * 7 * 24 * 60 * 60 * 1000 - 1);
+    expect(cacheMap.size).to.equal(1);
     cacheMap.get(4);
-    clock.tick(1200000000);
-    expect(cacheMap.size()).to.equal(1);
+    clock.tick(1);
+    expect(cacheMap.size).to.equal(1);
   });
+
   it('Should delete an entry that has been accessed after expiry', function() {
     const cacheMap = new Cache();
     cacheMap.set(4, 'Four');
     cacheMap.get(4);
-    clock.tick(2 * 7 * 24 * 60 * 60 * 1000 + 2 * 1000);
-    expect(cacheMap.size()).to.equal(0);
+    clock.tick(2 * 7 * 24 * 60 * 60 * 1000);
+    expect(cacheMap.size).to.equal(0);
   });
 });

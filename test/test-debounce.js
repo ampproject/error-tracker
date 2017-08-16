@@ -22,7 +22,7 @@ const describe = mocha.describe;
 const expect = chai.expect;
 const afterEach = mocha.afterEach;
 const beforeEach = mocha.beforeEach;
-const debounce = require('../utils/debounce').debounce;
+const debounce = require('../utils/debounce');
 
 describe('debounce', function() {
   let sandbox;

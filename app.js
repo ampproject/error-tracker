@@ -26,7 +26,7 @@ if (process.env.NODE_ENV === 'production') {
 const app = express();
 const port = parseInt(process.env.PORT) || 8080;
 app.get('/_ah/health', function(req, res) {
-  res.sendStatus(statusCodes.OK).end();
+  res.sendStatus(statusCodes.OK);
 });
 
 app.get('/r', errorTracker.getHandler);
