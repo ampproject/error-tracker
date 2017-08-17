@@ -64,7 +64,6 @@ function handler(req, res) {
   }
 
   const runtime = params.rt;
-  const rtv = params.rtv;
   const assert = params.a === '1';
   const canary = params.ca === '1';
   const expected = params.ex === '1';
@@ -141,7 +140,7 @@ function handler(req, res) {
     severity: severity,
   };
 
-  return unminify(stack, rtv).then((stack) => {
+  return unminify(stack, version).then((stack) => {
     if (stack.length) {
       event.message += `\n${stack.join('\n')}`;
     }
