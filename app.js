@@ -29,10 +29,12 @@ app.get('/_ah/health', function(req, res) {
   res.sendStatus(statusCodes.OK);
 });
 
-app.get('/r', errorTracker.getHandler);
+app.get('/r', errorTracker);
 
-app.listen(port, function() {
-  console.log('App Started on port ' + port);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, function() {
+    console.log('App Started on port ' + port);
+  });
+}
 
 module.exports = app;

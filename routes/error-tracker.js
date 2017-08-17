@@ -40,7 +40,8 @@ const SEVERITY = {
  * @param {Response} res
  * @return {?Promise} May return a promise that rejects on logging error
  */
-function getHandler(req, res) {
+function handler(req, res) {
+  debugger;
   const params = req.query;
   const referrer = req.get('Referrer');
   const version = params.v;
@@ -51,20 +52,19 @@ function getHandler(req, res) {
     return null;
   }
   if (version.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
+    res.sendStatus(statusCodes.OK);
     return null;
   }
 
   const stack = standardizeStackTrace(params.s || '');
 
   if (ignoreMessageOrException(message, stack)) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE');
+    res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
 
   const runtime = params.rt;
+  const rtv = params.rtv;
   const assert = params.a === '1';
   const canary = params.ca === '1';
   const expected = params.ex === '1';
@@ -72,10 +72,8 @@ function getHandler(req, res) {
   const thirdParty = params['3p'] === '1';
 
   const isUserError = assert;
-  const is3p = thirdParty || runtime === '3p';
   let errorType = assert ? 'assert' : 'default';
   let severity = SEVERITY.WARNING;
-  let isCdn = false;
 
   // if request comes from the cache and thus only from valid
   // AMP docs we log as "Error"
@@ -84,7 +82,6 @@ function getHandler(req, res) {
       referrer.includes('.ampproject.net/')) {
     severity = SEVERITY.ERROR;
     errorType += '-cdn';
-    isCdn = true;
   } else {
     errorType += '-origin';
   }
@@ -106,25 +103,18 @@ function getHandler(req, res) {
     errorType += '-expected';
   }
 
-  let throttleRate = 0.1;
-  if (canary) {
-    throttleRate = 1.0; // explicitly log all errors
-  } else if (is3p) {
-    throttleRate = 0.1;
-  } else if (isCdn) {
-    throttleRate = 0.1;
-  }
+  let throttleRate = canary ? 1 : 0.1;
   if (isUserError) {
     throttleRate = throttleRate / 10;
   }
   if (Math.random() > throttleRate) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.OK).send('THROTTLED');
+    res.sendStatus(statusCodes.OK);
     return null;
   }
 
   if (!debug) {
-    res.sendStatus(statusCodes.NO_CONTENT);
+    res.sendStatus(statusCodes.ACCEPTED);
   }
 
   const event = {
@@ -151,7 +141,7 @@ function getHandler(req, res) {
     severity: severity,
   };
 
-  return unminify(stack, version).then((stack) => {
+  return unminify(stack, rtv).then((stack) => {
     if (stack.length) {
       event.message += `\n${stack.join('\n')}`;
     }
@@ -167,7 +157,7 @@ function getHandler(req, res) {
             res.send(error.stack);
           } else {
             res.set('Content-Type', 'application/json; charset=utf-8');
-            res.status(statusCodes.OK);
+            res.status(statusCodes.ACCEPTED);
             res.send({
               event: event,
               metaData: metaData,
@@ -187,4 +177,4 @@ function getHandler(req, res) {
   });
 }
 
-module.exports = {getHandler, standardizeStackTrace};
+module.exports = handler;

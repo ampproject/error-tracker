@@ -51,9 +51,9 @@ describe('unminify', () => {
     sandbox = sinon.sandbox.create();
     clock = sandbox.useFakeTimers();
     sandbox.stub(Request, 'request').callsFake((url, callback) => {
-      setTimeout(() => {
+      Promise.resolve().then(() => {
         callback(null, null, JSON.stringify(rawSourceMap));
-      }, 10);
+      });
     });
   });
 
@@ -64,9 +64,7 @@ describe('unminify', () => {
   });
 
   it('unminifies multiple frames (same file)', () => {
-    const p = unminify([frame1, frame2], '123');
-    clock.tick(100);
-    return p.then((unminified) => {
+    return unminify([frame1, frame2], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(1);
 
       const f1 = unminified[0];
@@ -81,9 +79,7 @@ describe('unminify', () => {
   });
 
   it('unminifies multiple frames (multiple files)', () => {
-    const p = unminify([frame1, frame3], '123');
-    clock.tick(100);
-    return p.then((unminified) => {
+    return unminify([frame1, frame3], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(2);
 
       const f1 = unminified[0];
@@ -97,10 +93,34 @@ describe('unminify', () => {
     });
   });
 
+  it('is resilant to sourcemap fetches failing', () => {
+    let first = true;
+    Request.request.callsFake((url, callback) => {
+      Promise.resolve().then(() => {
+        if (first) {
+          first = false;
+          callback(null, null, JSON.stringify(rawSourceMap));
+        } else {
+          callback(new Error('failure'));
+        }
+      });
+    });
+    return unminify([frame1, frame3], '123').then((unminified) => {
+      expect(Request.request.callCount).to.equal(2);
+
+      const f1 = unminified[0];
+      expect(f1.source).to.equal(frame1.source);
+      expect(f1.line).to.equal(frame1.line);
+      expect(f1.column).to.equal(frame1.column);
+      const f2 = unminified[1];
+      expect(f2.source).to.equal(frame3.source);
+      expect(f2.line).to.equal(frame3.line);
+      expect(f2.column).to.equal(frame3.column);
+    });
+  });
+
   it('does not unminify non-cdn js files', () => {
-    const p = unminify([frame1, nonCdnFrame], '123');
-    clock.tick(100);
-    return p.then((unminified) => {
+    return unminify([frame1, nonCdnFrame], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(1);
 
       const f1 = unminified[0];
@@ -115,9 +135,7 @@ describe('unminify', () => {
   });
 
   it('does not request same file twice (same stack)', () => {
-    const p = unminify([frame1, frame2], '123');
-    clock.tick(100);
-    return p.then((unminified) => {
+    return unminify([frame1, frame2], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(1);
     });
   });
@@ -125,44 +143,31 @@ describe('unminify', () => {
   it('does not request same file twice (consecutive stacks)', () => {
     const p = unminify([frame1], '123');
     const p2 = unminify([frame2], '123');
-    clock.tick(100);
     return Promise.all([p, p2]).then(() => {
       expect(Request.request.callCount).to.equal(1);
     });
   });
 
   it('does not request same file twice (after response)', () => {
-    const p = unminify([frame1], '123');
-    clock.tick(100);
-    return p.then(() => {
-      const p2 = unminify([frame2], '123');
-      clock.tick(100);
-      return p2;
+    return unminify([frame1], '123').then(() => {
+      return unminify([frame2], '123');
     }).then(() => {
       expect(Request.request.callCount).to.equal(1);
     });
   });
 
   it('requests file twice after purge', () => {
-    const p = unminify([frame1], '123');
-    clock.tick(100);
-    return p.then(() => {
+    return unminify([frame1], '123').then(() => {
       clock.tick(1e10);
-      const p2 = unminify([frame2], '123');
-      clock.tick(100);
-      return p2;
+      return unminify([frame2], '123');
     }).then(() => {
       expect(Request.request.callCount).to.equal(2);
     });
   });
 
   it('normalizes unversioned files into rtv version', () => {
-    const p = unminify([frame1], '123');
-    clock.tick(100);
-    return p.then(() => {
-      const p2 = unminify([frame2], '124');
-      clock.tick(100);
-      return p2;
+    return unminify([frame1], '123').then(() => {
+      return unminify([frame2], '124');
     }).then(() => {
       expect(Request.request.callCount).to.equal(2);
       expect(Request.request.getCall(0).args[0]).to.equal(
@@ -175,10 +180,7 @@ describe('unminify', () => {
   });
 
   it('does not normalize versioned files', () => {
-    debugger;
-    const p = unminify([frame1, versionedFrame], '123');
-    clock.tick(100);
-    return p.then(() => {
+    return unminify([frame1, versionedFrame], '123').then(() => {
       // expect(Request.request.callCount).to.equal(2);
       expect(Request.request.getCall(0).args[0]).to.equal(
         'https://cdn.ampproject.org/rtv/123/v0.js.map'
