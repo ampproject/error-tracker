@@ -14,29 +14,21 @@
  * limitations under the License.
  */
 
-const mocha = require('mocha');
-const sinon = require('sinon');
-const chai = require('chai');
-const Cache = require('../utils/cache');
-const it = mocha.it;
-const describe = mocha.describe;
-const expect = chai.expect;
-const afterEach = mocha.afterEach;
-const beforeEach = mocha.beforeEach;
+const Cache = require('../../utils/cache');
 
-describe('Cache cleans up unused entries periodically', function() {
+describe('Cache cleans up unused entries periodically', () => {
   let sandbox;
   let clock;
 
-  beforeEach(function() {
+  beforeEach(() => {
     sandbox = sinon.sandbox.create();
     clock = sandbox.useFakeTimers();
   });
-  afterEach(function() {
+  afterEach(() => {
     sandbox.restore();
   });
 
-  it('Should delete entry that has not been accessed in 2 weeks', function() {
+  it('Should delete entry that has not been accessed in 2 weeks', () => {
     const cacheMap = new Cache();
     cacheMap.set(4, 'Four');
     clock.tick(2 * 7 * 24 * 60 * 60 * 1000 - 1);
@@ -45,7 +37,7 @@ describe('Cache cleans up unused entries periodically', function() {
     expect(cacheMap.size).to.equal(0);
   });
 
-  it('Should reset lifetime of entry if accessed before 2 weeks', function() {
+  it('Should reset lifetime of entry if accessed before 2 weeks', () => {
     const cacheMap = new Cache();
     cacheMap.set(4, 'four');
     clock.tick(2 * 7 * 24 * 60 * 60 * 1000 - 1);
@@ -55,7 +47,7 @@ describe('Cache cleans up unused entries periodically', function() {
     expect(cacheMap.size).to.equal(1);
   });
 
-  it('Should delete an entry that has been accessed after expiry', function() {
+  it('Should delete an entry that has been accessed after expiry', () => {
     const cacheMap = new Cache();
     cacheMap.set(4, 'Four');
     cacheMap.get(4);

@@ -18,7 +18,7 @@ const Frame = require('./frame');
 const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
 const chromeFrame = new RegExp(`^\\s*at (?:` +
     `${lineColumnNumbersRegex}|(.+)? \\(${lineColumnNumbersRegex}\\))$`, 'gm');
-const safariFrame = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
+const safariFrame = /^\s*(?:([^@\n]*)@)?([^@\n]+):(\d+):(\d+)$/gm;
 
 /**
  * Parses a Chrome formatted stack trace string.

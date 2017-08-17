@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-/**
- * @fileoverview exports log object to enable stubbing of write method
- */
+process.env.NODE_ENV = 'test';
 
-const logging = require('@google-cloud/logging');
+const chai = require('chai');
+const chaihttp = require('chai-http');
+const sinon = require('sinon');
 
-const loggingClient = logging({
-  projectId: process.env.GCLOUD_PROJECT,
-});
-const log = loggingClient.log('javascript.errors');
+chai.use(chaihttp);
 
-module.exports = log;
+global.chai = chai;
+global.expect = chai.expect;
+global.sinon = sinon;

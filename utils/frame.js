@@ -36,6 +36,7 @@ class Frame {
   toString() {
     const name = this.name;
     const location = `${this.source}:${this.line}:${this.column}`;
+
     if (name) {
       return ` at ${name} (${location})`;
     }

@@ -28,11 +28,11 @@ const requestCache = new Map();
 
 const cdnJsRegex = new RegExp(
     // Require the CDN URL origin at the beginning.
-    '^https://cdn\\.ampproject\\.org' +
+    '^(https://cdn\\.ampproject\\.org)' +
     // Allow, but don't require, RTV.
     '(?:/rtv/(\\d{2}\\d{13,}))?' +
-    // Require text "/v0"
-    '(/v0' +
+    // Require text "/v" followed by digits
+    '(/v\\d+' +
       // Allow, but don't require, an extension under the v0 directory.
       // We explicitly forbid the `experiments` and `validator` "extension".
       '(?:/(?!experiments|validator).+)?' +
@@ -46,7 +46,12 @@ const cdnJsRegex = new RegExp(
  */
 const nilConsumer = {
   originalPositionFor({line, column}) {
-    return {source: null};
+    return {
+      source: null,
+      name: null,
+      line: null,
+      column: null,
+    };
   },
 };
 
@@ -57,11 +62,11 @@ const nilConsumer = {
  * @return {string}
  */
 function normalizeCdnJsUrl(url, version) {
-  const [, rtv, pathname] = cdnJsRegex.exec(url);
+  const [, origin, rtv, pathname] = cdnJsRegex.exec(url);
   if (rtv) {
     return url;
   }
-  return `https://cdn.ampproject.org/rtv/${version}${pathname}`;
+  return `${origin}/rtv/${version}${pathname}`;
 }
 
 /**
@@ -70,10 +75,10 @@ function normalizeCdnJsUrl(url, version) {
  * @return {!Frame} Stack trace frame with column, line number and file name
  * references unminified.
  */
-function unminifyLine(frame, consumer) {
-  const {name, source, line, column} = sourceMapConsumer.originalPositionFor({
-    line: stackLocation.line,
-    column: stackLocation.column,
+function unminifyFrame(frame, consumer) {
+  const {name, source, line, column} = consumer.originalPositionFor({
+    line: frame.line,
+    column: frame.column,
   });
 
   if (!source) {
@@ -118,12 +123,11 @@ function getSourceMapFromNetwork(url) {
  */
 function extractSourceMaps(stack, version) {
   return stack.map(({source}) => {
-    // TODO add tests
     if (!cdnJsRegex.test(source)) {
       return Promise.resolve(nilConsumer);
     }
 
-    const sourceMapUrl = normalizeCdnJsUrl(source) + '.map';
+    const sourceMapUrl = `${normalizeCdnJsUrl(source, version)}.map`;
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
       return Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl));
     }
@@ -143,8 +147,9 @@ function extractSourceMaps(stack, version) {
  */
 function unminify(stack, version) {
   const promises = extractSourceMaps(stack, version);
+
   return Promise.all(promises).then((consumers) => {
-    return stack.map((frame, i) => unminifyLine(frame, consumers[i]));
+    return stack.map((frame, i) => unminifyFrame(frame, consumers[i]));
   }, () => stack);
 }
 

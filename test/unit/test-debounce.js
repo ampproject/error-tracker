@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-const mocha = require('mocha');
-const sinon = require('sinon');
-const chai = require('chai');
-const it = mocha.it;
-const describe = mocha.describe;
-const expect = chai.expect;
-const afterEach = mocha.afterEach;
-const beforeEach = mocha.beforeEach;
-const debounce = require('../utils/debounce');
+const debounce = require('../../utils/debounce');
 
-describe('debounce', function() {
+describe('debounce', () => {
   let sandbox;
   let clock;
-  beforeEach(function() {
+  beforeEach(() => {
     sandbox = sinon.sandbox.create();
     clock = sandbox.useFakeTimers();
   });
-  afterEach(function() {
+  afterEach(() => {
     sandbox.restore();
   });
 
@@ -58,7 +50,7 @@ describe('debounce', function() {
 
   it('should debounce recursive callback', () => {
     let totalCalls = 0;
-    const debounced = debounce(function recursive(countdown) {
+    const debounced = debounce((countdown) => {
       totalCalls++;
       if (countdown > 0) {
         debounced(countdown - 1);
