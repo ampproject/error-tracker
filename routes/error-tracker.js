@@ -41,7 +41,6 @@ const SEVERITY = {
  * @return {?Promise} May return a promise that rejects on logging error
  */
 function handler(req, res) {
-  debugger;
   const params = req.query;
   const referrer = req.get('Referrer');
   const version = params.v;
@@ -153,7 +152,7 @@ function handler(req, res) {
           if (err) {
             res.set('Content-Type', 'text/plain; charset=utf-8');
             res.status(statusCodes.INTERNAL_SERVER_ERROR);
-            res.send(error.stack);
+            res.send(err.stack);
           } else {
             res.set('Content-Type', 'application/json; charset=utf-8');
             res.status(statusCodes.ACCEPTED);
