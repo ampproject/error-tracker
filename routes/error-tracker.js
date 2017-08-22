@@ -55,13 +55,6 @@ function handler(req, res) {
     return null;
   }
 
-  const stack = standardizeStackTrace(params.s || '');
-
-  if (ignoreMessageOrException(message, stack)) {
-    res.sendStatus(statusCodes.BAD_REQUEST);
-    return null;
-  }
-
   const runtime = params.rt;
   const assert = params.a === '1';
   const canary = params.ca === '1';
@@ -69,9 +62,24 @@ function handler(req, res) {
   const debug = params.debug === '1';
   const thirdParty = params['3p'] === '1';
 
-  const isUserError = assert;
   let errorType = assert ? 'assert' : 'default';
   let severity = SEVERITY.WARNING;
+
+  let throttleRate = canary ? 1 : 0.1;
+  if (assert) {
+    throttleRate = throttleRate / 10;
+  }
+  if (Math.random() > throttleRate) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.sendStatus(statusCodes.OK);
+    return null;
+  }
+
+  const stack = standardizeStackTrace(params.s || '');
+  if (ignoreMessageOrException(message, stack)) {
+    res.sendStatus(statusCodes.BAD_REQUEST);
+    return null;
+  }
 
   // if request comes from the cache and thus only from valid
   // AMP docs we log as "Error"
@@ -101,20 +109,6 @@ function handler(req, res) {
     errorType += '-expected';
   }
 
-  let throttleRate = canary ? 1 : 0.1;
-  if (isUserError) {
-    throttleRate = throttleRate / 10;
-  }
-  if (Math.random() > throttleRate) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.sendStatus(statusCodes.OK);
-    return null;
-  }
-
-  if (!debug) {
-    res.sendStatus(statusCodes.ACCEPTED);
-  }
-
   const event = {
     serviceContext: {
       service: errorType,
@@ -138,6 +132,10 @@ function handler(req, res) {
     },
     severity: severity,
   };
+
+  if (!debug) {
+    res.sendStatus(statusCodes.ACCEPTED);
+  }
 
   return unminify(stack, version).then((stack) => {
     if (stack.length) {

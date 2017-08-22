@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-const sourceMap = require('source-map');
 const unminify = require('../../utils/unminify');
 const Request = require('../../utils/request');
 const Frame = require('../../utils/frame');

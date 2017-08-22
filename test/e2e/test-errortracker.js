@@ -113,7 +113,7 @@ describe('Error Tracker Server', () => {
     });
 
     it('without version', () => {
-      const query = Object.assign({}, knownGoodQuery, {version: ''})
+      const query = Object.assign({}, knownGoodQuery, {version: ''});
       return makeRequest(referrer, query).then(() => {
         throw new Error('UNREACHABLE');
       }, (err) => {
@@ -122,7 +122,7 @@ describe('Error Tracker Server', () => {
     });
 
     it('without error message', () => {
-      const query = Object.assign({}, knownGoodQuery, {message: ''})
+      const query = Object.assign({}, knownGoodQuery, {message: ''});
       return makeRequest(referrer, query).then(() => {
         throw new Error('UNREACHABLE');
       }, (err) => {
@@ -131,9 +131,10 @@ describe('Error Tracker Server', () => {
     });
 
     it('with blacklisted error', () => {
+      sandbox.stub(Math, 'random').returns(0);
       const query = Object.assign({}, knownGoodQuery, {
         message: 'stop_youtube',
-      })
+      });
 
       return makeRequest(referrer, query).then(() => {
         throw new Error('UNREACHABLE');
@@ -146,7 +147,7 @@ describe('Error Tracker Server', () => {
   it('ignores development errors', () => {
     const query = Object.assign({}, knownGoodQuery, {
       version: '$internalRuntimeVersion$',
-    })
+    });
 
     return makeRequest(referrer, query).then((res) => {
       expect(res.status).to.equal(statusCodes.OK);
@@ -162,7 +163,7 @@ describe('Error Tracker Server', () => {
 
       return makeRequest(referrer, query).then((res) => {
         expect(res.status).to.equal(statusCodes.ACCEPTED);
-      })
+      });
     });
 
     it('throttles 90% of canary user errors', () => {
