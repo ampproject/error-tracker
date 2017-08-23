@@ -20,15 +20,11 @@
 
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
-const unminify = require('../utils/unminify');
 const log = require('../utils/log');
-const SERVER_START_TIME = Date.now().toString();
-const errorsToIgnore = ['stop_youtube',
-  'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)'];
-const mozillaSafariStackTraceRegex = /^([^@\n]*)@(.+):(\d+):(\d+)$/gm;
-const versionRegex = /\/(rtv\/\d+\/)?v\d+(\/[\w-]+)?\.js/gm;
-const chromeStackTraceRegex = require('../utils/regex').chromeRegex;
-const appEngineProjectId = 'amp-error-reporting-js';
+const standardizeStackTrace = require('../utils/standardize-stack-trace');
+const ignoreMessageOrException = require('../utils/should-ignore');
+const unminify = require('../utils/unminify');
+
 /**
  * @enum {int}
  */
@@ -38,187 +34,92 @@ const SEVERITY = {
 };
 
 /**
- * @param {string} stackTrace
- * @param {string} version
- * @return {string} Stacktrace with all the v0.js urls versioned
- * - 'at     error https://cdn.ampproject.org/v0.js:5:314' becomes
- *  'at     error https://cdn.ampproject.org/rtv/031496877433269//v0.js:5:314'
- */
-function versionStackTrace(stackTrace, version) {
-  return stackTrace.replace(versionRegex, function(match, group1) {
-    if (!group1) {
-      return '/rtv/' + version + match;
-    }
-    return match;
-  });
-}
-
-/**
- * @param {string} stackTrace
- * @return {boolean} True if its a non JS stack trace
- */
-function isNonJSStackTrace(stackTrace) {
-  return stackTrace.split('\n').some(function(line) {
-    return !!line && !/\.js:\d+:\d+/.test(line);
-  });
-}
-
-/**
- * @param {string} message
- * @param {string} stack
- * @return {boolean}
- */
-function ignoreMessageOrException(message, stack) {
-  return errorsToIgnore.some(function(msg) {
-    return message.includes(msg) || stack.includes(msg);
-  });
-}
-
-/**
- * Converts a stack trace to the standard Chrome stack trace format.
- * @param {string} stackTrace
- * @return {string} The converted stack trace.
- */
-function standardizeStackTrace(stackTrace) {
-  if (chromeStackTraceRegex.test(stackTrace)) {
-    // Discard garbage stack trace lines
-    return stackTrace.match(chromeStackTraceRegex).join('\n');
-  }
-  let validStackTraceLines = [];
-  let match;
-  while ((match = mozillaSafariStackTraceRegex.exec(stackTrace))) {
-    if (match[1]) {
-      validStackTraceLines.push(
-          ` at ${match[1]} (${match[2]}:` +
-          `${match[3]}:${match[4]})`);
-    } else {
-      validStackTraceLines.push(
-          ` at ${match[1]} ${match[2]}:` +
-          `${match[3]}:${match[4]}`);
-    }
-  }
-  return validStackTraceLines.join('\n');
-}
-
-/**
  * Extracts relevant information from request, handles edge cases and prepares
  * entry object to be logged and sends it to unminification.
  * @param {Request} req
  * @param {Response} res
  * @return {?Promise} May return a promise that rejects on logging error
  */
-function getHandler(req, res) {
+function handler(req, res) {
   const params = req.query;
-  let stack = params.s || '';
+  const referrer = req.get('Referrer');
+  const version = params.v;
+  const message = params.m;
 
-  if (!params.r || !params.v || !params.m) {
+  if (!referrer || !version || !message) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
-  if (params.v.includes('$internalRuntimeVersion$')) {
-    res.sendStatus(statusCodes.NO_CONTENT);
-    return null;
-  }
-  if (ignoreMessageOrException(params.m, stack)) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE');
+  if (version.includes('$internalRuntimeVersion$')) {
+    res.sendStatus(statusCodes.OK);
     return null;
   }
 
-  const referer = params.r;
-  let errorType = 'default';
-  let isUserError = false;
-  if (params.a === '1') {
-    errorType = 'assert';
-    isUserError = true;
+  const runtime = params.rt;
+  const assert = params.a === '1';
+  const canary = params.ca === '1';
+  const expected = params.ex === '1';
+  const debug = params.debug === '1';
+  const thirdParty = params['3p'] === '1';
+
+  let errorType = assert ? 'assert' : 'default';
+  let severity = SEVERITY.WARNING;
+
+  let throttleRate = canary ? 1 : 0.1;
+  if (assert) {
+    throttleRate = throttleRate / 10;
+  }
+  if (Math.random() > throttleRate) {
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.sendStatus(statusCodes.OK);
+    return null;
+  }
+
+  const stack = standardizeStackTrace(params.s || '');
+  if (ignoreMessageOrException(message, stack)) {
+    res.sendStatus(statusCodes.BAD_REQUEST);
+    return null;
   }
 
   // if request comes from the cache and thus only from valid
   // AMP docs we log as "Error"
-  let severity = SEVERITY.WARNING;
-  let isCdn = false;
-  if (referer.startsWith('https://cdn.ampproject.org/') ||
-      referer.includes('.cdn.ampproject.org/') ||
-      referer.includes('.ampproject.net/')) {
+  if (referrer.startsWith('https://cdn.ampproject.org/') ||
+      referrer.includes('.cdn.ampproject.org/') ||
+      referrer.includes('.ampproject.net/')) {
     severity = SEVERITY.ERROR;
     errorType += '-cdn';
-    isCdn = true;
   } else {
     errorType += '-origin';
   }
 
-  let is3p = false;
-  let runtime = params.rt;
   if (runtime) {
     errorType += '-' + runtime;
     if (runtime === 'inabox') {
       severity = SEVERITY.ERROR;
     }
-    if (runtime === '3p') {
-      is3p = true;
-    }
+  } else if (thirdParty) {
+    errorType += '-3p';
   } else {
-    if (params['3p'] === '1') {
-      is3p = true;
-      errorType += '-3p';
-    } else {
-      errorType += '-1p';
-    }
+    errorType += '-1p';
   }
-
-  let isCanary = false;
-  if (params.ca === '1') {
+  if (canary) {
     errorType += '-canary';
-    isCanary = true;
   }
-  if (params.ex === '1') {
+  if (expected) {
     errorType += '-expected';
-  }
-
-  const sample = Math.random();
-  let throttleRate = 0.1;
-  if (isCanary) {
-    throttleRate = 1.0; // explicitly log all errors
-  } else if (is3p) {
-    throttleRate = 0.1;
-  } else if (isCdn) {
-    throttleRate = 0.1;
-  }
-
-  if (isUserError) {
-    throttleRate = throttleRate / 10;
-  }
-  if (sample > throttleRate) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.OK).send('THROTTLED\n');
-    return null;
-  }
-
-  // Convert Firefox/Safari stack traces to Chrome format if necessary.
-  stack = standardizeStackTrace(stack);
-  stack = versionStackTrace(stack, params.v);
-  if (isNonJSStackTrace(stack)) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.status(statusCodes.BAD_REQUEST);
-    res.send('IGNORE');
-    return null;
-  }
-  if (params.debug !== '1') {
-    res.sendStatus(statusCodes.NO_CONTENT);
   }
 
   const event = {
     serviceContext: {
       service: errorType,
-      version: params.v,
+      version: version,
     },
-    message: stack,
+    message: message,
     context: {
       httpRequest: {
         url: req.url.toString(),
         userAgent: req.get('User-Agent'),
-        referrer: params.r,
+        referrer: referrer,
       },
     },
   };
@@ -226,37 +127,50 @@ function getHandler(req, res) {
     resource: {
       type: 'gae_app',
       labels: {
-        version_id: SERVER_START_TIME,
+        version_id: process.env.GAE_VERSION,
       },
     },
     severity: severity,
   };
 
-  return unminify.unminify(stack).then(function(unminifiedException) {
-    event.message = (params.m + '\n' + unminifiedException).trim();
-    const entry = log.entry(metaData, event);
-    return new Promise(function(resolve, reject) {
-      log.write(entry, function(err) {
+  if (!debug) {
+    res.sendStatus(statusCodes.ACCEPTED);
+  }
+
+  return unminify(stack, version).then((stack) => {
+    if (stack.length) {
+      event.message += `\n${stack.join('\n')}`;
+    }
+
+    return new Promise((resolve, reject) => {
+      const entry = log.entry(metaData, event);
+
+      log.write(entry, (err) => {
+        if (debug) {
+          if (err) {
+            res.set('Content-Type', 'text/plain; charset=utf-8');
+            res.status(statusCodes.INTERNAL_SERVER_ERROR);
+            res.send(err.stack);
+          } else {
+            res.set('Content-Type', 'application/json; charset=utf-8');
+            res.status(statusCodes.ACCEPTED);
+            res.send({
+              event: event,
+              metaData: metaData,
+            });
+          }
+        }
+
         if (err) {
-          winston.error(appEngineProjectId,
-              'Cannot write to Google Cloud Logging: ' +params.v, err);
-          console.log(err);
           reject(err);
-        } else if (params.debug === '1') {
-          res.set('Content-Type', 'application/json; charset=utf-8');
-          res.status(statusCodes.OK).send({
-            message: 'OK\n',
-            event: event,
-            throttleRate: throttleRate,
-          });
+        } else {
           resolve();
         }
       });
     });
-  }, function(err) {
-    winston.error(params.m + '\n' + stack, err);
+  }).catch((err) => {
+    winston.error(err);
   });
 }
 
-module.exports = {getHandler, standardizeStackTrace, versionStackTrace,
-  isNonJSStackTrace};
+module.exports = handler;

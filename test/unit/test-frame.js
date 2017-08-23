@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-/**
- * @fileoverview exports log object to enable stubbing of write method
- */
+const Frame = require('../../utils/frame');
 
-const logging = require('@google-cloud/logging');
+describe('Frame', () => {
+  describe('#toString', () => {
+    describe('with context name', () => {
+      it('includes context with parenthesis around location', () => {
+        const f = new Frame('name', 'file.js', '1', '2');
+        expect(f.toString()).to.equal(' at name (file.js:1:2)');
+      });
+    });
 
-const loggingClient = logging({
-  projectId: process.env.GCLOUD_PROJECT,
+    describe('without context name', () => {
+      it('includes location without parenthesis', () => {
+        const f = new Frame('', 'file.js', '1', '2');
+        expect(f.toString()).to.equal(' at file.js:1:2');
+      });
+    });
+  });
 });
-const log = loggingClient.log('javascript.errors');
-
-module.exports = log;

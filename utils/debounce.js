@@ -13,7 +13,7 @@
  */
 
 /**
- * Debounce Util
+ * @fileoverview A standard debounce utility.
  */
 
 /**
@@ -56,4 +56,4 @@ function debounce(callback, minInterval) {
   };
 }
 
-exports.debounce = debounce;
+module.exports = debounce;

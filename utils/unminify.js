@@ -13,43 +13,79 @@
  */
 
 /**
- * @fileoverview
- * Convert's stacktrace line, column number and file references from minified
- * to unminified. Caches requests for and source maps once obtained.
+ * @fileoverview Convert's stacktrace line, column number and file references
+ * from minified to unminified. Caches requests for and source maps once
+ * obtained.
  */
 
 const sourceMap = require('source-map');
 const Request = require('./request');
-const regex = require('./regex');
-const Cache = require('./cache').Cache;
-const chromeStackTraceRegex = regex.chromeRegex;
-/** @type {!sourceMap<url, sourceMap>}*/
+const Cache = require('./cache');
+const Frame = require('./frame');
+
 const sourceMapConsumerCache = new Cache();
-/** @type {!request<url, Promise>}*/
 const requestCache = new Map();
 
+const cdnJsRegex = new RegExp(
+    // Require the CDN URL origin at the beginning.
+    '^(https://cdn\\.ampproject\\.org)' +
+    // Allow, but don't require, RTV.
+    '(?:/rtv/(\\d{2}\\d{13,}))?' +
+    // Require text "/v" followed by digits
+    '(/v\\d+' +
+      // Allow, but don't require, an extension under the v0 directory.
+      // We explicitly forbid the `experiments` and `validator` "extension".
+      '(?:/(?!experiments|validator).+)?' +
+    // Require text ".js" at the end.
+    '\\.js)$');
+
+
 /**
- * @param {location} stackLocation
- * @param {Object} sourceMapConsumer
- * @return {string} Stack trace line with column, line number and file name
+ * For stack frames that are not CDN JS, we do not attempt to load a
+ * real SourceMapConsumer.
+ */
+const nilConsumer = {
+  originalPositionFor({line, column}) {
+    return {
+      source: null,
+      name: null,
+      line: null,
+      column: null,
+    };
+  },
+};
+
+/**
+ * Formats unversioned CDN JS files into the versioned url
+ * @param {string} url
+ * @param {string} version
+ * @return {string}
+ */
+function normalizeCdnJsUrl(url, version) {
+  const [, origin, rtv, pathname] = cdnJsRegex.exec(url);
+  if (rtv) {
+    return url;
+  }
+  return `${origin}/rtv/${version}${pathname}`;
+}
+
+/**
+ * @param {!Frame} frame
+ * @param {Object} consumer
+ * @return {!Frame} Stack trace frame with column, line number and file name
  * references unminified.
  */
-function unminifyLine(stackLocation, sourceMapConsumer) {
-  const originalPosition = sourceMapConsumer.originalPositionFor({
-    line: stackLocation.lineNumber,
-    column: stackLocation.columnNumber,
+function unminifyFrame(frame, consumer) {
+  const {name, source, line, column} = consumer.originalPositionFor({
+    line: frame.line,
+    column: frame.column,
   });
-  if (!originalPosition.source) {
-    return stackLocation.stackTraceLine;
+
+  if (!source) {
+    return frame;
   }
-  const originalLocation = ':' + originalPosition.line + ':'
-      + originalPosition.column;
-  const stackLine = ' at ';
-  if (originalPosition.name) {
-   return stackLine + originalPosition.name + ' (' +
-        originalPosition.source + originalLocation + ')';
-  }
-  return stackLine + originalPosition.source + originalLocation;
+
+  return new Frame(name, source, line, column);
 }
 
 /**
@@ -58,76 +94,63 @@ function unminifyLine(stackLocation, sourceMapConsumer) {
  */
 function getSourceMapFromNetwork(url) {
   const reqPromise = new Promise((resolve, reject) => {
-    Request.request(url, function callback(err, _, body) {
+    Request.request(url, (err, _, body) => {
       requestCache.delete(url);
+
       if (err) {
         reject(err);
       } else {
         try {
-          const sourceMapConsumer = new sourceMap.SourceMapConsumer(
+          const consumer = new sourceMap.SourceMapConsumer(
               JSON.parse(body));
-          sourceMapConsumerCache.set(url, sourceMapConsumer);
-          resolve(sourceMapConsumer);
+          sourceMapConsumerCache.set(url, consumer);
+          resolve(consumer);
         } catch (e) {
           reject(e);
         }
       }
     });
   });
+
   requestCache.set(url, reqPromise);
   return reqPromise;
 }
 
 /**
- * @param {!Array<!location>} stackLocations
+ * @param {!Array<!Frame>} stack
+ * @param {string} version
  * @return {!Array<!Promise>} Array of promises that resolve to source maps
  */
-function extractSourceMaps(stackLocations) {
-  return stackLocations.map(function(stackLocation) {
-    if (sourceMapConsumerCache.has(stackLocation.sourceMapUrl)) {
-      return Promise.resolve(sourceMapConsumerCache.get(
-          stackLocation.sourceMapUrl));
-    } else if (requestCache.has(stackLocation.sourceMapUrl)) {
-      return requestCache.get(stackLocation.sourceMapUrl);
-    } else {
-     return getSourceMapFromNetwork(stackLocation.sourceMapUrl);
+function extractSourceMaps(stack, version) {
+  return stack.map(({source}) => {
+    if (!cdnJsRegex.test(source)) {
+      return Promise.resolve(nilConsumer);
     }
+
+    const sourceMapUrl = `${normalizeCdnJsUrl(source, version)}.map`;
+    if (sourceMapConsumerCache.has(sourceMapUrl)) {
+      return Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl));
+    }
+
+    if (requestCache.has(sourceMapUrl)) {
+      return requestCache.get(sourceMapUrl);
+    }
+
+    return getSourceMapFromNetwork(sourceMapUrl);
   });
 }
 
 /**
- * @param {string} stackTrace
+ * @param {!Array<!Frame>} stack
+ * @param {string} version
  * @return {Promise} Promise that resolves to unminified stack trace.
  */
-function unminify(stackTrace) {
-  let match;
-  const stackLocations = [];
-  while ((match = chromeStackTraceRegex.exec(stackTrace))) {
-    /**
-     * @type location{
-     * string: lineNumber
-     * string: columnNumber
-     * string: sourceMapUrl
-     * string: sourceUrl
-     * }
-     */
-    stackLocations.push({
-      sourceMapUrl: (match[2] || match[5]) + '.map',
-      sourceUrl: (match[2] || match[5]),
-      lineNumber: parseInt((match[3] || match[6]), 10),
-      columnNumber: parseInt((match[4] || match[7]), 10),
-      stackTraceLine: match[0],
-    });
-  }
-  const promises = extractSourceMaps(stackLocations);
-  return Promise.all(promises).then(function(values) {
-    const stackTraceLines = values.map(function(sourceMapConsumer, i) {
-      return unminifyLine(stackLocations[i], sourceMapConsumer);
-    });
-    return stackTraceLines.join('\n');
-  }, function() {
-    return stackTrace;
-  });
+function unminify(stack, version) {
+  const promises = extractSourceMaps(stack, version);
+
+  return Promise.all(promises).then((consumers) => {
+    return stack.map((frame, i) => unminifyFrame(frame, consumers[i]));
+  }, () => stack);
 }
 
-module.exports = {unminify, unminifyLine, extractSourceMaps};
+module.exports = unminify;

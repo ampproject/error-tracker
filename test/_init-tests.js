@@ -1,8 +1,10 @@
 /**
- * Copyright 2017 The AMP Authors. All Rights Reserved.
+ * Copyright 2017 The AMP HTML Authors. All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -12,12 +14,14 @@
  * limitations under the License.
  */
 
-/**
- * @fileoverview  Shared regular expression for stackTrace
- */
+process.env.NODE_ENV = 'test';
 
-const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
-const chromeRegex = new RegExp( `^\\s*at (.+ )?(?:` +
-    `${lineColumnNumbersRegex}|\\(${lineColumnNumbersRegex}\\))$`, 'gm');
+const chai = require('chai');
+const chaihttp = require('chai-http');
+const sinon = require('sinon');
 
-exports.chromeRegex = chromeRegex;
+chai.use(chaihttp);
+
+global.chai = chai;
+global.expect = chai.expect;
+global.sinon = sinon;
