@@ -70,7 +70,6 @@ function handler(req, res) {
     throttleRate = throttleRate / 10;
   }
   if (Math.random() > throttleRate) {
-    res.set('Content-Type', 'text/plain; charset=utf-8');
     res.sendStatus(statusCodes.OK);
     return null;
   }
