@@ -25,8 +25,10 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const app = express();
-const port = parseInt(process.env.PORT) || 8080;
+const port = parseInt(process.env.PORT, 10) || 8080;
 
+app.set('etag', false);
+app.set('trust proxy', true);
 app.set('query parser', queryparser);
 
 app.get('/_ah/health', function(req, res) {
