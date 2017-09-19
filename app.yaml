@@ -1,2 +1,8 @@
 runtime: nodejs
-env: flex
+env: flexible
+threadsafe: true
+automatic_scaling:
+  min_num_instances: 10
+  max_num_instances: 100
+  cpu_utilization:
+    target_utilization: 0.8
