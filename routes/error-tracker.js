@@ -108,12 +108,15 @@ function handler(req, res) {
     errorType += '-expected';
   }
 
+  const normalizedMessage = /^[A-Z][a-z]+: /.test(message) ?
+      message :
+      `Error: ${message}`;
   const event = {
     serviceContext: {
       service: errorType,
       version: version,
     },
-    message: message,
+    message: normalizedMessage,
     context: {
       httpRequest: {
         url: req.url.toString(),

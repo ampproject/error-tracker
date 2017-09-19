@@ -234,9 +234,9 @@ describe('Error Tracker Server', () => {
         });
       });
 
-      it('logs message only', () => {
+      it('logs normalized message only', () => {
         return makeRequest(referrer, query).then((res) => {
-          expect(res.body.event.message).to.be.equal(query.message);
+          expect(res.body.event.message).to.be.equal(`Error: ${query.message}`);
         });
       });
     });
@@ -266,9 +266,9 @@ describe('Error Tracker Server', () => {
         it('logs full error', () => {
           return makeRequest(referrer, query).then((res) => {
             expect(res.body.event.message).to.be.equal(
-              'The object does not support the operation or argument.\n' +
-                ' at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-                ' at https://cdn.ampproject.org/v0.js:2:18');
+              'Error: The object does not support the operation or argument.\n' +
+                '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                '    at https://cdn.ampproject.org/v0.js:2:18');
           });
         });
       });
@@ -285,9 +285,9 @@ describe('Error Tracker Server', () => {
         it('logs full error', () => {
           return makeRequest(referrer, query).then((res) => {
             expect(res.body.event.message).to.be.equal(
-              'The object does not support the operation or argument.\n' +
-                ' at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
-                ' at n (https://cdn.ampproject.org/two.js:1:21)');
+              'Error: The object does not support the operation or argument.\n' +
+                '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
+                '    at n (https://cdn.ampproject.org/two.js:1:21)');
           });
         });
       });
@@ -296,8 +296,8 @@ describe('Error Tracker Server', () => {
     describe('chrome stack traces', () => {
       const query = Object.assign({}, knownGoodQuery, {
         stack: `${knownGoodQuery.message}\n` +
-            ' at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-            ' at https://cdn.ampproject.org/v0.js:2:18',
+            '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+            '    at https://cdn.ampproject.org/v0.js:2:18',
         debug: true,
       });
 
@@ -308,8 +308,8 @@ describe('Error Tracker Server', () => {
             '/r?v=011502819823157&m=The%20object%20does%20' +
               'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
               '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
-              '%20argument.%0A%20at%20t%20%28https%3A%2F%2Fcdn.ampproject.org' +
-              '%2Fv0.js%3A1%3A18%29%0A%20at%20https%3A%2F%2Fcdn.ampproject.' +
+              '%20argument.%0A%20%20%20%20at%20t%20%28https%3A%2F%2Fcdn.ampproject.org' +
+              '%2Fv0.js%3A1%3A18%29%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
               'org%2Fv0.js%3A2%3A18&debug=1'
           );
           expect(httpRequest.userAgent).to.be.equal(userAgent);
@@ -321,9 +321,9 @@ describe('Error Tracker Server', () => {
         it('logs full error', () => {
           return makeRequest(referrer, query).then((res) => {
             expect(res.body.event.message).to.be.equal(
-              'The object does not support the operation or argument.\n' +
-                ' at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-                ' at https://cdn.ampproject.org/v0.js:2:18');
+              'Error: The object does not support the operation or argument.\n' +
+                '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                '    at https://cdn.ampproject.org/v0.js:2:18');
           });
         });
       });
@@ -340,9 +340,9 @@ describe('Error Tracker Server', () => {
         it('logs full error', () => {
           return makeRequest(referrer, query).then((res) => {
             expect(res.body.event.message).to.be.equal(
-              'The object does not support the operation or argument.\n' +
-                ' at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
-                ' at n (https://cdn.ampproject.org/two.js:1:21)');
+              'Error: The object does not support the operation or argument.\n' +
+                '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
+                '    at n (https://cdn.ampproject.org/two.js:1:21)');
           });
         });
       });

@@ -38,9 +38,9 @@ class Frame {
     const location = `${this.source}:${this.line}:${this.column}`;
 
     if (name) {
-      return ` at ${name} (${location})`;
+      return `    at ${name} (${location})`;
     }
-    return ` at ${location}`;
+    return `    at ${location}`;
   }
 }
 

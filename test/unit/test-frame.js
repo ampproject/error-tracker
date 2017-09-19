@@ -21,14 +21,14 @@ describe('Frame', () => {
     describe('with context name', () => {
       it('includes context with parenthesis around location', () => {
         const f = new Frame('name', 'file.js', '1', '2');
-        expect(f.toString()).to.equal(' at name (file.js:1:2)');
+        expect(f.toString()).to.equal('    at name (file.js:1:2)');
       });
     });
 
     describe('without context name', () => {
       it('includes location without parenthesis', () => {
         const f = new Frame('', 'file.js', '1', '2');
-        expect(f.toString()).to.equal(' at file.js:1:2');
+        expect(f.toString()).to.equal('    at file.js:1:2');
       });
     });
   });
