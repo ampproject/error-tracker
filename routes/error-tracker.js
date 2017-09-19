@@ -44,7 +44,7 @@ function handler(req, res) {
   const params = req.query;
   const referrer = req.get('Referrer');
   const version = params.v;
-  const message = params.m;
+  const message = decodeURIComponent(params.m || '');
 
   if (!referrer || !version || !message) {
     res.sendStatus(statusCodes.BAD_REQUEST);
@@ -74,7 +74,7 @@ function handler(req, res) {
     return null;
   }
 
-  const stack = standardizeStackTrace(params.s || '');
+  const stack = standardizeStackTrace(decodeURIComponent(params.s || ''));
   if (ignoreMessageOrException(message, stack)) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
@@ -86,26 +86,26 @@ function handler(req, res) {
       referrer.includes('.cdn.ampproject.org/') ||
       referrer.includes('.ampproject.net/')) {
     severity = SEVERITY.ERROR;
-    errorType += '-cdn';
+    errorType = errorType + '-cdn';
   } else {
-    errorType += '-origin';
+    errorType = errorType + '-origin';
   }
 
   if (runtime) {
-    errorType += '-' + runtime;
+    errorType = errorType + '-' + runtime;
     if (runtime === 'inabox') {
       severity = SEVERITY.ERROR;
     }
   } else if (thirdParty) {
-    errorType += '-3p';
+    errorType = errorType + '-3p';
   } else {
-    errorType += '-1p';
+    errorType = errorType + '-1p';
   }
   if (canary) {
-    errorType += '-canary';
+    errorType = errorType + '-canary';
   }
   if (expected) {
-    errorType += '-expected';
+    errorType = errorType + '-expected';
   }
 
   const normalizedMessage = /^[A-Z][a-z]+: /.test(message) ?
@@ -141,7 +141,7 @@ function handler(req, res) {
 
   return unminify(stack, version).then((stack) => {
     if (stack.length) {
-      event.message += `\n${stack.join('\n')}`;
+      event.message = event.message + `\n${stack.join('\n')}`;
     }
 
     return new Promise((resolve, reject) => {

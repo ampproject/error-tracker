@@ -15,8 +15,9 @@
  */
 
 const express = require('express');
-const errorTracker = require('./routes/error-tracker');
 const statusCodes = require('http-status-codes');
+const errorTracker = require('./routes/error-tracker');
+const queryparser = require('./utils/query-parser');
 
 if (process.env.NODE_ENV === 'production') {
   require('@google-cloud/trace-agent').start();
@@ -25,6 +26,9 @@ if (process.env.NODE_ENV === 'production') {
 
 const app = express();
 const port = parseInt(process.env.PORT) || 8080;
+
+app.set('query parser', queryparser);
+
 app.get('/_ah/health', function(req, res) {
   res.sendStatus(statusCodes.OK);
 });
