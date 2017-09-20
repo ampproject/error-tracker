@@ -1,9 +1,9 @@
 {
   "private": true,
   "name": "error-tracker",
-  "version": "0.0.0",
-  "description": "Tracking errors and standardizing stack traces",
-  "author": "The error tracker authors",
+  "version": "1.0.0",
+  "description": "Receives error reports emitted by AMP HTML runtime library",
+  "author": "The AMP HTML Authors",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "express": "^4.15.4",
     "http-status-codes": "^1.3.0",
     "request": "^2.81.0",
+    "source-map": "^0.5.7",
     "winston": "^2.3.1"
   },
   "devDependencies": {
@@ -34,9 +35,7 @@
     "chai-http": "^3.0.0",
     "eslint": "^3.19.0",
     "eslint-config-google": "^0.8.1",
-    "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
-    "sinon": "^2.4.1",
-    "source-map": "^0.5.7"
+    "sinon": "^2.4.1"
   }
 }
