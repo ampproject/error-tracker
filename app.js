@@ -19,11 +19,6 @@ const statusCodes = require('http-status-codes');
 const errorTracker = require('./routes/error-tracker');
 const queryparser = require('./utils/query-parser');
 
-if (process.env.NODE_ENV === 'production') {
-  require('@google-cloud/trace-agent').start();
-  require('@google-cloud/debug-agent').start();
-}
-
 const app = express();
 const port = parseInt(process.env.PORT, 10) || 8080;
 
