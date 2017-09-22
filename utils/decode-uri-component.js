@@ -25,7 +25,7 @@ function decode(string) {
   try {
     return decodeURIComponent(strip(string));
   } catch (e) {
-    return '';
+    return e.stack;
   }
 }
 

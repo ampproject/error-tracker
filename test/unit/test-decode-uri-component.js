@@ -30,6 +30,9 @@ describe('Decode URI Component', () => {
 
   it('returns empty string on invalid encodings', () => {
     const attack = encodeURIComponent('⚡').slice(0, -1);
-    expect(decode(attack + 'test')).to.equal('');
+    const string = attack + 'test';
+    const result = decode(string);
+    expect(result).to.not.equal(string);
+    expect(result).to.include("URIError");
   });
 });
