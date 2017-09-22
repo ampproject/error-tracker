@@ -127,10 +127,13 @@ function handler(req, res) {
     },
   };
   const metaData = {
+    labels: {
+      'appengine.googleapis.com/instance_name':  process.env.GAE_INSTANCE,
+    },
     resource: {
       type: 'gae_app',
       labels: {
-        module_id: 'default',
+        module_id: process.env.GAE_SERVICE,
         version_id: process.env.GAE_VERSION,
       },
     },
