@@ -24,6 +24,7 @@ const log = require('../utils/log');
 const standardizeStackTrace = require('../utils/standardize-stack-trace');
 const ignoreMessageOrException = require('../utils/should-ignore');
 const unminify = require('../utils/unminify');
+const decode = require('../utils/decode-uri-component');
 
 /**
  * @enum {int}
@@ -44,7 +45,7 @@ function handler(req, res) {
   const params = req.query;
   const referrer = req.get('Referrer');
   const version = params.v;
-  const message = decodeURIComponent(params.m || '');
+  const message = decode(params.m || '');
 
   if (!referrer || !version || !message) {
     res.sendStatus(statusCodes.BAD_REQUEST);
@@ -74,7 +75,7 @@ function handler(req, res) {
     return null;
   }
 
-  const stack = standardizeStackTrace(decodeURIComponent(params.s || ''));
+  const stack = standardizeStackTrace(decode(params.s || ''));
   if (ignoreMessageOrException(message, stack)) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
@@ -129,6 +130,7 @@ function handler(req, res) {
     resource: {
       type: 'gae_app',
       labels: {
+        module_id: 'default',
         version_id: process.env.GAE_VERSION,
       },
     },
