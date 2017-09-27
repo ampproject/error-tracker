@@ -59,6 +59,7 @@ function handler(req, res) {
   const runtime = params.rt;
   const assert = params.a === '1';
   const canary = params.ca === '1';
+  const binaryType = params.bt || '';
   const expected = params.ex === '1';
   const debug = params.debug === '1';
   const thirdParty = params['3p'] === '1';
@@ -102,7 +103,11 @@ function handler(req, res) {
   } else {
     errorType = errorType + '-1p';
   }
-  if (canary) {
+
+  // Do not append binary type if 'prod' since that is the default
+  if (binaryType && binaryType !== 'prod') {
+    errorType = errorType + `-${binaryType}`;
+  } else if (canary) {
     errorType = errorType + '-canary';
   }
   if (expected) {
