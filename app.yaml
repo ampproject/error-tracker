@@ -2,7 +2,7 @@ runtime: nodejs
 env: flexible
 threadsafe: true
 automatic_scaling:
-  min_num_instances: 10
+  min_num_instances: 4
   max_num_instances: 100
   cpu_utilization:
     target_utilization: 0.8
