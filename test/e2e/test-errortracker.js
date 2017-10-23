@@ -32,6 +32,7 @@ describe('Error Tracker Server', () => {
       expected: 'ex',
       debug: 'debug',
       thirdParty: '3p',
+      binaryType: 'bt',
     };
     const booleans = ['assert', 'canary', 'expected', 'debug', 'thirdParty'];
 
@@ -206,6 +207,51 @@ describe('Error Tracker Server', () => {
         return makeRequest(referrer, query);
       }).then((res) => {
         expect(res.status).to.equal(statusCodes.OK);
+      });
+    });
+
+    describe.only('handles binary type and canary flags', () => {
+      beforeEach(() => {
+        sandbox.stub(Math, 'random').returns(0);
+      });
+
+      it('should use canary', () => {
+        const query = Object.assign({}, knownGoodQuery, {
+          stack: '',
+          canary: true,
+          debug: true,
+        });
+
+        return makeRequest(referrer, query).then(res => {
+          expect(res.body.event.serviceContext.service)
+              .to.be.equal('default-cdn-1p-canary');
+        });
+      });
+
+      it('should use binary type and take priority over canary flag', () => {
+        const query = Object.assign({}, knownGoodQuery, {
+          stack: '',
+          // "canary" state should be ignored since `bt` should take precedence.
+          canary: true,
+          debug: true,
+          binaryType: 'prod',
+        });
+        return makeRequest(referrer, query).then(res => {
+          expect(res.body.event.serviceContext.service)
+              .to.be.equal('default-cdn-1p');
+        });
+      });
+
+      it('should allow any binary type', () => {
+        const query = Object.assign({}, knownGoodQuery, {
+          stack: '',
+          debug: true,
+          binaryType: 'hello-world',
+        });
+        return makeRequest(referrer, query).then(res => {
+          expect(res.body.event.serviceContext.service)
+              .to.be.equal('default-cdn-1p-hello-world');
+        });
       });
     });
   });
