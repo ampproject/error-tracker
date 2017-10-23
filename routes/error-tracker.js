@@ -104,9 +104,9 @@ function handler(req, res) {
     errorType = errorType + '-1p';
   }
 
-  // Do not append binary type if 'prod' since that is the default
+  // Do not append binary type if 'production' since that is the default
   if (binaryType) {
-    if (binaryType !== 'prod') {
+    if (binaryType !== 'production') {
       errorType = errorType + `-${binaryType}`;
     }
   } else if (canary) {

@@ -210,7 +210,7 @@ describe('Error Tracker Server', () => {
       });
     });
 
-    describe.only('handles binary type and canary flags', () => {
+    describe('handles binary type and canary flags', () => {
       beforeEach(() => {
         sandbox.stub(Math, 'random').returns(0);
       });
@@ -234,7 +234,7 @@ describe('Error Tracker Server', () => {
           // "canary" state should be ignored since `bt` should take precedence.
           canary: true,
           debug: true,
-          binaryType: 'prod',
+          binaryType: 'production',
         });
         return makeRequest(referrer, query).then(res => {
           expect(res.body.event.serviceContext.service)
