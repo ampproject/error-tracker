@@ -167,6 +167,15 @@ describe('Error Tracker Server', () => {
       });
     });
 
+    it('does not throttle "control" binary type errors', () => {
+      sandbox.stub(Math, 'random').returns(1);
+      const query = Object.assign({}, knownGoodQuery, {binaryType: 'control'});
+
+      return makeRequest(referrer, query).then((res) => {
+        expect(res.status).to.equal(statusCodes.ACCEPTED);
+      });
+    });
+
     it('throttles 90% of canary user errors', () => {
       sandbox.stub(Math, 'random').returns(0.1);
       const query = Object.assign({}, knownGoodQuery, {
