@@ -67,7 +67,7 @@ function handler(req, res) {
   let errorType = assert ? 'assert' : 'default';
   let severity = SEVERITY.WARNING;
 
-  let throttleRate = canary ? 1 : 0.1;
+  let throttleRate = canary || binaryType === 'control' ? 1 : 0.1;
   if (assert) {
     throttleRate = throttleRate / 10;
   }
