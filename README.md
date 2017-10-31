@@ -1,5 +1,7 @@
 # Error reporting
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/ampproject/error-tracker.svg)](https://greenkeeper.io/)
+
 This is not an official Google product
 
 Receives error reports emitted by AMP HTML runtime library and sends them to the
