@@ -38,16 +38,16 @@ exports.parse = function parse(query) {
 
 /**
  * Turns an object into a safe query string.
- * This does not prepend a "?".
+ * Note, this does not prepend a "?".
  *
- * @param {!Object<string, string>}
+ * @param {!Object<string, string>} obj
  * @return {string}
  */
 exports.stringify = function stringify(obj) {
   let string = '';
   for (const prop in obj) {
-    string += `${encodeURIComponent(prop)}=${encodeURIComponent(obj[prop])}&`;
+    string += `&${encodeURIComponent(prop)}=${encodeURIComponent(obj[prop])}`;
   }
 
-  return string.substr(0, string.length - 1);
+  return string.substring(1);
 };
