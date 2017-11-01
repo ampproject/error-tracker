@@ -19,6 +19,7 @@ const winston = require('winston');
 const app = require('../../app');
 const log = require('../../utils/log');
 const Request = require('../../utils/request');
+const querystring = require('../../utils/query-string');
 
 describe('Error Tracker Server', () => {
   const makeQuery = (function() {
@@ -57,7 +58,18 @@ describe('Error Tracker Server', () => {
         .get('/r')
         .set('Referer', referrer)
         .set('User-Agent', userAgent)
-        .query(makeQuery(query));
+        .query(querystring.stringify(makeQuery(query)));
+  }
+  function makePostRequest(type) {
+    return function(referrer, query) {
+      const q = makeQuery(query);
+      return chai.request(app)
+          .post('/r')
+          .type(type)
+          .set('Referer', referrer)
+          .set('User-Agent', userAgent)
+          .send(type === 'json' ? q : JSON.stringify(q));
+    };
   }
 
   const referrer = 'https://cdn.ampproject.org/';
@@ -112,303 +124,311 @@ describe('Error Tracker Server', () => {
     sandbox.restore();
   });
 
-  describe('rejects bad requests', () => {
-    it('without referrer', () => {
-      return makeRequest('', knownGoodQuery).then(() => {
-        throw new Error('UNREACHABLE');
-      }, (err) => {
-        expect(err.message).to.equal('Bad Request');
-      });
-    });
+  method("GET", makeRequest);
+  method("POST JSON", makePostRequest('json'));
+  method("POST Text", makePostRequest('text/plain'));
 
-    it('without version', () => {
-      const query = Object.assign({}, knownGoodQuery, {version: ''});
-      return makeRequest(referrer, query).then(() => {
-        throw new Error('UNREACHABLE');
-      }, (err) => {
-        expect(err.message).to.equal('Bad Request');
-      });
-    });
-
-    it('without error message', () => {
-      const query = Object.assign({}, knownGoodQuery, {message: ''});
-      return makeRequest(referrer, query).then(() => {
-        throw new Error('UNREACHABLE');
-      }, (err) => {
-        expect(err.message).to.equal('Bad Request');
-      });
-    });
-
-    it('with blacklisted error', () => {
-      sandbox.stub(Math, 'random').returns(0);
-      const query = Object.assign({}, knownGoodQuery, {
-        message: 'stop_youtube',
-      });
-
-      return makeRequest(referrer, query).then(() => {
-        throw new Error('UNREACHABLE');
-      }, (err) => {
-        expect(err.message).to.equal('Bad Request');
-      });
-    });
-  });
-
-  it('ignores development errors', () => {
-    const query = Object.assign({}, knownGoodQuery, {
-      version: '$internalRuntimeVersion$',
-    });
-
-    return makeRequest(referrer, query).then((res) => {
-      expect(res.status).to.equal(statusCodes.OK);
-      expect(log.write.callCount).to.equal(0);
-      expect(Request.request.callCount).to.equal(0);
-    });
-  });
-
-  describe('throttling', () => {
-    it('does not throttle canary dev errors', () => {
-      sandbox.stub(Math, 'random').returns(1);
-      const query = Object.assign({}, knownGoodQuery, {canary: '1'});
-
-      return makeRequest(referrer, query).then((res) => {
-        expect(res.status).to.equal(statusCodes.ACCEPTED);
-      });
-    });
-
-    it('does not throttle "control" binary type errors', () => {
-      sandbox.stub(Math, 'random').returns(1);
-      const query = Object.assign({}, knownGoodQuery, {binaryType: 'control'});
-
-      return makeRequest(referrer, query).then((res) => {
-        expect(res.status).to.equal(statusCodes.ACCEPTED);
-      });
-    });
-
-    it('throttles 90% of canary user errors', () => {
-      sandbox.stub(Math, 'random').returns(0.1);
-      const query = Object.assign({}, knownGoodQuery, {
-        canary: true,
-        assert: true,
-      });
-
-      return makeRequest(referrer, query).then((res) => {
-        expect(res.status).to.equal(statusCodes.ACCEPTED);
-        Math.random.returns(0.11);
-        return makeRequest(referrer, query);
-      }).then((res) => {
-        expect(res.status).to.equal(statusCodes.OK);
-      });
-    });
-
-    it('throttles 90% of dev errors', () => {
-      sandbox.stub(Math, 'random').returns(0.1);
-
-      return makeRequest(referrer, knownGoodQuery).then((res) => {
-        expect(res.status).to.equal(statusCodes.ACCEPTED);
-        Math.random.returns(0.11);
-        return makeRequest(referrer, knownGoodQuery);
-      }).then((res) => {
-        expect(res.status).to.equal(statusCodes.OK);
-      });
-    });
-
-    it('throttles 99% of user errors', () => {
-      sandbox.stub(Math, 'random').returns(0.01);
-      const query = Object.assign({}, knownGoodQuery, {
-        assert: true,
-      });
-
-      return makeRequest(referrer, query).then((res) => {
-        expect(res.status).to.equal(statusCodes.ACCEPTED);
-        Math.random.returns(0.02);
-        return makeRequest(referrer, query);
-      }).then((res) => {
-        expect(res.status).to.equal(statusCodes.OK);
-      });
-    });
-
-    describe('handles binary type and canary flags', () => {
-      beforeEach(() => {
-        sandbox.stub(Math, 'random').returns(0);
-      });
-
-      it('should use canary', () => {
-        const query = Object.assign({}, knownGoodQuery, {
-          stack: '',
-          canary: true,
-          debug: true,
+  function method(description, makeRequest) {
+    describe(description, () => {
+      describe('rejects bad requests', () => {
+        it('without referrer', () => {
+          return makeRequest('', knownGoodQuery).then(() => {
+            throw new Error('UNREACHABLE');
+          }, (err) => {
+            expect(err.message).to.equal('Bad Request');
+          });
         });
 
-        return makeRequest(referrer, query).then(res => {
-          expect(res.body.event.serviceContext.service)
-              .to.be.equal('default-cdn-1p-canary');
+        it('without version', () => {
+          const query = Object.assign({}, knownGoodQuery, {version: ''});
+          return makeRequest(referrer, query).then(() => {
+            throw new Error('UNREACHABLE');
+          }, (err) => {
+            expect(err.message).to.equal('Bad Request');
+          });
         });
-      });
 
-      it('should use binary type and take priority over canary flag', () => {
-        const query = Object.assign({}, knownGoodQuery, {
-          stack: '',
-          // "canary" state should be ignored since `bt` should take precedence.
-          canary: true,
-          debug: true,
-          binaryType: 'production',
+        it('without error message', () => {
+          const query = Object.assign({}, knownGoodQuery, {message: ''});
+          return makeRequest(referrer, query).then(() => {
+            throw new Error('UNREACHABLE');
+          }, (err) => {
+            expect(err.message).to.equal('Bad Request');
+          });
         });
-        return makeRequest(referrer, query).then(res => {
-          expect(res.body.event.serviceContext.service)
-              .to.be.equal('default-cdn-1p');
-        });
-      });
 
-      it('should allow any binary type', () => {
-        const query = Object.assign({}, knownGoodQuery, {
-          stack: '',
-          debug: true,
-          binaryType: 'hello-world',
-        });
-        return makeRequest(referrer, query).then(res => {
-          expect(res.body.event.serviceContext.service)
-              .to.be.equal('default-cdn-1p-hello-world');
-        });
-      });
-    });
-  });
+        it('with blacklisted error', () => {
+          sandbox.stub(Math, 'random').returns(0);
+          const query = Object.assign({}, knownGoodQuery, {
+            message: 'stop_youtube',
+          });
 
-  describe('logging errors', () => {
-    beforeEach(() => {
-      sandbox.stub(Math, 'random').returns(0);
-    });
-
-    describe('empty stack traces', () => {
-      const query = Object.assign({}, knownGoodQuery, {
-        stack: '',
-        debug: true,
-      });
-
-      it('logs http request', () => {
-        return makeRequest(referrer, query).then((res) => {
-          const {httpRequest} = res.body.event.context;
-          expect(httpRequest.url).to.be.equal(
-            '/r?v=011502819823157&m=The%20object%20does%20' +
-              'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-              '&s=&debug=1'
-          );
-          expect(httpRequest.userAgent).to.be.equal(userAgent);
-          expect(httpRequest.referrer).to.be.equal(referrer);
-        });
-      });
-
-      it('logs normalized message only', () => {
-        return makeRequest(referrer, query).then((res) => {
-          expect(res.body.event.message).to.be.equal(`Error: ${query.message}`);
-        });
-      });
-    });
-
-    describe('safari stack traces', () => {
-      const query = Object.assign({}, knownGoodQuery, {
-        stack: 't@https://cdn.ampproject.org/v0.js:1:18\n' +
-            'https://cdn.ampproject.org/v0.js:2:18',
-        debug: true,
-      });
-
-      it('logs http request', () => {
-        return makeRequest(referrer, query).then((res) => {
-          const {httpRequest} = res.body.event.context;
-          expect(httpRequest.url).to.be.equal(
-            '/r?v=011502819823157&m=The%20object%20does%20' +
-              'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-              '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
-              'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
-          );
-          expect(httpRequest.userAgent).to.be.equal(userAgent);
-          expect(httpRequest.referrer).to.be.equal(referrer);
-        });
-      });
-
-      describe('when unminification fails', () => {
-        it('logs full error', () => {
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.body.event.message).to.be.equal(
-              'Error: The object does not support the operation or argument.\n' +
-                '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-                '    at https://cdn.ampproject.org/v0.js:2:18');
+          return makeRequest(referrer, query).then(() => {
+            throw new Error('UNREACHABLE');
+          }, (err) => {
+            expect(err.message).to.equal('Bad Request');
           });
         });
       });
 
-      describe('when unminification succeeds', () => {
+      it('ignores development errors', () => {
+        const query = Object.assign({}, knownGoodQuery, {
+          version: '$internalRuntimeVersion$',
+        });
+
+        return makeRequest(referrer, query).then((res) => {
+          expect(res.status).to.equal(statusCodes.OK);
+          expect(log.write.callCount).to.equal(0);
+          expect(Request.request.callCount).to.equal(0);
+        });
+      });
+
+      describe('throttling', () => {
+        it('does not throttle canary dev errors', () => {
+          sandbox.stub(Math, 'random').returns(1);
+          const query = Object.assign({}, knownGoodQuery, {canary: '1'});
+
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.status).to.equal(statusCodes.ACCEPTED);
+          });
+        });
+
+        it('does not throttle "control" binary type errors', () => {
+          sandbox.stub(Math, 'random').returns(1);
+          const query = Object.assign({}, knownGoodQuery, {binaryType: 'control'});
+
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.status).to.equal(statusCodes.ACCEPTED);
+          });
+        });
+
+        it('throttles 90% of canary user errors', () => {
+          sandbox.stub(Math, 'random').returns(0.1);
+          const query = Object.assign({}, knownGoodQuery, {
+            canary: true,
+            assert: true,
+          });
+
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.status).to.equal(statusCodes.ACCEPTED);
+            Math.random.returns(0.11);
+            return makeRequest(referrer, query);
+          }).then((res) => {
+            expect(res.status).to.equal(statusCodes.OK);
+          });
+        });
+
+        it('throttles 90% of dev errors', () => {
+          sandbox.stub(Math, 'random').returns(0.1);
+
+          return makeRequest(referrer, knownGoodQuery).then((res) => {
+            expect(res.status).to.equal(statusCodes.ACCEPTED);
+            Math.random.returns(0.11);
+            return makeRequest(referrer, knownGoodQuery);
+          }).then((res) => {
+            expect(res.status).to.equal(statusCodes.OK);
+          });
+        });
+
+        it('throttles 99% of user errors', () => {
+          sandbox.stub(Math, 'random').returns(0.01);
+          const query = Object.assign({}, knownGoodQuery, {
+            assert: true,
+          });
+
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.status).to.equal(statusCodes.ACCEPTED);
+            Math.random.returns(0.02);
+            return makeRequest(referrer, query);
+          }).then((res) => {
+            expect(res.status).to.equal(statusCodes.OK);
+          });
+        });
+
+        describe('handles binary type and canary flags', () => {
+          beforeEach(() => {
+            sandbox.stub(Math, 'random').returns(0);
+          });
+
+          it('should use canary', () => {
+            const query = Object.assign({}, knownGoodQuery, {
+              stack: '',
+              canary: true,
+              debug: true,
+            });
+
+            return makeRequest(referrer, query).then(res => {
+              expect(res.body.event.serviceContext.service)
+                .to.be.equal('default-cdn-1p-canary');
+            });
+          });
+
+          it('should use binary type and take priority over canary flag', () => {
+            const query = Object.assign({}, knownGoodQuery, {
+              stack: '',
+              // "canary" state should be ignored since `bt` should take precedence.
+              canary: true,
+              debug: true,
+              binaryType: 'production',
+            });
+            return makeRequest(referrer, query).then(res => {
+              expect(res.body.event.serviceContext.service)
+                .to.be.equal('default-cdn-1p');
+            });
+          });
+
+          it('should allow any binary type', () => {
+            const query = Object.assign({}, knownGoodQuery, {
+              stack: '',
+              debug: true,
+              binaryType: 'hello-world',
+            });
+            return makeRequest(referrer, query).then(res => {
+              expect(res.body.event.serviceContext.service)
+                .to.be.equal('default-cdn-1p-hello-world');
+            });
+          });
+        });
+      });
+
+      describe('logging errors', () => {
         beforeEach(() => {
-          Request.request.callsFake((url, callback) => {
-            Promise.resolve().then(() => {
-              callback(null, null, JSON.stringify(rawSourceMap));
+          sandbox.stub(Math, 'random').returns(0);
+        });
+
+        describe('empty stack traces', () => {
+          const query = Object.assign({}, knownGoodQuery, {
+            stack: '',
+            debug: true,
+          });
+
+          it('logs http request', () => {
+            return makeRequest(referrer, query).then((res) => {
+              const {httpRequest} = res.body.event.context;
+              expect(httpRequest.url).to.be.equal(
+                '/r?v=011502819823157&m=The%20object%20does%20' +
+                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                '&s=&debug=1'
+              );
+              expect(httpRequest.userAgent).to.be.equal(userAgent);
+              expect(httpRequest.referrer).to.be.equal(referrer);
+            });
+          });
+
+          it('logs normalized message only', () => {
+            return makeRequest(referrer, query).then((res) => {
+              expect(res.body.event.message).to.be.equal(`Error: ${query.message}`);
             });
           });
         });
 
-        it('logs full error', () => {
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.body.event.message).to.be.equal(
-              'Error: The object does not support the operation or argument.\n' +
-                '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
-                '    at n (https://cdn.ampproject.org/two.js:1:21)');
+        describe('safari stack traces', () => {
+          const query = Object.assign({}, knownGoodQuery, {
+            stack: 't@https://cdn.ampproject.org/v0.js:1:18\n' +
+            'https://cdn.ampproject.org/v0.js:2:18',
+            debug: true,
+          });
+
+          it('logs http request', () => {
+            return makeRequest(referrer, query).then((res) => {
+              const {httpRequest} = res.body.event.context;
+              expect(httpRequest.url).to.be.equal(
+                '/r?v=011502819823157&m=The%20object%20does%20' +
+                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
+                'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
+              );
+              expect(httpRequest.userAgent).to.be.equal(userAgent);
+              expect(httpRequest.referrer).to.be.equal(referrer);
+            });
+          });
+
+          describe('when unminification fails', () => {
+            it('logs full error', () => {
+              return makeRequest(referrer, query).then((res) => {
+                expect(res.body.event.message).to.be.equal(
+                  'Error: The object does not support the operation or argument.\n' +
+                  '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                  '    at https://cdn.ampproject.org/v0.js:2:18');
+              });
+            });
+          });
+
+          describe('when unminification succeeds', () => {
+            beforeEach(() => {
+              Request.request.callsFake((url, callback) => {
+                Promise.resolve().then(() => {
+                  callback(null, null, JSON.stringify(rawSourceMap));
+                });
+              });
+            });
+
+            it('logs full error', () => {
+              return makeRequest(referrer, query).then((res) => {
+                expect(res.body.event.message).to.be.equal(
+                  'Error: The object does not support the operation or argument.\n' +
+                  '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
+                  '    at n (https://cdn.ampproject.org/two.js:1:21)');
+              });
+            });
           });
         });
-      });
-    });
 
-    describe('chrome stack traces', () => {
-      const query = Object.assign({}, knownGoodQuery, {
-        stack: `${knownGoodQuery.message}\n` +
+        describe('chrome stack traces', () => {
+          const query = Object.assign({}, knownGoodQuery, {
+            stack: `${knownGoodQuery.message}\n` +
             '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
             '    at https://cdn.ampproject.org/v0.js:2:18',
-        debug: true,
-      });
-
-      it('logs http request', () => {
-        return makeRequest(referrer, query).then((res) => {
-          const {httpRequest} = res.body.event.context;
-          expect(httpRequest.url).to.be.equal(
-            '/r?v=011502819823157&m=The%20object%20does%20' +
-              'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-              '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
-              '%20argument.%0A%20%20%20%20at%20t%20%28https%3A%2F%2Fcdn.ampproject.org' +
-              '%2Fv0.js%3A1%3A18%29%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
-              'org%2Fv0.js%3A2%3A18&debug=1'
-          );
-          expect(httpRequest.userAgent).to.be.equal(userAgent);
-          expect(httpRequest.referrer).to.be.equal(referrer);
-        });
-      });
-
-      describe('when unminification fails', () => {
-        it('logs full error', () => {
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.body.event.message).to.be.equal(
-              'Error: The object does not support the operation or argument.\n' +
-                '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-                '    at https://cdn.ampproject.org/v0.js:2:18');
+            debug: true,
           });
-        });
-      });
 
-      describe('when unminification succeeds', () => {
-        beforeEach(() => {
-          Request.request.callsFake((url, callback) => {
-            Promise.resolve().then(() => {
-              callback(null, null, JSON.stringify(rawSourceMap));
+          it('logs http request', () => {
+            return makeRequest(referrer, query).then((res) => {
+              const {httpRequest} = res.body.event.context;
+              expect(httpRequest.url).to.be.equal(
+                '/r?v=011502819823157&m=The%20object%20does%20' +
+                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
+                '%20argument.%0A%20%20%20%20at%20t%20(https%3A%2F%2Fcdn.ampproject.org' +
+                '%2Fv0.js%3A1%3A18)%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
+                'org%2Fv0.js%3A2%3A18&debug=1'
+              );
+              expect(httpRequest.userAgent).to.be.equal(userAgent);
+              expect(httpRequest.referrer).to.be.equal(referrer);
             });
           });
-        });
 
-        it('logs full error', () => {
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.body.event.message).to.be.equal(
-              'Error: The object does not support the operation or argument.\n' +
-                '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
-                '    at n (https://cdn.ampproject.org/two.js:1:21)');
+          describe('when unminification fails', () => {
+            it('logs full error', () => {
+              return makeRequest(referrer, query).then((res) => {
+                expect(res.body.event.message).to.be.equal(
+                  'Error: The object does not support the operation or argument.\n' +
+                  '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                  '    at https://cdn.ampproject.org/v0.js:2:18');
+              });
+            });
+          });
+
+          describe('when unminification succeeds', () => {
+            beforeEach(() => {
+              Request.request.callsFake((url, callback) => {
+                Promise.resolve().then(() => {
+                  callback(null, null, JSON.stringify(rawSourceMap));
+                });
+              });
+            });
+
+            it('logs full error', () => {
+              return makeRequest(referrer, query).then((res) => {
+                expect(res.body.event.message).to.be.equal(
+                  'Error: The object does not support the operation or argument.\n' +
+                  '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
+                  '    at n (https://cdn.ampproject.org/two.js:1:21)');
+              });
+            });
           });
         });
       });
     });
-  });
+  }
 });
