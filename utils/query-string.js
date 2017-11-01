@@ -21,7 +21,7 @@ const regex = /(?:^|&)([^=&]+)(?:=([^&]*))?/g;
  * @param {string} query
  * @return {!Object<string, string>}
  */
-function queryparser(query) {
+exports.parse = function parse(query) {
   const params = Object.create(null);
   let max = 25;
   let match;
@@ -34,6 +34,20 @@ function queryparser(query) {
 
   regex.lastIndex = 0;
   return params;
-}
+};
 
-module.exports = queryparser;
+/**
+ * Turns an object into a safe query string.
+ * Note, this does not prepend a "?".
+ *
+ * @param {!Object<string, string>} obj
+ * @return {string}
+ */
+exports.stringify = function stringify(obj) {
+  let string = '';
+  for (const prop in obj) {
+    string += `&${encodeURIComponent(prop)}=${encodeURIComponent(obj[prop])}`;
+  }
+
+  return string.substring(1);
+};

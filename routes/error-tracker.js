@@ -25,6 +25,7 @@ const standardizeStackTrace = require('../utils/standardize-stack-trace');
 const ignoreMessageOrException = require('../utils/should-ignore');
 const unminify = require('../utils/unminify');
 const decode = require('../utils/decode-uri-component');
+const querystring = require('../utils/query-string');
 
 /**
  * @enum {int}
@@ -39,10 +40,10 @@ const SEVERITY = {
  * entry object to be logged and sends it to unminification.
  * @param {Request} req
  * @param {Response} res
+ * @param {!Object<string, string>} params
  * @return {?Promise} May return a promise that rejects on logging error
  */
-function handler(req, res) {
-  const params = req.query;
+function handler(req, res, params) {
   const referrer = req.get('Referrer');
   const version = params.v;
   const message = decode(params.m || '');
@@ -127,12 +128,18 @@ function handler(req, res) {
     message: normalizedMessage,
     context: {
       httpRequest: {
-        url: req.url.toString(),
+        method: req.method,
+        url: req.originalUrl,
         userAgent: req.get('User-Agent'),
         referrer: referrer,
       },
     },
   };
+
+  if (req.method === 'POST') {
+    event.context.httpRequest.url += '?' + querystring.stringify(params);
+  }
+
   const metaData = {
     labels: {
       'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,

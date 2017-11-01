@@ -14,23 +14,36 @@
  * limitations under the License.
  */
 
+const bodyParser = require('body-parser');
 const express = require('express');
 const statusCodes = require('http-status-codes');
 const errorTracker = require('./routes/error-tracker');
-const queryparser = require('./utils/query-parser');
+const querystring = require('./utils/query-string');
 
 const app = express();
 const port = parseInt(process.env.PORT, 10) || 8080;
+const json = bodyParser.json({
+  limit: '10kb',
+  type: [
+    'application/json',
+    'text/plain', // Preflight-less JSON posts
+  ],
+});
 
 app.set('etag', false);
 app.set('trust proxy', true);
-app.set('query parser', queryparser);
+app.set('query parser', querystring.parse);
 
 app.get('/_ah/health', function(req, res) {
   res.sendStatus(statusCodes.OK);
 });
 
-app.get('/r', errorTracker);
+app.get('/r', (req, res) => {
+  return errorTracker(req, res, req.query);
+});
+app.post('/r', json, (req, res) => {
+  return errorTracker(req, res, req.body);
+});
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, function() {
