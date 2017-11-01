@@ -29,12 +29,12 @@
     "winston": "^2.4.0"
   },
   "devDependencies": {
-    "babel-eslint": "^7.2.3",
+    "babel-eslint": "^8.0.1",
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
-    "eslint": "^3.19.0",
-    "eslint-config-google": "^0.8.1",
-    "mocha": "^3.5.3",
-    "sinon": "^2.4.1"
+    "eslint": "^4.10.0",
+    "eslint-config-google": "^0.9.1",
+    "mocha": "^4.0.1",
+    "sinon": "^4.0.2"
   }
 }

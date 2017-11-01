@@ -53,7 +53,7 @@ describe('Error Tracker Server', () => {
   })();
 
   function makeRequest(referrer, query) {
-    return chai.request(app)
+    return chai.request(server)
         .get('/r')
         .set('Referer', referrer)
         .set('User-Agent', userAgent)
@@ -86,6 +86,14 @@ describe('Error Tracker Server', () => {
   };
   let sandbox;
   let clock;
+  let server;
+
+  before(() => {
+    server = app.listen(0);
+  });
+  after(() => {
+    server.close();
+  });
 
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
