@@ -17,14 +17,14 @@
 const express = require('express');
 const statusCodes = require('http-status-codes');
 const errorTracker = require('./routes/error-tracker');
-const queryparser = require('./utils/query-parser');
+const querystring = require('./utils/query-string');
 
 const app = express();
 const port = parseInt(process.env.PORT, 10) || 8080;
 
 app.set('etag', false);
 app.set('trust proxy', true);
-app.set('query parser', queryparser);
+app.set('query parser', querystring.parse);
 
 app.get('/_ah/health', function(req, res) {
   res.sendStatus(statusCodes.OK);

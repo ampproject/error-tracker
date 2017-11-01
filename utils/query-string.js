@@ -21,7 +21,7 @@ const regex = /(?:^|&)([^=&]+)(?:=([^&]*))?/g;
  * @param {string} query
  * @return {!Object<string, string>}
  */
-function queryparser(query) {
+exports.parse = function queryparser(query) {
   const params = Object.create(null);
   let max = 25;
   let match;
@@ -34,6 +34,17 @@ function queryparser(query) {
 
   regex.lastIndex = 0;
   return params;
-}
+};
 
-module.exports = queryparser;
+exports.stringify = function stringify(obj) {
+  let string = '';
+  for (const prop in obj) {
+    if (string) {
+      string += '&';
+    }
+
+    string += `${encodeURIComponent(prop)}=${encodeURIComponent(obj[prop])}`;
+  }
+
+  return string;
+};
