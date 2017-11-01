@@ -20,11 +20,11 @@
 
 const winston = require('winston');
 const statusCodes = require('http-status-codes');
+const decodeURIComponent = require('safe-decode-uri-component');
 const log = require('../utils/log');
 const standardizeStackTrace = require('../utils/standardize-stack-trace');
 const ignoreMessageOrException = require('../utils/should-ignore');
 const unminify = require('../utils/unminify');
-const decode = require('../utils/decode-uri-component');
 const querystring = require('../utils/query-string');
 
 /**
@@ -46,7 +46,7 @@ const SEVERITY = {
 function handler(req, res, params) {
   const referrer = req.get('Referrer');
   const version = params.v;
-  const message = decode(params.m || '');
+  const message = decodeURIComponent(params.m || '');
 
   if (!referrer || !version || !message) {
     res.sendStatus(statusCodes.BAD_REQUEST);
@@ -77,7 +77,7 @@ function handler(req, res, params) {
     return null;
   }
 
-  const stack = standardizeStackTrace(decode(params.s || ''));
+  const stack = standardizeStackTrace(decodeURIComponent(params.s || ''));
   if (ignoreMessageOrException(message, stack)) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
