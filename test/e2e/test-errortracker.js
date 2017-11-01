@@ -53,7 +53,7 @@ describe('Error Tracker Server', () => {
     };
   })();
 
-  function makeRequest(referrer, query) {
+  function makeGetRequest(referrer, query) {
     return chai.request(server)
         .get('/r')
         .set('Referer', referrer)
@@ -63,7 +63,7 @@ describe('Error Tracker Server', () => {
   function makePostRequest(type) {
     return function(referrer, query) {
       const q = makeQuery(query);
-      return chai.request(app)
+      return chai.request(server)
           .post('/r')
           .type(type)
           .set('Referer', referrer)
@@ -124,11 +124,11 @@ describe('Error Tracker Server', () => {
     sandbox.restore();
   });
 
-  method("GET", makeRequest);
-  method("POST JSON", makePostRequest('json'));
-  method("POST Text", makePostRequest('text/plain'));
+  testSuite('GET', makeGetRequest);
+  testSuite('POST JSON', makePostRequest('json'));
+  testSuite('POST Text', makePostRequest('text/plain'));
 
-  function method(description, makeRequest) {
+  function testSuite(description, makeRequest) {
     describe(description, () => {
       describe('rejects bad requests', () => {
         it('without referrer', () => {
