@@ -42,6 +42,10 @@ app.get('/r', (req, res) => {
   return errorTracker(req, res, req.query);
 });
 app.post('/r', json, (req, res) => {
+  // Allow non-credentialed posts from anywhere.
+  // Not strictly necessary, but it avoids an error being reported by the
+  // browser.
+  res.set('Access-Control-Allow-Origin', '*');
   return errorTracker(req, res, req.body);
 });
 
