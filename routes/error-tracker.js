@@ -65,12 +65,12 @@ function handler(req, res, params) {
   const debug = params.debug === '1';
   const thirdParty = params['3p'] === '1';
 
-  let errorType = assert ? 'assert' : 'default';
+  let errorType = 'default';
   let severity = SEVERITY.WARNING;
 
   let throttleRate = canary || binaryType === 'control' ? 1 : 0.1;
   if (assert) {
-    throttleRate = throttleRate / 10;
+    throttleRate /= 10;
   }
   if (Math.random() > throttleRate) {
     res.sendStatus(statusCodes.OK);
@@ -89,32 +89,35 @@ function handler(req, res, params) {
       referrer.includes('.cdn.ampproject.org/') ||
       referrer.includes('.ampproject.net/')) {
     severity = SEVERITY.ERROR;
-    errorType = errorType + '-cdn';
+    errorType += '-cdn';
   } else {
-    errorType = errorType + '-origin';
+    errorType += '-origin';
   }
 
   if (runtime) {
-    errorType = errorType + '-' + runtime;
+    errorType += '-' + runtime;
     if (runtime === 'inabox') {
       severity = SEVERITY.ERROR;
     }
   } else if (thirdParty) {
-    errorType = errorType + '-3p';
+    errorType += '-3p';
   } else {
-    errorType = errorType + '-1p';
+    errorType += '-1p';
   }
 
   // Do not append binary type if 'production' since that is the default
   if (binaryType) {
     if (binaryType !== 'production') {
-      errorType = errorType + `-${binaryType}`;
+      errorType += `-${binaryType}`;
     }
   } else if (canary) {
-    errorType = errorType + '-canary';
+    errorType += '-canary';
+  }
+  if (assert) {
+    errorType += '-user';
   }
   if (expected) {
-    errorType = errorType + '-expected';
+    errorType += '-expected';
   }
 
   const normalizedMessage = /^[A-Z][a-z]+: /.test(message) ?
