@@ -47,8 +47,10 @@ describe('unminify', () => {
   let clock;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
-    clock = sandbox.useFakeTimers();
+    sandbox = sinon.createSandbox({
+      useFakeTimers: true,
+    });
+    clock = sandbox.clock;
     sandbox.stub(Request, 'request').callsFake((url, callback) => {
       Promise.resolve().then(() => {
         callback(null, null, JSON.stringify(rawSourceMap));

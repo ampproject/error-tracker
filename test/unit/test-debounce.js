@@ -20,8 +20,10 @@ describe('debounce', () => {
   let sandbox;
   let clock;
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
-    clock = sandbox.useFakeTimers();
+    sandbox = sinon.createSandbox({
+      useFakeTimers: true,
+    });
+    clock = sandbox.clock;
   });
   afterEach(() => {
     sandbox.restore();
@@ -34,7 +36,7 @@ describe('debounce', () => {
     expect(callback.callCount).to.equal(0);
     clock.tick(100);
     expect(callback.calledWith(1));
-    callback.reset();
+    callback.resetHistory();
     debounced(1);
     expect(callback.callCount).to.equal(0);
     debounced(2);
