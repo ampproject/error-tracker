@@ -108,8 +108,10 @@ describe('Error Tracker Server', () => {
   });
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
-    clock = sandbox.useFakeTimers();
+    sandbox = sinon.createSandbox({
+      useFakeTimers: true,
+    });
+    clock = sandbox.clock;
     sandbox.stub(winston, 'error').yields(null);
     sandbox.stub(log, 'write').callsFake((entry, callback) => {
       Promise.resolve(null).then(callback);

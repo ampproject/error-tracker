@@ -21,8 +21,10 @@ describe('Cache cleans up unused entries periodically', () => {
   let clock;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
-    clock = sandbox.useFakeTimers();
+    sandbox = sinon.createSandbox({
+      useFakeTimers: true,
+    });
+    clock = sandbox.clock;
   });
   afterEach(() => {
     sandbox.restore();
