@@ -23,30 +23,30 @@ class Cache {
   /** */
   constructor() {
     this.map = new Map();
-    this.deleteTriggers = new Map();
+    this.deleteTriggers_ = new Map();
   }
 
   /**
    * @param {key} key
-   * @param {Object} value
+   * @param {!SourceMapConsumer} value
    */
   set(key, value) {
     this.map.set(key, value);
 
-    let deleter = this.deleteTriggers.get(key);
+    let deleter = this.deleteTriggers_.get(key);
     if (!deleter) {
       deleter = debounce(() => this.delete(key), EXPIRATION);
-      this.deleteTriggers.set(key, deleter);
+      this.deleteTriggers_.set(key, deleter);
     }
     deleter();
   }
 
   /**
    * @param {key} key
-   * @return {Object} value
+   * @return {SourceMapConsumer} value
    */
   get(key) {
-    const deleter = this.deleteTriggers.get(key);
+    const deleter = this.deleteTriggers_.get(key);
     if (deleter) {
       deleter();
     }
@@ -57,8 +57,12 @@ class Cache {
    * @param {key} key
    */
   delete(key) {
-    this.map.delete(key);
-    this.deleteTriggers.delete(key);
+    const value = this.map.get(key);
+    if (value) {
+      this.map.delete(key);
+      value.destroy();
+    }
+    this.deleteTriggers_.delete(key);
   }
 
   /**
