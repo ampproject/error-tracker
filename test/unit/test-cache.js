@@ -30,9 +30,13 @@ describe('Cache cleans up unused entries periodically', () => {
     sandbox.restore();
   });
 
+  class Consumer {
+    destroy() {}
+  }
+
   it('Should delete entry that has not been accessed in 2 weeks', () => {
     const cacheMap = new Cache();
-    cacheMap.set(4, 'Four');
+    cacheMap.set(4, new Consumer());
     clock.tick(2 * 7 * 24 * 60 * 60 * 1000 - 1);
     expect(cacheMap.size).to.equal(1);
     clock.tick(1);
@@ -41,7 +45,7 @@ describe('Cache cleans up unused entries periodically', () => {
 
   it('Should reset lifetime of entry if accessed before 2 weeks', () => {
     const cacheMap = new Cache();
-    cacheMap.set(4, 'four');
+    cacheMap.set(4, new Consumer());
     clock.tick(2 * 7 * 24 * 60 * 60 * 1000 - 1);
     expect(cacheMap.size).to.equal(1);
     cacheMap.get(4);
@@ -51,9 +55,18 @@ describe('Cache cleans up unused entries periodically', () => {
 
   it('Should delete an entry that has been accessed after expiry', () => {
     const cacheMap = new Cache();
-    cacheMap.set(4, 'Four');
+    cacheMap.set(4, new Consumer());
     cacheMap.get(4);
     clock.tick(2 * 7 * 24 * 60 * 60 * 1000);
-    expect(cacheMap.size).to.equal(0);
+    expect(cacheMap.get(4)).to.equal(undefined);
+  });
+
+  it('Should call destroy on the entry after expiry', () => {
+    const cacheMap = new Cache();
+    const consumer = new Consumer();
+    const spy = sandbox.spy(consumer, 'destroy');
+    cacheMap.set(4, consumer);
+    clock.tick(2 * 7 * 24 * 60 * 60 * 1000);
+    expect(spy.called).to.be.true;
   });
 });

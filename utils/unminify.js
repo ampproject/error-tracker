@@ -101,15 +101,16 @@ function getSourceMapFromNetwork(url) {
         reject(err);
       } else {
         try {
-          const consumer = new sourceMap.SourceMapConsumer(
-              JSON.parse(body));
-          sourceMapConsumerCache.set(url, consumer);
-          resolve(consumer);
+          resolve(new sourceMap.SourceMapConsumer(
+              JSON.parse(body)));
         } catch (e) {
           reject(e);
         }
       }
     });
+  }).then((consumer) => {
+    sourceMapConsumerCache.set(url, consumer);
+    return consumer;
   });
 
   requestCache.set(url, reqPromise);
