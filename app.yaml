@@ -3,3 +3,4 @@ automatic_scaling:
   min_instances: 0
   max_instances: 100
   target_cpu_utilization: 0.8
+  max_concurrent_requests: 80
