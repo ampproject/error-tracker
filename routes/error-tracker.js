@@ -76,7 +76,8 @@ function handler(req, res, params) {
     return null;
   }
 
-  const stack = standardizeStackTrace(safeDecodeURIComponent(params.s || ''));
+  const stack = standardizeStackTrace(safeDecodeURIComponent(params.s || ''),
+      message);
   if (ignoreMessageOrException(message, stack)) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
