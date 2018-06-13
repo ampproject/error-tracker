@@ -132,28 +132,22 @@ describe('Error Tracker Server', () => {
     describe(description, () => {
       describe('rejects bad requests', () => {
         it('without referrer', () => {
-          return makeRequest('', knownGoodQuery).then(() => {
-            throw new Error('UNREACHABLE');
-          }, (err) => {
-            expect(err.message).to.equal('Bad Request');
+          return makeRequest('', knownGoodQuery).then((res) => {
+            expect(res.text).to.equal('Bad Request');
           });
         });
 
         it('without version', () => {
           const query = Object.assign({}, knownGoodQuery, {version: ''});
-          return makeRequest(referrer, query).then(() => {
-            throw new Error('UNREACHABLE');
-          }, (err) => {
-            expect(err.message).to.equal('Bad Request');
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.text).to.equal('Bad Request');
           });
         });
 
         it('without error message', () => {
           const query = Object.assign({}, knownGoodQuery, {message: ''});
-          return makeRequest(referrer, query).then(() => {
-            throw new Error('UNREACHABLE');
-          }, (err) => {
-            expect(err.message).to.equal('Bad Request');
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.text).to.equal('Bad Request');
           });
         });
 
@@ -163,10 +157,8 @@ describe('Error Tracker Server', () => {
             message: 'stop_youtube',
           });
 
-          return makeRequest(referrer, query).then(() => {
-            throw new Error('UNREACHABLE');
-          }, (err) => {
-            expect(err.message).to.equal('Bad Request');
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.text).to.equal('Bad Request');
           });
         });
       });
