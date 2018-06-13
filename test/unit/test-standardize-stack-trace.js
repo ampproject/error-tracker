@@ -28,7 +28,8 @@ describe('standardizeStackTrace', () => {
       at mf.zc (https://cdn.ampproject.org/rtv/031496877433269/v0.js:408:166)
       at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
       at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
-      at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`);
+      at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
+      'Error: localStorage not supported.');
 
     it('normalizes into 9 frames', () => {
       expect(frames).to.have.length(9);
@@ -93,7 +94,8 @@ describe('standardizeStackTrace', () => {
       $d@https://cdn.ampproject.org/v0.js:115:88
       [native code]
       https://cdn.ampproject.org/v0.js:115:170
-      promiseReactionJob@[native code]`);
+      promiseReactionJob@[native code]`,
+      'Error doing something');
 
     it('normalizes into 9 frames', () => {
       expect(frames).to.have.length(9);
@@ -143,6 +145,23 @@ describe('standardizeStackTrace', () => {
       expect(frames[6].column).to.equal(411);
       expect(frames[7].column).to.equal(88);
       expect(frames[8].column).to.equal(170);
+    });
+  });
+
+  describe('empty stack traces', () => {
+    it('inserts a missing frame for empty stacks', () => {
+      const frames = standardizeStackTrace(``, 'Error: test');
+      expect(frames.length).to.equal(1);
+      expect(frames[0].name).to.equal('');
+      expect(frames[0].source).to.equal('error-test.js');
+      expect(frames[0].line).to.equal(1);
+      expect(frames[0].column).to.equal(1);
+    });
+
+    it('generates unique filename based on message', () => {
+      const frames = standardizeStackTrace(``, 'Daisy Daisy');
+      expect(frames.length).to.equal(1);
+      expect(frames[0].source).to.equal('daisy-daisy.js');
     });
   });
 });

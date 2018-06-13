@@ -65,16 +65,32 @@ function safariStack(stack) {
 /**
  * Standardizes Chrome/IE and Safari/Firefox stack traces into an array of
  * frame objects.
+ *
+ * If there are no parsable stack frames, a default frame will be generated
+ * based on the error message.
  * @param {string} stack
+ * @param {string} message
  * @return {!Array<!Frame>} The converted stack trace.
  */
-function standardizeStackTrace(stack) {
+function standardizeStackTrace(stack, message) {
+  let frames;
   if (chromeFrame.test(stack)) {
     chromeFrame.lastIndex = 0;
-    return chromeStack(stack);
+    frames = chromeStack(stack);
+  } else {
+    frames = safariStack(stack);
   }
 
-  return safariStack(stack);
+  if (frames.length === 0) {
+    // Generate a unique filename based on the message's words.
+    // This is to prevent StackDriver from grouping different error reports
+    // together.
+    const words = message.match(/\w+/g);
+    const file = `${words.join('-').toLowerCase()}.js`;
+    frames.push(new Frame('', file, '1', '1'));
+  }
+
+  return frames;
 }
 
 module.exports = standardizeStackTrace;

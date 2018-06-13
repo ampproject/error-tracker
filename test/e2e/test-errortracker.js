@@ -178,7 +178,7 @@ describe('Error Tracker Server', () => {
       describe('throttling', () => {
         it('does not throttle canary dev errors', () => {
           sandbox.stub(Math, 'random').returns(1);
-          const query = Object.assign({}, knownGoodQuery, {canary: '1'});
+          const query = Object.assign({}, knownGoodQuery, {canary: true});
 
           return makeRequest(referrer, query).then((res) => {
             expect(res.status).to.equal(statusCodes.ACCEPTED);
@@ -307,9 +307,11 @@ describe('Error Tracker Server', () => {
             });
           });
 
-          it('logs normalized message only', () => {
+          it('logs missing stack trace', () => {
             return makeRequest(referrer, query).then((res) => {
-              expect(res.body.event.message).to.be.equal(`Error: ${query.message}`);
+              expect(res.body.event.message).to.be.equal(
+                `Error: ${query.message}\n    at ` +
+                'the-object-does-not-support-the-operation-or-argument.js:1:1');
             });
           });
         });
