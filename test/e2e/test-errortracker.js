@@ -15,7 +15,6 @@
  */
 
 const statusCodes = require('http-status-codes');
-const winston = require('winston');
 const app = require('../../app');
 const log = require('../../utils/log');
 const Request = require('../../utils/request');
@@ -112,7 +111,6 @@ describe('Error Tracker Server', () => {
       useFakeTimers: true,
     });
     clock = sandbox.clock;
-    sandbox.stub(winston, 'error').yields(null);
     sandbox.stub(log, 'write').callsFake((entry, callback) => {
       Promise.resolve(null).then(callback);
     });

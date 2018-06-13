@@ -18,7 +18,6 @@
  * to unmininification.
  */
 
-const winston = require('winston');
 const statusCodes = require('http-status-codes');
 const safeDecodeURIComponent = require('safe-decode-uri-component');
 const log = require('../utils/log');
@@ -193,7 +192,7 @@ function handler(req, res, params) {
       });
     });
   }).catch((err) => {
-    winston.error(err);
+    console.error(err);
   });
 }
 
