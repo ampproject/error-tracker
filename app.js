@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-// Enable debugging in GCE
-require('@google-cloud/debug-agent').start();
-
 const bodyParser = require('body-parser');
 const express = require('express');
 const statusCodes = require('http-status-codes');
