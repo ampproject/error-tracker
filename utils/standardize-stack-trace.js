@@ -85,7 +85,7 @@ function standardizeStackTrace(stack, message) {
     // Generate a unique filename based on the message's words.
     // This is to prevent StackDriver from grouping different error reports
     // together.
-    const words = message.match(/\w+/g);
+    const words = message.match(/\w+/g) || ['unknown'];
     const file = `${words.join('-').toLowerCase()}.js`;
     frames.push(new Frame('', file, '1', '1'));
   }
