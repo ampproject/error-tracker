@@ -58,10 +58,10 @@ class Cache {
    */
   delete(key) {
     const value = this.map.get(key);
-    if (value) {
-      this.map.delete(key);
+    if (value && value.destroy) {
       value.destroy();
     }
+    this.map.delete(key);
     this.deleteTriggers_.delete(key);
   }
 

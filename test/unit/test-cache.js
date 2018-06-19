@@ -31,6 +31,8 @@ describe('Cache cleans up unused entries periodically', () => {
   });
 
   class Consumer {
+  }
+  class DestroyConsumer {
     destroy() {}
   }
 
@@ -61,12 +63,16 @@ describe('Cache cleans up unused entries periodically', () => {
     expect(cacheMap.get(4)).to.equal(undefined);
   });
 
-  it('Should call destroy on the entry after expiry', () => {
+  it('Should call destroy on the entry after expiry if has destroy', () => {
     const cacheMap = new Cache();
     const consumer = new Consumer();
-    const spy = sandbox.spy(consumer, 'destroy');
+    const dconsumer = new DestroyConsumer();
+    const spy = sandbox.spy(dconsumer, 'destroy');
+
     cacheMap.set(4, consumer);
+    cacheMap.set(5, dconsumer);
     clock.tick(2 * 7 * 24 * 60 * 60 * 1000);
+
     expect(spy.called).to.be.true;
   });
 });

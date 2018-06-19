@@ -1,7 +1,8 @@
-runtime: nodejs8
-instance_class: F4
+runtime: nodejs
+env: flexible
+threadsafe: true
 automatic_scaling:
-  min_instances: 0
-  max_instances: 100
-  target_cpu_utilization: 0.8
-  max_concurrent_requests: 80
+  min_num_instances: 4
+  max_num_instances: 100
+  cpu_utilization:
+    target_utilization: 0.8
