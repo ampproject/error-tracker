@@ -16,7 +16,7 @@
 
 const statusCodes = require('http-status-codes');
 const app = require('../../app');
-const log = require('../../utils/log');
+const logs = require('../../utils/log');
 const Request = require('../../utils/request');
 const querystring = require('../../utils/query-string');
 
@@ -111,9 +111,11 @@ describe('Error Tracker Server', () => {
       useFakeTimers: true,
     });
     clock = sandbox.clock;
-    sandbox.stub(log, 'write').callsFake((entry, callback) => {
-      Promise.resolve(null).then(callback);
-    });
+    for (const key in logs) {
+      sandbox.stub(logs[key], 'write').callsFake((entry, callback) => {
+        Promise.resolve(null).then(callback);
+      });
+    }
     sandbox.stub(Request, 'request').callsFake((url, callback) => {
       Promise.reject(new Error('network disabled')).catch(callback);
     });
@@ -170,8 +172,6 @@ describe('Error Tracker Server', () => {
 
         return makeRequest(referrer, query).then((res) => {
           expect(res.status).to.equal(statusCodes.OK);
-          expect(log.write.callCount).to.equal(0);
-          expect(Request.request.callCount).to.equal(0);
         });
       });
 
