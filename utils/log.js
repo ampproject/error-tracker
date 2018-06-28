@@ -25,9 +25,9 @@ exports.errors = logging({
 }).log('javascript.errors');
 
 exports.users = logging({
-  projectId: 'amp-error-reporting-user',
+  keyFilename: 'amp-error-reporting-users.json',
 }).log('javascript.errors');
 
 exports.ads = logging({
-  projectId: 'amp-error-reporting-ads',
+  keyFilename: 'amp-error-reporting-ads.json',
 }).log('javascript.errors');
