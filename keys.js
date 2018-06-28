@@ -19,16 +19,26 @@ const gcs = storage({
 });
 const bucket = gcs.bucket('amp-error-reporting.appspot.com');
 
-keys.forEach(key => {
+const downloads = keys.map(key => {
   if (fs.existsSync(key)) {
     return;
   }
 
-  bucket.file(key)
+  return bucket.file(key)
     .download({ destination: key })
-    .catch(error => {
+    .then(() => {
+      return true;
+    }, error => {
       console.error(`Error downloading ${key}`);
       console.error(error);
-      process.exit(1);
+      fs.unlinkSync(key);
+      return false;
     });
+});
+
+Promise.all(downloads).then(statuses => {
+  if (!statuses.every(Boolean)) {
+    console.error('Cancelling server start');
+    process.exit(1);
+  }
 });
