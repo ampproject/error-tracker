@@ -20,9 +20,14 @@
 
 const logging = require('@google-cloud/logging');
 
-const loggingClient = logging({
-  projectId: process.env.GCLOUD_PROJECT,
-});
-const log = loggingClient.log('javascript.errors');
+exports.errors = logging({
+  projectId: 'amp-error-reporting',
+}).log('javascript.errors');
 
-module.exports = log;
+exports.users = logging({
+  projectId: 'amp-error-reporting-user',
+}).log('javascript.errors');
+
+exports.ads = logging({
+  projectId: 'amp-error-reporting-ads',
+}).log('javascript.errors');

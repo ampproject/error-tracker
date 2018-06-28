@@ -20,7 +20,7 @@
 
 const statusCodes = require('http-status-codes');
 const safeDecodeURIComponent = require('safe-decode-uri-component');
-const log = require('../utils/log');
+const logs = require('../utils/log');
 const standardizeStackTrace = require('../utils/standardize-stack-trace');
 const ignoreMessageOrException = require('../utils/should-ignore');
 const unminify = require('../utils/unminify');
@@ -81,6 +81,13 @@ function handler(req, res, params) {
   if (ignoreMessageOrException(message, stack)) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
+  }
+
+  let log = logs.errors;
+  if (runtime === 'inabox') {
+    log = logs.ads;
+  } else if (assert) {
+    log = logs.users;
   }
 
   // if request comes from the cache and thus only from valid
