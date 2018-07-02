@@ -27,14 +27,6 @@ const unminify = require('../utils/unminify');
 const querystring = require('../utils/query-string');
 
 /**
- * @enum {int}
- */
-const SEVERITY = {
-  WARNING: 400,
-  ERROR: 500,
-};
-
-/**
  * Extracts relevant information from request, handles edge cases and prepares
  * entry object to be logged and sends it to unminification.
  * @param {Request} req
@@ -73,7 +65,6 @@ function handler(req, res, params) {
   const thirdParty = params['3p'] === '1';
 
   let errorType = 'default';
-  let severity = SEVERITY.WARNING;
 
   let throttleRate = canary || binaryType === 'control' ? 1 : 0.1;
   if (assert) {
@@ -103,7 +94,6 @@ function handler(req, res, params) {
   if (referrer.startsWith('https://cdn.ampproject.org/') ||
       referrer.includes('.cdn.ampproject.org/') ||
       referrer.includes('.ampproject.net/')) {
-    severity = SEVERITY.ERROR;
     errorType += '-cdn';
   } else {
     errorType += '-origin';
@@ -111,9 +101,6 @@ function handler(req, res, params) {
 
   if (runtime) {
     errorType += '-' + runtime;
-    if (runtime === 'inabox') {
-      severity = SEVERITY.ERROR;
-    }
   } else if (thirdParty) {
     errorType += '-3p';
   } else {
@@ -169,7 +156,7 @@ function handler(req, res, params) {
         version_id: process.env.GAE_VERSION,
       },
     },
-    severity: severity,
+    severity: 500, // Error.
   };
 
   if (!debug) {
