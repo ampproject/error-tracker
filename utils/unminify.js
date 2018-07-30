@@ -77,7 +77,9 @@ function normalizeCdnJsUrl(url, version) {
  */
 function unminifyFrame(frame, consumer) {
   const {name, source, line, column} = consumer.originalPositionFor({
-    line: frame.line,
+    // Compensate for AMP_CONFIG
+    // https://github.com/ampproject/amphtml/pull/17062
+    line: frame.line - 1,
     column: frame.column,
   });
 
