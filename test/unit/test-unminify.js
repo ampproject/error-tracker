@@ -33,15 +33,15 @@ describe('unminify', () => {
     mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;' +
         'CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
-  const frame1 = new Frame('foo', 'https://cdn.ampproject.org/v0.js', '2',
+  const frame1 = new Frame('foo', 'https://cdn.ampproject.org/v0.js', '1',
       '18');
-  const frame2 = new Frame('bar', 'https://cdn.ampproject.org/v0.js', '2',
+  const frame2 = new Frame('bar', 'https://cdn.ampproject.org/v0.js', '1',
       '24');
-  const frame3 = new Frame('baz', 'https://cdn.ampproject.org/v1.js', '3',
+  const frame3 = new Frame('baz', 'https://cdn.ampproject.org/v1.js', '2',
       '18');
   const versionedFrame = new Frame('test',
-      'https://cdn.ampproject.org/rtv/001502924683165/v0.js', '2', '2');
-  const nonCdnFrame = new Frame('test', 'http://other.com/v0.js', '2', '2');
+      'https://cdn.ampproject.org/rtv/001502924683165/v0.js', '1', '2');
+  const nonCdnFrame = new Frame('test', 'http://other.com/v0.js', '1', '2');
 
   let sandbox;
   let clock;

@@ -80,7 +80,7 @@ describe('Error Tracker Server', () => {
     assert: false,
     runtime: '1p',
     // chai.request will encode this for us.
-    stack: 'Error: stuff\n at file.js:2:2\n at n (file2.js:4:4)',
+    stack: 'Error: stuff\n at file.js:1:2\n at n (file2.js:3:4)',
   });
   const rawSourceMap = {
     version: 3,
@@ -318,8 +318,8 @@ describe('Error Tracker Server', () => {
 
         describe('safari stack traces', () => {
           const query = Object.assign({}, knownGoodQuery, {
-            stack: 't@https://cdn.ampproject.org/v0.js:2:18\n' +
-            'https://cdn.ampproject.org/v0.js:3:18',
+            stack: 't@https://cdn.ampproject.org/v0.js:1:18\n' +
+            'https://cdn.ampproject.org/v0.js:2:18',
             debug: true,
           });
 
@@ -329,8 +329,8 @@ describe('Error Tracker Server', () => {
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
                 'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-                '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18%0A' +
-                'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A3%3A18&debug=1'
+                '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
+                'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
               );
               expect(httpRequest.userAgent).to.be.equal(userAgent);
               expect(httpRequest.referrer).to.be.equal(referrer);
@@ -342,8 +342,8 @@ describe('Error Tracker Server', () => {
               return makeRequest(referrer, query).then((res) => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
-                  '    at t (https://cdn.ampproject.org/v0.js:2:18)\n' +
-                  '    at https://cdn.ampproject.org/v0.js:3:18');
+                  '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                  '    at https://cdn.ampproject.org/v0.js:2:18');
               });
             });
           });
@@ -371,8 +371,8 @@ describe('Error Tracker Server', () => {
         describe('chrome stack traces', () => {
           const query = Object.assign({}, knownGoodQuery, {
             stack: `${knownGoodQuery.message}\n` +
-            '    at t (https://cdn.ampproject.org/v0.js:2:18)\n' +
-            '    at https://cdn.ampproject.org/v0.js:3:18',
+            '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+            '    at https://cdn.ampproject.org/v0.js:2:18',
             debug: true,
           });
 
@@ -384,8 +384,8 @@ describe('Error Tracker Server', () => {
                 'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
                 '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
                 '%20argument.%0A%20%20%20%20at%20t%20(https%3A%2F%2Fcdn.ampproject.org' +
-                '%2Fv0.js%3A2%3A18)%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
-                'org%2Fv0.js%3A3%3A18&debug=1'
+                '%2Fv0.js%3A1%3A18)%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
+                'org%2Fv0.js%3A2%3A18&debug=1'
               );
               expect(httpRequest.userAgent).to.be.equal(userAgent);
               expect(httpRequest.referrer).to.be.equal(referrer);
@@ -397,8 +397,8 @@ describe('Error Tracker Server', () => {
               return makeRequest(referrer, query).then((res) => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
-                  '    at t (https://cdn.ampproject.org/v0.js:2:18)\n' +
-                  '    at https://cdn.ampproject.org/v0.js:3:18');
+                  '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                  '    at https://cdn.ampproject.org/v0.js:2:18');
               });
             });
           });
