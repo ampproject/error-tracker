@@ -26,7 +26,8 @@ const Frame = require('./frame');
 const sourceMapConsumerCache = new Cache();
 const requestCache = new Map();
 
-const cdnJsRegex = new RegExp(
+const cdnJsRegex =
+  new RegExp(
     // Require the CDN URL origin at the beginning.
     '^(https://cdn\\.ampproject\\.org)' +
     // Allow, but don't require, RTV.
@@ -34,8 +35,15 @@ const cdnJsRegex = new RegExp(
     // Require text "/v" followed by digits
     '(/v\\d+' +
       // Allow, but don't require, an extension under the v0 directory.
-      // We explicitly forbid the `experiments` and `validator` "extension".
-      '(?:/(?!experiments|validator).+)?' +
+      '(?:/' +
+        // We forbid the `experiments` and `validator` psuedo-extensions.
+        '(?!(?:experiments|validator)(?:-(?:no)?module)?\\.js)' +
+        // Eat everything but the ending ".js" (nor the optional
+        // "-module"/"-nomodule" before the ending ".js")
+        '(?:(?!(?:-(?:no)?module)?\\.js$).)+' +
+      ')?' +
+    // Allow, but don't require, "-module" and "-nomodule".
+    '(?:-(no)?module)?' +
     // Require text ".js" at the end.
     '\\.js)$');
 
@@ -62,11 +70,14 @@ const nilConsumer = {
  * @return {string}
  */
 function normalizeCdnJsUrl(url, version) {
-  const [, origin, rtv, pathname] = cdnJsRegex.exec(url);
-  if (rtv) {
-    return url;
+  const [, origin, rtv, pathname, nomodule] = cdnJsRegex.exec(url);
+  if (!rtv) {
+    url = `${origin}/rtv/${version}${pathname}`;
   }
-  return `${origin}/rtv/${version}${pathname}`;
+  if (nomodule) {
+    url = url.replace(/-nomodule\.js$/, '.js');
+  }
+  return `${url}.map`;
 }
 
 /**
@@ -128,7 +139,7 @@ function extractSourceMaps(stack, version) {
       return Promise.resolve(nilConsumer);
     }
 
-    const sourceMapUrl = `${normalizeCdnJsUrl(source, version)}.map`;
+    const sourceMapUrl = normalizeCdnJsUrl(source, version);
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
       return Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl));
     }

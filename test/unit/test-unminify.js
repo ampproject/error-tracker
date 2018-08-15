@@ -42,6 +42,10 @@ describe('unminify', () => {
   const versionedFrame = new Frame('test',
       'https://cdn.ampproject.org/rtv/001502924683165/v0.js', '1', '2');
   const nonCdnFrame = new Frame('test', 'http://other.com/v0.js', '1', '2');
+  const moduleFrame = new Frame('foo', 'https://cdn.ampproject.org/v0-module.js', '1',
+      '18');
+  const nomoduleFrame = new Frame('foo', 'https://cdn.ampproject.org/v0-nomodule.js', '1',
+      '18');
 
   let sandbox;
   let clock;
@@ -170,12 +174,26 @@ describe('unminify', () => {
     return unminify([frame1], '123').then(() => {
       return unminify([frame2], '124');
     }).then(() => {
-      expect(Request.request.callCount).to.equal(2);
+      return unminify([moduleFrame], '125');
+    }).then(() => {
+      expect(Request.request.callCount).to.equal(3);
       expect(Request.request.getCall(0).args[0]).to.equal(
         'https://cdn.ampproject.org/rtv/123/v0.js.map'
       );
       expect(Request.request.getCall(1).args[0]).to.equal(
         'https://cdn.ampproject.org/rtv/124/v0.js.map'
+      );
+      expect(Request.request.getCall(2).args[0]).to.equal(
+        'https://cdn.ampproject.org/rtv/125/v0-module.js.map'
+      );
+    });
+  });
+
+  it('strips nomodule during normalization', () => {
+    return unminify([nomoduleFrame], '123').then(() => {
+      expect(Request.request.callCount).to.equal(1);
+      expect(Request.request.getCall(0).args[0]).to.equal(
+        'https://cdn.ampproject.org/rtv/123/v0.js.map'
       );
     });
   });
