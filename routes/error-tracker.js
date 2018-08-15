@@ -70,17 +70,6 @@ function handler(req, res, params) {
   if (assert) {
     throttleRate /= 10;
   }
-  if (Math.random() > throttleRate) {
-    res.sendStatus(statusCodes.OK);
-    return null;
-  }
-
-  const stack = standardizeStackTrace(safeDecodeURIComponent(params.s || ''),
-      message);
-  if (ignoreMessageOrException(message, stack)) {
-    res.sendStatus(statusCodes.BAD_REQUEST);
-    return null;
-  }
 
   let log = logs.errors;
   if (runtime === 'inabox') {
@@ -97,6 +86,7 @@ function handler(req, res, params) {
     errorType += '-cdn';
   } else {
     errorType += '-origin';
+    throttleRate /= 20;
   }
 
   if (runtime) {
@@ -120,6 +110,19 @@ function handler(req, res, params) {
   }
   if (expected) {
     errorType += '-expected';
+    throttleRate /= 10;
+  }
+
+  if (Math.random() > throttleRate) {
+    res.sendStatus(statusCodes.OK);
+    return null;
+  }
+
+  const stack = standardizeStackTrace(safeDecodeURIComponent(params.s || ''),
+      message);
+  if (ignoreMessageOrException(message, stack)) {
+    res.sendStatus(statusCodes.BAD_REQUEST);
+    return null;
   }
 
   const normalizedMessage = /^[A-Z][a-z]+: /.test(message) ?
