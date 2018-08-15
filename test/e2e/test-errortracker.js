@@ -74,7 +74,7 @@ describe('Error Tracker Server', () => {
   const referrer = 'https://cdn.ampproject.org/';
   const userAgent = 'Google Chrome blah blah version';
   const knownGoodQuery = Object.freeze({
-    version: '011533924452420',
+    version: '011830043289240',
     // chai.request will encode this for us.
     message: 'The object does not support the operation or argument.',
     assert: false,
@@ -298,7 +298,7 @@ describe('Error Tracker Server', () => {
             return makeRequest(referrer, query).then((res) => {
               const {httpRequest} = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
-                '/r?v=011533924452420&m=The%20object%20does%20' +
+                '/r?v=011830043289240&m=The%20object%20does%20' +
                 'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
                 '&s=&debug=1'
               );
@@ -327,7 +327,7 @@ describe('Error Tracker Server', () => {
             return makeRequest(referrer, query).then((res) => {
               const {httpRequest} = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
-                '/r?v=011533924452420&m=The%20object%20does%20' +
+                '/r?v=011830043289240&m=The%20object%20does%20' +
                 'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
                 '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
                 'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
@@ -380,7 +380,7 @@ describe('Error Tracker Server', () => {
             return makeRequest(referrer, query).then((res) => {
               const {httpRequest} = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
-                '/r?v=011533924452420&m=The%20object%20does%20' +
+                '/r?v=011830043289240&m=The%20object%20does%20' +
                 'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
                 '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
                 '%20argument.%0A%20%20%20%20at%20t%20(https%3A%2F%2Fcdn.ampproject.org' +
