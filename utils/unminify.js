@@ -26,7 +26,8 @@ const Frame = require('./frame');
 const sourceMapConsumerCache = new Cache();
 const requestCache = new Map();
 
-const cdnJsRegex = new RegExp(
+const cdnJsRegex =
+  new RegExp(
     // Require the CDN URL origin at the beginning.
     '^(https://cdn\\.ampproject\\.org)' +
     // Allow, but don't require, RTV.
@@ -34,10 +35,12 @@ const cdnJsRegex = new RegExp(
     // Require text "/v" followed by digits
     '(/v\\d+' +
       // Allow, but don't require, an extension under the v0 directory.
-      // We explicitly forbid the `experiments` and `validator` "extension".
-      '(?:/(?!experiments|validator).+)?' +
-    // Require text ".js" at the end.
-    '\\.js)$');
+      '(?:/(.+?))?' +
+    ')' +
+    // Allow, but don't require, "-module" and "-nomodule".
+    '(-(?:module|nomodule))?' +
+    // Require ".js" or ".mjs" extension
+    '(\\.(m)?js)$');
 
 
 /**
@@ -62,11 +65,30 @@ const nilConsumer = {
  * @return {string}
  */
 function normalizeCdnJsUrl(url, version) {
-  const [, origin, rtv, pathname] = cdnJsRegex.exec(url);
-  if (rtv) {
-    return url;
+  const match = cdnJsRegex.exec(url);
+  if (!match) {
+    return;
   }
-  return `${origin}/rtv/${version}${pathname}`;
+
+  const [
+    /* full match */,
+    origin,
+    rtv = version,
+    pathname,
+    ampExtension,
+    module = '',
+    ext,
+  ] = match;
+
+  // We explicitly forbid the experiments and validator "extensions" inside
+  // the v0 directory.
+  if (ampExtension === 'experiments' || ampExtension === 'validator') {
+    return '';
+  }
+
+  const normModule = (module === '-nomodule') ? '' : module;
+
+  return `${origin}/rtv/${rtv}${pathname}${normModule}${ext}.map`;
 }
 
 /**
@@ -124,11 +146,12 @@ function getSourceMapFromNetwork(url) {
  */
 function extractSourceMaps(stack, version) {
   return stack.map(({source}) => {
-    if (!cdnJsRegex.test(source)) {
+    const sourceMapUrl = normalizeCdnJsUrl(source, version);
+
+    if (!sourceMapUrl) {
       return Promise.resolve(nilConsumer);
     }
 
-    const sourceMapUrl = `${normalizeCdnJsUrl(source, version)}.map`;
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
       return Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl));
     }
@@ -155,3 +178,4 @@ function unminify(stack, version) {
 }
 
 module.exports = unminify;
+unminify.normalizeCdnJsUrl = normalizeCdnJsUrl;
