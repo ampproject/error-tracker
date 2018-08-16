@@ -65,6 +65,11 @@ const nilConsumer = {
  * @return {string}
  */
 function normalizeCdnJsUrl(url, version) {
+  const match = cdnJsRegex.exec(url);
+  if (!match) {
+    return;
+  }
+
   const [
     /* full match */,
     origin,
@@ -73,7 +78,7 @@ function normalizeCdnJsUrl(url, version) {
     ampExtension,
     module = '',
     ext,
-  ] = cdnJsRegex.exec(url);
+  ] = match;
 
   // We explicitly forbid the experiments and validator "extensions" inside
   // the v0 directory.
@@ -141,11 +146,12 @@ function getSourceMapFromNetwork(url) {
  */
 function extractSourceMaps(stack, version) {
   return stack.map(({source}) => {
-    if (!cdnJsRegex.test(source)) {
+    const sourceMapUrl = normalizeCdnJsUrl(source, version);
+
+    if (!sourceMapUrl) {
       return Promise.resolve(nilConsumer);
     }
 
-    const sourceMapUrl = normalizeCdnJsUrl(source, version);
     if (sourceMapConsumerCache.has(sourceMapUrl)) {
       return Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl));
     }
