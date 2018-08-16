@@ -35,17 +35,12 @@ const cdnJsRegex =
     // Require text "/v" followed by digits
     '(/v\\d+' +
       // Allow, but don't require, an extension under the v0 directory.
-      '(?:/' +
-        // We forbid the `experiments` and `validator` psuedo-extensions.
-        '(?!(?:experiments|validator)(?:-(?:no)?module)?\\.js)' +
-        // Eat everything but the ending ".js" (nor the optional
-        // "-module"/"-nomodule" before the ending ".js")
-        '(?:(?!(?:-(?:no)?module)?\\.js$).)+' +
-      ')?' +
+      '(?:/(.+?))?' +
+    ')' +
     // Allow, but don't require, "-module" and "-nomodule".
-    '(?:-(no)?module)?' +
-    // Require text ".js" at the end.
-    '\\.js)$');
+    '(-(?:no)?module)?' +
+    // Require ".js" or ".mjs" extension
+    '(\\.(m)?js)$');
 
 
 /**
@@ -70,14 +65,25 @@ const nilConsumer = {
  * @return {string}
  */
 function normalizeCdnJsUrl(url, version) {
-  const [, origin, rtv, pathname, nomodule] = cdnJsRegex.exec(url);
-  if (!rtv) {
-    url = `${origin}/rtv/${version}${pathname}`;
+  const [
+    /* full match */,
+    origin,
+    rtv = version,
+    pathname,
+    ampExtension,
+    module = '',
+    ext,
+  ] = cdnJsRegex.exec(url);
+
+  // We explicitly forbid the experiments and validator "extensions" inside
+  // the v0 directory.
+  if (ampExtension === 'experiments' || ampExtension === 'validator') {
+    return '';
   }
-  if (nomodule) {
-    url = url.replace(/-nomodule\.js$/, '.js');
-  }
-  return `${url}.map`;
+
+  const normModule = (module === '-nomodule') ? '' : module;
+
+  return `${origin}/rtv/${rtv}${pathname}${normModule}${ext}.map`;
 }
 
 /**
@@ -166,3 +172,4 @@ function unminify(stack, version) {
 }
 
 module.exports = unminify;
+unminify.normalizeCdnJsUrl = normalizeCdnJsUrl;

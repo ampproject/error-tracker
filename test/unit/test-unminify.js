@@ -209,4 +209,77 @@ describe('unminify', () => {
       );
     });
   });
+
+  describe('URL normalization', () => {
+    const generate = function(path, extension, inputRtv, empty = false) {
+      const expectedRtv = inputRtv || 'test';
+      return [
+        {
+          input: `${inputRtv ? `rtv/${inputRtv}/` : ''}${path}${extension}`,
+          expected: empty ? '' : `rtv/${expectedRtv}/${path}${extension}`,
+        },
+        {
+          input: `${inputRtv ? `rtv/${inputRtv}/` : ''}${path}-module${extension}`,
+          expected: empty ? '' : `rtv/${expectedRtv}/${path}-module${extension}`,
+        },
+        {
+          input: `${inputRtv ? `rtv/${inputRtv}/` : ''}${path}${extension}`,
+          expected: empty ? '' : `rtv/${expectedRtv}/${path}${extension}`,
+        },
+      ];
+    };
+
+    [
+      ...generate('v0', '.js'),
+      ...generate('v1', '.js'),
+      ...generate('v20', '.js'),
+
+      // AMP extensions
+      ...generate('v0/amp-extension', '.js'),
+      ...generate('v1/amp-extension', '.js'),
+      ...generate('v1/amp-extension', '.js'),
+
+      // RTVs
+      ...generate('v0', '.js', '010123456789123'),
+      ...generate('v1', '.js', '010123456789123'),
+      ...generate('v20', '.js', '010123456789123'),
+      ...generate('v0/amp-extension', '.js', '010123456789123'),
+      ...generate('v1/amp-extension', '.js', '010123456789123'),
+      ...generate('v20/amp-extension', '.js', '010123456789123'),
+
+      // In the future, we may support mjs
+      ...generate('v0', '.mjs'),
+      ...generate('v1', '.mjs'),
+      ...generate('v20', '.mjs'),
+      ...generate('v0/amp-extension', '.mjs'),
+      ...generate('v1/amp-extension', '.mjs'),
+      ...generate('v20/amp-extension', '.mjs'),
+      ...generate('v0', '.mjs', '010123456789123'),
+      ...generate('v1', '.mjs', '010123456789123'),
+      ...generate('v20', '.mjs', '010123456789123'),
+      ...generate('v0/amp-extension', '.mjs', '010123456789123'),
+      ...generate('v1/amp-extension', '.mjs', '010123456789123'),
+      ...generate('v20/amp-extension', '.mjs', '010123456789123'),
+
+      // validator gets no love
+      ...generate('v0/validator', '.js', undefined, true),
+      ...generate('v0/validator', '.mjs', undefined, true),
+      ...generate('v0/validator', '.js', '010123456789123', true),
+      ...generate('v0/validator', '.mjs', '010123456789123', true),
+
+      // experiments gets no love
+      ...generate('v0/experiments', '.js', undefined, true),
+      ...generate('v0/experiments', '.mjs', undefined, true),
+      ...generate('v0/experiments', '.js', '010123456789123', true),
+      ...generate('v0/experiments', '.mjs', '010123456789123', true),
+    ].forEach(({input, expected}) => {
+      it(`normalizes "${input}" to "${expected}"`, () => {
+        const origin = 'https://cdn.ampproject.org/';
+        const normalized = unminify.normalizeCdnJsUrl(origin + input, 'test');
+        const actual = normalized.substr(origin.length);
+
+        expect(actual).to.equal(expected ? `${expected}.map` : '');
+      });
+    });
+  });
 });
