@@ -38,7 +38,7 @@ const cdnJsRegex =
       '(?:/(.+?))?' +
     ')' +
     // Allow, but don't require, "-module" and "-nomodule".
-    '(-(?:no)?module)?' +
+    '(-(?:module|nomodule))?' +
     // Require ".js" or ".mjs" extension
     '(\\.(m)?js)$');
 
