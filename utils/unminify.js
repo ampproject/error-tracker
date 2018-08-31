@@ -33,7 +33,7 @@ const cdnJsRegex =
     // Allow, but don't require, RTV.
     '(?:/rtv/(\\d{2}\\d{13,}))?' +
     // Require text "/v" followed by digits
-    '(/v\\d+' +
+    '(/(?:amp4ads-v|v)\\d+' +
       // Allow, but don't require, an extension under the v0 directory.
       '(?:/(.+?))?' +
     ')' +
