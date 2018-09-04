@@ -13,8 +13,8 @@ if (keys.every(k => fs.existsSync(k))) {
   process.exit(0);
 }
 
-const storage = require('@google-cloud/storage');
-const gcs = storage({
+const {Storage} = require('@google-cloud/storage');
+const gcs = Storage({
   projectId: 'amp-error-reporting',
 });
 const bucket = gcs.bucket('amp-error-reporting.appspot.com');
