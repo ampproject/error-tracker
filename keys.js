@@ -14,7 +14,7 @@ if (keys.every(k => fs.existsSync(k))) {
 }
 
 const {Storage} = require('@google-cloud/storage');
-const gcs = Storage({
+const gcs = new Storage({
   projectId: 'amp-error-reporting',
 });
 const bucket = gcs.bucket('amp-error-reporting.appspot.com');
