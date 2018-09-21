@@ -51,7 +51,7 @@ function handler(req, res, params) {
   // Hacky fix to stop old versions from logging errors.
   // We'll need to build the proper infrastructure to determine the current
   // version/diversions.
-  if (parseInt(version.slice(2), 10) < 1535566825959) {
+  if (parseInt(version.slice(2), 10) < 1809050000580) {
     res.sendStatus(statusCodes.OK);
     return null;
   }
