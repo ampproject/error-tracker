@@ -12,18 +12,22 @@
  * limitations under the License.
  */
 
-const debounce = require('./debounce');
-const EXPIRATION = 2 * 7 * 24 * 60 * 60 * 1000;
+const debounce = require('lodash.debounce');
 
 /**
  * A wrapper around JS Map object to ensure no entry stays in map
  * more than 2 weeks without retrieval
  */
 class Cache {
-  /** */
-  constructor() {
+  /**
+   * @param {number} wait
+   * @param {number=} maxWait
+   */
+  constructor(wait, maxWait = Infinity) {
     this.map = new Map();
     this.deleteTriggers_ = new Map();
+    this.wait_ = wait;
+    this.maxWait_ = maxWait;
   }
 
   /**
@@ -35,7 +39,10 @@ class Cache {
 
     let deleter = this.deleteTriggers_.get(key);
     if (!deleter) {
-      deleter = debounce(() => this.delete(key), EXPIRATION);
+      deleter = debounce(() => {
+        this.delete(key);
+      }, this.wait_, {maxWait: this.maxWait_});
+
       this.deleteTriggers_.set(key, deleter);
     }
     deleter();
@@ -57,11 +64,18 @@ class Cache {
    * @param {key} key
    */
   delete(key) {
+    if (!this.has(key)) {
+      return;
+    }
+
     const value = this.map.get(key);
     if (value && value.destroy) {
       value.destroy();
     }
     this.map.delete(key);
+
+    const deleter = this.deleteTriggers_.get(key);
+    deleter.cancel();
     this.deleteTriggers_.delete(key);
   }
 

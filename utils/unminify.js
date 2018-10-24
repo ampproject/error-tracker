@@ -22,8 +22,9 @@ const sourceMap = require('source-map');
 const Request = require('./request');
 const Cache = require('./cache');
 const Frame = require('./frame');
+const twoWeeks = 2 * 7 * 24 * 60 * 60 * 1000;
 
-const sourceMapConsumerCache = new Cache();
+const sourceMapConsumerCache = new Cache(twoWeeks);
 const requestCache = new Map();
 
 const cdnJsRegex =
