@@ -17,6 +17,7 @@ const debounce = require('lodash.debounce');
 /**
  * A wrapper around JS Map object to ensure no entry stays in map
  * more than 2 weeks without retrieval
+ * @template T
  */
 class Cache {
   /**
@@ -32,7 +33,7 @@ class Cache {
 
   /**
    * @param {key} key
-   * @param {!SourceMapConsumer} value
+   * @param {T} value
    */
   set(key, value) {
     this.map.set(key, value);
@@ -50,7 +51,7 @@ class Cache {
 
   /**
    * @param {key} key
-   * @return {SourceMapConsumer} value
+   * @return {T}
    */
   get(key) {
     const deleter = this.deleteTriggers_.get(key);
@@ -81,14 +82,14 @@ class Cache {
 
   /**
    * @param {key} key
-   * @return {boolean} Whether Map has entry.
+   * @return {boolean}
    */
   has(key) {
     return this.map.has(key);
   }
 
   /**
-   * @return {number} Size of Cache
+   * @return {number}
    */
   get size() {
     return this.map.size;

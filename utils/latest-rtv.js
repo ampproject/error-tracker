@@ -42,7 +42,12 @@ module.exports = function() {
         }
       }
     });
-  }).catch(() => {
+  }).catch((err) => {
+    // Throw an out-of-band error so we'll get a error report.
+    setTimeout(() => {
+      throw new Error(`failed to fetch RTV metadata: ${err.message}`);
+    }, 0);
+
     cache.delete(url);
     return '000000000000000';
   });
