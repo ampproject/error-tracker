@@ -95,6 +95,17 @@ describe('Error Tracker Server', () => {
     mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;' +
         'CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
+  function requestFake(url, callback) {
+    Promise.resolve().then(() => {
+      if (url.endsWith('.map')) {
+        callback(null, null, JSON.stringify(rawSourceMap));
+      } else {
+        callback(null, null, JSON.stringify({
+          'ampRuntimeVersion': '011810191936340',
+        }));
+      }
+    });
+  }
   let sandbox;
   let clock;
   let server;
@@ -350,11 +361,7 @@ describe('Error Tracker Server', () => {
 
           describe('when unminification succeeds', () => {
             beforeEach(() => {
-              Request.request.callsFake((url, callback) => {
-                Promise.resolve().then(() => {
-                  callback(null, null, JSON.stringify(rawSourceMap));
-                });
-              });
+              Request.request.callsFake(requestFake);
             });
 
             it('logs full error', () => {
@@ -405,11 +412,7 @@ describe('Error Tracker Server', () => {
 
           describe('when unminification succeeds', () => {
             beforeEach(() => {
-              Request.request.callsFake((url, callback) => {
-                Promise.resolve().then(() => {
-                  callback(null, null, JSON.stringify(rawSourceMap));
-                });
-              });
+              Request.request.callsFake(requestFake);
             });
 
             it('logs full error', () => {

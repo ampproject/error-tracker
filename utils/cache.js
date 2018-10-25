@@ -12,30 +12,38 @@
  * limitations under the License.
  */
 
-const debounce = require('./debounce');
-const EXPIRATION = 2 * 7 * 24 * 60 * 60 * 1000;
+const debounce = require('lodash.debounce');
 
 /**
  * A wrapper around JS Map object to ensure no entry stays in map
  * more than 2 weeks without retrieval
+ * @template T
  */
 class Cache {
-  /** */
-  constructor() {
+  /**
+   * @param {number} wait
+   * @param {number=} maxWait
+   */
+  constructor(wait, maxWait = Infinity) {
     this.map = new Map();
     this.deleteTriggers_ = new Map();
+    this.wait_ = wait;
+    this.maxWait_ = maxWait;
   }
 
   /**
    * @param {key} key
-   * @param {!SourceMapConsumer} value
+   * @param {T} value
    */
   set(key, value) {
     this.map.set(key, value);
 
     let deleter = this.deleteTriggers_.get(key);
     if (!deleter) {
-      deleter = debounce(() => this.delete(key), EXPIRATION);
+      deleter = debounce(() => {
+        this.delete(key);
+      }, this.wait_, {maxWait: this.maxWait_});
+
       this.deleteTriggers_.set(key, deleter);
     }
     deleter();
@@ -43,7 +51,7 @@ class Cache {
 
   /**
    * @param {key} key
-   * @return {SourceMapConsumer} value
+   * @return {T}
    */
   get(key) {
     const deleter = this.deleteTriggers_.get(key);
@@ -57,24 +65,31 @@ class Cache {
    * @param {key} key
    */
   delete(key) {
+    if (!this.has(key)) {
+      return;
+    }
+
     const value = this.map.get(key);
     if (value && value.destroy) {
       value.destroy();
     }
     this.map.delete(key);
+
+    const deleter = this.deleteTriggers_.get(key);
+    deleter.cancel();
     this.deleteTriggers_.delete(key);
   }
 
   /**
    * @param {key} key
-   * @return {boolean} Whether Map has entry.
+   * @return {boolean}
    */
   has(key) {
     return this.map.has(key);
   }
 
   /**
-   * @return {number} Size of Cache
+   * @return {number}
    */
   get size() {
     return this.map.size;

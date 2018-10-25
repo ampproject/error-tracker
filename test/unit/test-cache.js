@@ -36,43 +36,66 @@ describe('Cache cleans up unused entries periodically', () => {
     destroy() {}
   }
 
-  it('Should delete entry that has not been accessed in 2 weeks', () => {
-    const cacheMap = new Cache();
+  it('Should delete entry that has not been accessed in wait ms', () => {
+    const cacheMap = new Cache(10);
     cacheMap.set(4, new Consumer());
-    clock.tick(2 * 7 * 24 * 60 * 60 * 1000 - 1);
+
+    clock.tick(9);
     expect(cacheMap.size).to.equal(1);
+
     clock.tick(1);
     expect(cacheMap.size).to.equal(0);
   });
 
-  it('Should reset lifetime of entry if accessed before 2 weeks', () => {
-    const cacheMap = new Cache();
+  it('Should reset lifetime of entry if accessed before wait ms', () => {
+    const cacheMap = new Cache(10);
     cacheMap.set(4, new Consumer());
-    clock.tick(2 * 7 * 24 * 60 * 60 * 1000 - 1);
+
+    clock.tick(9);
     expect(cacheMap.size).to.equal(1);
+
     cacheMap.get(4);
     clock.tick(1);
     expect(cacheMap.size).to.equal(1);
   });
 
   it('Should delete an entry that has been accessed after expiry', () => {
-    const cacheMap = new Cache();
+    const cacheMap = new Cache(10);
     cacheMap.set(4, new Consumer());
-    cacheMap.get(4);
-    clock.tick(2 * 7 * 24 * 60 * 60 * 1000);
+
+    clock.tick(10);
     expect(cacheMap.get(4)).to.equal(undefined);
   });
 
   it('Should call destroy on the entry after expiry if has destroy', () => {
-    const cacheMap = new Cache();
+    const cacheMap = new Cache(10);
     const consumer = new Consumer();
     const dconsumer = new DestroyConsumer();
     const spy = sandbox.spy(dconsumer, 'destroy');
 
     cacheMap.set(4, consumer);
     cacheMap.set(5, dconsumer);
-    clock.tick(2 * 7 * 24 * 60 * 60 * 1000);
+    clock.tick(10);
 
     expect(spy.called).to.be.true;
+  });
+
+  it('Should delete after maxWait ms', () => {
+    const cacheMap = new Cache(10, 30);
+    cacheMap.set(4, new Consumer());
+
+    clock.tick(9);
+    cacheMap.get(4);
+    clock.tick(9);
+    cacheMap.get(4);
+    clock.tick(9);
+    cacheMap.get(4);
+    expect(cacheMap.size).to.equal(1);
+
+    clock.tick(2);
+    expect(cacheMap.size).to.equal(1);
+
+    clock.tick(1);
+    expect(cacheMap.size).to.equal(0);
   });
 });

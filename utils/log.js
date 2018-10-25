@@ -20,6 +20,10 @@
 
 const logging = require('@google-cloud/logging');
 
+exports.generic = logging({
+  projectId: 'amp-error-reporting',
+}).log('stderr');
+
 exports.errors = logging({
   projectId: 'amp-error-reporting',
 }).log('javascript.errors');
