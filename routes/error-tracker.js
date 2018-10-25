@@ -45,7 +45,7 @@ function handler(req, res, params) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
-  if (version.includes('$internalRuntimeVersion$')) {
+  if (version.includes('internalRuntimeVersion')) {
     res.sendStatus(statusCodes.OK);
     return null;
   }

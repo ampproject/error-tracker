@@ -19,6 +19,7 @@
 
 const Request = require('./request');
 const Cache = require('./cache');
+const logs = require('./log');
 
 const url = 'https://cdn.ampproject.org/rtv/metadata';
 const fiveMin = 5 * 60 * 1000;
@@ -43,10 +44,19 @@ module.exports = function() {
       }
     });
   }).catch((err) => {
-    // Throw an out-of-band error so we'll get a error report.
-    setTimeout(() => {
-      throw new Error(`failed to fetch RTV metadata: ${err.message}`);
-    }, 0);
+    logs.generic.entry({
+      labels: {
+        'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
+      },
+      resource: {
+        type: 'gae_app',
+        labels: {
+          module_id: process.env.GAE_SERVICE,
+          version_id: process.env.GAE_VERSION,
+        },
+      },
+      severity: 500, // Error.
+    }, `failed to fetch RTV metadata: ${err.message}`);
 
     cache.delete(url);
     return '000000000000000';
