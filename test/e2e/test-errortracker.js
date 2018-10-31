@@ -33,6 +33,7 @@ describe('Error Tracker Server', () => {
       debug: 'debug',
       thirdParty: '3p',
       binaryType: 'bt',
+      singlePassType: 'spt',
     };
     const booleans = ['assert', 'canary', 'expected', 'debug', 'thirdParty'];
 
@@ -245,6 +246,51 @@ describe('Error Tracker Server', () => {
             return makeRequest(referrer, query);
           }).then((res) => {
             expect(res.status).to.equal(statusCodes.OK);
+          });
+        });
+
+        describe('handles single pass experiment', () => {
+
+          it('should detect single pass type', () => {
+            const query = Object.assign({}, knownGoodQuery, {
+              stack: '',
+              canary: true,
+              debug: true,
+              singlePassType: 'sp',
+            });
+
+            return makeRequest(referrer, query).then(res => {
+              expect(res.body.event.serviceContext.service)
+                .to.be.equal('default-sp-cdn-1p-canary');
+            });
+          });
+
+          it('should detect multi pass type', () => {
+            const query = Object.assign({}, knownGoodQuery, {
+              stack: '',
+              canary: true,
+              debug: true,
+              singlePassType: 'mp',
+            });
+
+            return makeRequest(referrer, query).then(res => {
+              expect(res.body.event.serviceContext.service)
+                .to.be.equal('default-mp-cdn-1p-canary');
+            });
+          });
+
+          it('should ignore empty single pass type', () => {
+            const query = Object.assign({}, knownGoodQuery, {
+              stack: '',
+              canary: true,
+              debug: true,
+              singlePassType: '',
+            });
+
+            return makeRequest(referrer, query).then(res => {
+              expect(res.body.event.serviceContext.service)
+                .to.be.equal('default-cdn-1p-canary');
+            });
           });
         });
 
