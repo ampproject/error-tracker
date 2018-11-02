@@ -57,8 +57,17 @@ function handler(req, res, params) {
   const expected = params.ex === '1';
   const debug = params.debug === '1';
   const thirdParty = params['3p'] === '1';
+  const singlePassType = params.spt;
 
   let errorType = 'default';
+
+  if (singlePassType) {
+    if (singlePassType === 'sp') {
+      errorType += '-sp';
+    } else if (singlePassType === 'mp') {
+      errorType += '-mp';
+    }
+  }
 
   let throttleRate = canary || binaryType === 'control' ? 1 : 0.1;
   if (assert) {
