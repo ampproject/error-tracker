@@ -279,6 +279,34 @@ describe('Error Tracker Server', () => {
             });
           });
 
+          it('should detect esm type', () => {
+            const query = Object.assign({}, knownGoodQuery, {
+              stack: '',
+              canary: true,
+              debug: true,
+              singlePassType: 'esm',
+            });
+
+            return makeRequest(referrer, query).then(res => {
+              expect(res.body.event.serviceContext.service)
+                .to.be.equal('default-esm-cdn-1p-canary');
+            });
+          });
+
+          it('should ignore unknown single pass type', () => {
+            const query = Object.assign({}, knownGoodQuery, {
+              stack: '',
+              canary: true,
+              debug: true,
+              singlePassType: 'xxx',
+            });
+
+            return makeRequest(referrer, query).then(res => {
+              expect(res.body.event.serviceContext.service)
+                .to.be.equal('default-cdn-1p-canary');
+            });
+          });
+
           it('should ignore empty single pass type', () => {
             const query = Object.assign({}, knownGoodQuery, {
               stack: '',
@@ -292,6 +320,7 @@ describe('Error Tracker Server', () => {
                 .to.be.equal('default-cdn-1p-canary');
             });
           });
+
         });
 
         describe('handles binary type and canary flags', () => {
