@@ -62,11 +62,7 @@ function handler(req, res, params) {
   let errorType = 'default';
 
   if (singlePassType) {
-    if (singlePassType === 'sp') {
-      errorType += '-sp';
-    } else if (singlePassType === 'mp') {
-      errorType += '-mp';
-    }
+    errorType += `-${singlePassType}`;
   }
 
   let throttleRate = canary || binaryType === 'control' ? 1 : 0.1;
