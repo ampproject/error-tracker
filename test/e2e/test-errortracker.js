@@ -293,20 +293,6 @@ describe('Error Tracker Server', () => {
             });
           });
 
-          it('should ignore unknown single pass type', () => {
-            const query = Object.assign({}, knownGoodQuery, {
-              stack: '',
-              canary: true,
-              debug: true,
-              singlePassType: 'xxx',
-            });
-
-            return makeRequest(referrer, query).then(res => {
-              expect(res.body.event.serviceContext.service)
-                .to.be.equal('default-cdn-1p-canary');
-            });
-          });
-
           it('should ignore empty single pass type', () => {
             const query = Object.assign({}, knownGoodQuery, {
               stack: '',

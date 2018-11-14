@@ -61,8 +61,7 @@ function handler(req, res, params) {
 
   let errorType = 'default';
 
-  const singlePassTypes = ['sp', 'mp', 'esm'];
-  if (singlePassTypes.includes(singlePassType)) {
+  if (singlePassType) {
     errorType += `-${singlePassType}`;
   }
 
