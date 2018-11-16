@@ -26,7 +26,6 @@ const ignoreMessageOrException = require('../utils/should-ignore');
 const unminify = require('../utils/unminify');
 const querystring = require('../utils/query-string');
 const latestRtv = require('../utils/latest-rtv');
-const parseVersion = require('../utils/parse-version');
 
 /**
  * Extracts relevant information from request, handles edge cases and prepares
@@ -117,8 +116,8 @@ function handler(req, res, params) {
     return null;
   }
 
-  return latestRtv().then((prod) => {
-    if (parseVersion(version) < parseVersion(prod)) {
+  return latestRtv().then((rtvs) => {
+    if (rtvs.length > 0 && !rtvs.includes(version)) {
       res.sendStatus(statusCodes.OK);
       return null;
     }

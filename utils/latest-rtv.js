@@ -36,8 +36,8 @@ module.exports = function() {
         reject(err);
       } else {
         try {
-          const {ampRuntimeVersion} = JSON.parse(body);
-          resolve(ampRuntimeVersion);
+          const {ampRuntimeVersion, diversions} = JSON.parse(body);
+          resolve([ampRuntimeVersion].concat(diversions));
         } catch (e) {
           reject(e);
         }
@@ -59,7 +59,7 @@ module.exports = function() {
     }, `failed to fetch RTV metadata: ${err.message}`);
 
     cache.delete(url);
-    return '000000000000000';
+    return [];
   });
 
   cache.set(url, req);
