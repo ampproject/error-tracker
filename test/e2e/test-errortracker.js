@@ -102,7 +102,8 @@ describe('Error Tracker Server', () => {
         callback(null, null, JSON.stringify(rawSourceMap));
       } else {
         callback(null, null, JSON.stringify({
-          'ampRuntimeVersion': '011810191936340',
+          'ampRuntimeVersion': '011830043289240',
+          'diversions': ['001830043289240'],
         }));
       }
     });
