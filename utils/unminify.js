@@ -40,8 +40,8 @@ const cdnJsRegex =
     ')' +
     // Allow, but don't require, "-module" and "-nomodule".
     '(-(?:module|nomodule))?' +
-    // Require ".js" or ".mjs" extension
-    '(\\.(m)?js)$');
+    // Require ".js" or ".mjs" extension, optionally followed by ".br".
+    '(\\.(m)?js)(\\.br)?$');
 
 
 /**
@@ -79,6 +79,7 @@ function normalizeCdnJsUrl(url, version) {
     ampExtension,
     module = '',
     ext,
+    /* brotli, */
   ] = match;
 
   // We explicitly forbid the experiments and validator "extensions" inside

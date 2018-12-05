@@ -226,7 +226,7 @@ describe('unminify', () => {
     // tests.map(({name, tests}) => {
     //   const generated = tests.map(({input: inp, expected: exp}) => {
     //     return (`
-    //       it('${exp}', () => {
+    //       it('${inp}', () => {
     //         const input = 'https://cdn.ampproject.org/${inp}';
     //         const expected = '${exp ? `https://cdn.ampproject.org/${exp}.map` : ''}';
 
@@ -238,10 +238,26 @@ describe('unminify', () => {
 
     //   return (`
     //     describe('${name}', () => {
-    //       ${generated.join('')}
+    //       ${generated.join('').trim()}
     //     });
     //   `);
     // }).join('');
+    //
+    // Parse the tests with:
+    // const groups = s.match(/    describe\([^]*?\n    }\);/g);
+    // JSON.stringify(groups.map((group) => {
+    //   const name = group.match(/'(.*?)'/)[1];
+    //   const tests = group.match(/it\([^}]*}\)/g).map((test) => {
+    //     const expected = test.match(/'(.*?)'/)[1];
+    //       /input = 'https:\/\/cdn.ampproject.org\/(.*?)'/
+    //     )[1];
+    //     const expected = test.match(
+    //       /expected = '(?:https:\/\/cdn.ampproject.org\/(.*?).map)?'/
+    //     )[1];
+    //     return {input, expected};
+    //   });
+    //   return {name, tests};
+    // }));
 
     describe('main binary', () => {
       it('v0.js', () => {
@@ -821,6 +837,584 @@ describe('unminify', () => {
       it('rtv/010123456789123/v20/amp-extension.mjs', () => {
         const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.mjs';
         const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.mjs.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+    });
+
+    describe('brotli', () => {
+      it('v0.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v0/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v0/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v1/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v1/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('v20/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/v20/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v0/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v1/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20/amp-extension-module.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension-module.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension-module.js.map';
+
+        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        expect(actual).to.equal(expected);
+      });
+
+      it('rtv/010123456789123/v20/amp-extension.js.br', () => {
+        const input = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.br';
+        const expected = 'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
 
         const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
