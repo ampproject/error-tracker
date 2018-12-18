@@ -70,7 +70,8 @@ function handler(req, res, params) {
   }
 
   let log = logs.errors;
-  if (runtime === 'inabox') {
+  if (runtime === 'inabox' ||
+      message.includes('Signing service error for google')) {
     log = logs.ads;
   } else if (assert) {
     log = logs.users;
