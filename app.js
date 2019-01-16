@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-const bodyParser = require('body-parser');
 const express = require('express');
 const statusCodes = require('http-status-codes');
 const errorTracker = require('./routes/error-tracker');
 const querystring = require('./utils/query-string');
+const parseErrorHandling = require('./utils/parse-error-handling');
+const json = require('./utils/json');
 
 const app = express();
 const port = parseInt(process.env.PORT, 10) || 8080;
-const json = bodyParser.json({
-  limit: '10kb',
-  type: [
-    'application/json',
-    'text/plain', // Preflight-less JSON posts
-  ],
-});
 
 app.set('etag', false);
 app.set('trust proxy', true);
@@ -48,6 +42,9 @@ app.post('/r', json, (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   return errorTracker(req, res, req.body);
 });
+
+// Handle BodyParser PayloadTooLargeError errors
+app.use(parseErrorHandling);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, function() {
