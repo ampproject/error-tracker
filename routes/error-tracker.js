@@ -64,7 +64,9 @@ function handler(req, res, params) {
     errorType += `-${singlePassType}`;
   }
 
-  let throttleRate = canary || binaryType === 'control' ? 1 : 0.1;
+  let throttleRate = canary || binaryType === 'control' || binaryType === 'rc'
+    ? 1
+    : 0.1;
   if (assert) {
     throttleRate /= 10;
   }
