@@ -28,7 +28,9 @@ const errorsToIgnore = [
  * @return {boolean} True if its a non JS stack trace
  */
 function isNonJSStackTrace(stack) {
-  return stack.some(({source}) => !source.endsWith('.js'));
+  return !stack.every(({source}) => {
+    return source.endsWith('.js') || source.endsWith('.js.br');
+  });
 }
 
 /**
