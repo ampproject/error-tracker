@@ -21,6 +21,16 @@ const chromeFrame = new RegExp(`^\\s*at (?:` +
 const safariFrame = /^\s*(?:([^@\n]*)@)?([^@\n]+):(\d+):(\d+)$/gm;
 
 /**
+ * Removes the .br extension, since the file is expected to match the
+ * regular .js file.
+ * @param {string} source
+ * @return {string}
+ */
+function brotliToJs(source) {
+  return source.replace(/\.js\.br$/, '.js');
+}
+
+/**
  * Parses a Chrome formatted stack trace string.
  * @param {string} stack
  * @return {!Array<!Frame>}
@@ -32,7 +42,7 @@ function chromeStack(stack) {
   while ((match = chromeFrame.exec(stack))) {
     frames.push(new Frame(
       match[4] || '',
-      match[1] || match[5],
+      brotliToJs(match[1] || match[5]),
       match[2] || match[6],
       match[3] || match[7]
     ));
@@ -53,7 +63,7 @@ function safariStack(stack) {
   while ((match = safariFrame.exec(stack))) {
     frames.push(new Frame(
       match[1] || '',
-      match[2],
+      brotliToJs(match[2]),
       match[3],
       match[4]
     ));

@@ -81,6 +81,17 @@ describe('standardizeStackTrace', () => {
       expect(frames[7].column).to.equal(86);
       expect(frames[8].column).to.equal(188);
     });
+
+    it('normalizes .js.br files to .js', () => {
+      const frames = standardizeStackTrace(`Error: message
+        at new v1 (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
+        at new v2 (https://cdn.ampproject.org/rtv/031496877433269/v0.js.br:297:149)
+      `);
+      expect(frames[0].source).to.equal(
+          'https://cdn.ampproject.org/rtv/031496877433269/v0.js');
+      expect(frames[1].source).to.equal(
+          'https://cdn.ampproject.org/rtv/031496877433269/v0.js');
+    });
   });
 
   describe('with a Safari stack trace', () => {
@@ -145,6 +156,15 @@ describe('standardizeStackTrace', () => {
       expect(frames[6].column).to.equal(411);
       expect(frames[7].column).to.equal(88);
       expect(frames[8].column).to.equal(170);
+    });
+
+    it('normalizes .js.br files to .js', () => {
+      const frames = standardizeStackTrace(`Error: message
+        jh@https://cdn.ampproject.org/v0.js:237:205
+        jh@https://cdn.ampproject.org/v0.js.br:237:205
+      `);
+      expect(frames[0].source).to.equal('https://cdn.ampproject.org/v0.js');
+      expect(frames[1].source).to.equal('https://cdn.ampproject.org/v0.js');
     });
   });
 
