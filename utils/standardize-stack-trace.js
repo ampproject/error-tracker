@@ -16,8 +16,11 @@
 
 const Frame = require('./frame');
 const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
-const chromeFrame = new RegExp(`^\\s*at (?:` +
-    `${lineColumnNumbersRegex}|(.+)? \\(${lineColumnNumbersRegex}\\))$`, 'gm');
+const chromeFrame = new RegExp(
+  `^\\s*at (?:` +
+    `${lineColumnNumbersRegex}|(.+)? \\(${lineColumnNumbersRegex}\\))$`,
+  'gm'
+);
 const safariFrame = /^\s*(?:([^@\n]*)@)?([^@\n]+):(\d+):(\d+)$/gm;
 
 /**
@@ -40,12 +43,14 @@ function chromeStack(stack) {
   let match;
 
   while ((match = chromeFrame.exec(stack))) {
-    frames.push(new Frame(
-      match[4] || '',
-      brotliToJs(match[1] || match[5]),
-      match[2] || match[6],
-      match[3] || match[7]
-    ));
+    frames.push(
+      new Frame(
+        match[4] || '',
+        brotliToJs(match[1] || match[5]),
+        match[2] || match[6],
+        match[3] || match[7]
+      )
+    );
   }
 
   return frames;
@@ -61,12 +66,9 @@ function safariStack(stack) {
   let match;
 
   while ((match = safariFrame.exec(stack))) {
-    frames.push(new Frame(
-      match[1] || '',
-      brotliToJs(match[2]),
-      match[3],
-      match[4]
-    ));
+    frames.push(
+      new Frame(match[1] || '', brotliToJs(match[2]), match[3], match[4])
+    );
   }
 
   return frames;

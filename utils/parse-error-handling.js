@@ -74,33 +74,35 @@ function read(req, res) {
    * @param {string} message
    */
   function log(message) {
-    const entry = logs.generic.entry({
-      labels: {
-        'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
-      },
-      resource: {
-        type: 'gae_app',
+    const entry = logs.generic.entry(
+      {
         labels: {
-          module_id: process.env.GAE_SERVICE,
-          version_id: process.env.GAE_VERSION,
+          'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
         },
-      },
-      severity: 400, // Warning.
-    }, {
-      message: 'PayloadTooLargeError',
-      context: {
-        httpRequest: {
-          method: req.method,
-          url: req.originalUrl,
-          userAgent: req.get('User-Agent'),
-          referrer: req.get('Referrer'),
-          body: message,
+        resource: {
+          type: 'gae_app',
+          labels: {
+            module_id: process.env.GAE_SERVICE,
+            version_id: process.env.GAE_VERSION,
+          },
         },
+        severity: 400, // Warning.
       },
-    });
-    logs.generic.write(entry, (err) => {
+      {
+        message: 'PayloadTooLargeError',
+        context: {
+          httpRequest: {
+            method: req.method,
+            url: req.originalUrl,
+            userAgent: req.get('User-Agent'),
+            referrer: req.get('Referrer'),
+            body: message,
+          },
+        },
+      }
+    );
+    logs.generic.write(entry, err => {
       console.error(err);
     });
   }
 }
-

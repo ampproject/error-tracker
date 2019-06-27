@@ -64,16 +64,17 @@ function handler(req, res, params) {
     errorType += `-${singlePassType}`;
   }
 
-  let throttleRate = canary || binaryType === 'control' || binaryType === 'rc'
-    ? 1
-    : 0.1;
+  let throttleRate =
+    canary || binaryType === 'control' || binaryType === 'rc' ? 1 : 0.1;
   if (assert) {
     throttleRate /= 10;
   }
 
   let log = logs.errors;
-  if (runtime === 'inabox' ||
-      message.includes('Signing service error for google')) {
+  if (
+    runtime === 'inabox' ||
+    message.includes('Signing service error for google')
+  ) {
     log = logs.ads;
   } else if (assert) {
     log = logs.users;
@@ -81,9 +82,11 @@ function handler(req, res, params) {
 
   // if request comes from the cache and thus only from valid
   // AMP docs we log as "Error"
-  if (referrer.startsWith('https://cdn.ampproject.org/') ||
-      referrer.includes('.cdn.ampproject.org/') ||
-      referrer.includes('.ampproject.net/')) {
+  if (
+    referrer.startsWith('https://cdn.ampproject.org/') ||
+    referrer.includes('.cdn.ampproject.org/') ||
+    referrer.includes('.ampproject.net/')
+  ) {
     errorType += '-cdn';
   } else {
     errorType += '-origin';
@@ -119,22 +122,24 @@ function handler(req, res, params) {
     return null;
   }
 
-  return latestRtv().then((rtvs) => {
+  return latestRtv().then(rtvs => {
     if (rtvs.length > 0 && !rtvs.includes(version)) {
       res.sendStatus(statusCodes.OK);
       return null;
     }
 
-    const stack = standardizeStackTrace(safeDecodeURIComponent(params.s || ''),
-      message);
+    const stack = standardizeStackTrace(
+      safeDecodeURIComponent(params.s || ''),
+      message
+    );
     if (ignoreMessageOrException(message, stack)) {
       res.sendStatus(statusCodes.BAD_REQUEST);
       return null;
     }
 
-    const normalizedMessage = /^[A-Z][a-z]+: /.test(message) ?
-      message :
-      `Error: ${message}`;
+    const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
+      ? message
+      : `Error: ${message}`;
     const event = {
       serviceContext: {
         service: errorType,
@@ -173,40 +178,42 @@ function handler(req, res, params) {
       res.sendStatus(statusCodes.ACCEPTED);
     }
 
-    return unminify(stack, version).then((stack) => {
-      if (stack.length) {
-        event.message = event.message + `\n${stack.join('\n')}`;
-      }
+    return unminify(stack, version)
+      .then(stack => {
+        if (stack.length) {
+          event.message = event.message + `\n${stack.join('\n')}`;
+        }
 
-      return new Promise((resolve, reject) => {
-        const entry = log.entry(metaData, event);
+        return new Promise((resolve, reject) => {
+          const entry = log.entry(metaData, event);
 
-        log.write(entry, (err) => {
-          if (debug) {
-            if (err) {
-              res.set('Content-Type', 'text/plain; charset=utf-8');
-              res.status(statusCodes.INTERNAL_SERVER_ERROR);
-              res.send(err.stack);
-            } else {
-              res.set('Content-Type', 'application/json; charset=utf-8');
-              res.status(statusCodes.ACCEPTED);
-              res.send({
-                event: event,
-                metaData: metaData,
-              });
+          log.write(entry, err => {
+            if (debug) {
+              if (err) {
+                res.set('Content-Type', 'text/plain; charset=utf-8');
+                res.status(statusCodes.INTERNAL_SERVER_ERROR);
+                res.send(err.stack);
+              } else {
+                res.set('Content-Type', 'application/json; charset=utf-8');
+                res.status(statusCodes.ACCEPTED);
+                res.send({
+                  event: event,
+                  metaData: metaData,
+                });
+              }
             }
-          }
 
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
         });
+      })
+      .catch(err => {
+        console.error(err);
       });
-    }).catch((err) => {
-      console.error(err);
-    });
   });
 }
 

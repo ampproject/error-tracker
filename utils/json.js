@@ -17,14 +17,18 @@
 const parseJson = require('body/json');
 
 module.exports = function json(req, res, next) {
-  parseJson(req, res, {
-    limit: 10 * 1024, /* 10kb */
-  }, (err, json) => {
-    if (err) {
-      return next(err);
+  parseJson(
+    req,
+    res,
+    {
+      limit: 10 * 1024 /* 10kb */,
+    },
+    (err, json) => {
+      if (err) {
+        return next(err);
+      }
+      req.body = json;
+      next();
     }
-    req.body = json;
-    next();
-  });
+  );
 };
-

@@ -40,9 +40,13 @@ class Cache {
 
     let deleter = this.deleteTriggers_.get(key);
     if (!deleter) {
-      deleter = debounce(() => {
-        this.delete(key);
-      }, this.wait_, {maxWait: this.maxWait_});
+      deleter = debounce(
+        () => {
+          this.delete(key);
+        },
+        this.wait_,
+        { maxWait: this.maxWait_ }
+      );
 
       this.deleteTriggers_.set(key, deleter);
     }

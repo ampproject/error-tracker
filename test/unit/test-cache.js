@@ -30,8 +30,7 @@ describe('Cache cleans up unused entries periodically', () => {
     sandbox.restore();
   });
 
-  class Consumer {
-  }
+  class Consumer {}
   class DestroyConsumer {
     destroy() {}
   }

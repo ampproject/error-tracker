@@ -5,15 +5,12 @@
 
 const fs = require('fs');
 
-const keys = [
-  'amp-error-reporting-ads.json',
-  'amp-error-reporting-users.json',
-];
+const keys = ['amp-error-reporting-ads.json', 'amp-error-reporting-users.json'];
 if (keys.every(k => fs.existsSync(k))) {
   process.exit(0);
 }
 
-const {Storage} = require('@google-cloud/storage');
+const { Storage } = require('@google-cloud/storage');
 const gcs = new Storage({
   projectId: 'amp-error-reporting',
 });
@@ -24,16 +21,20 @@ const downloads = keys.map(key => {
     return;
   }
 
-  return bucket.file(key)
+  return bucket
+    .file(key)
     .download({ destination: key })
-    .then(() => {
-      return true;
-    }, error => {
-      console.error(`Error downloading ${key}`);
-      console.error(error);
-      fs.unlinkSync(key);
-      return false;
-    });
+    .then(
+      () => {
+        return true;
+      },
+      error => {
+        console.error(`Error downloading ${key}`);
+        console.error(error);
+        fs.unlinkSync(key);
+        return false;
+      }
+    );
 });
 
 Promise.all(downloads).then(statuses => {

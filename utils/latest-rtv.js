@@ -36,27 +36,30 @@ module.exports = function() {
         reject(err);
       } else {
         try {
-          const {ampRuntimeVersion, diversions} = JSON.parse(body);
+          const { ampRuntimeVersion, diversions } = JSON.parse(body);
           resolve([ampRuntimeVersion].concat(diversions));
         } catch (e) {
           reject(e);
         }
       }
     });
-  }).catch((err) => {
-    logs.generic.entry({
-      labels: {
-        'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
-      },
-      resource: {
-        type: 'gae_app',
+  }).catch(err => {
+    logs.generic.entry(
+      {
         labels: {
-          module_id: process.env.GAE_SERVICE,
-          version_id: process.env.GAE_VERSION,
+          'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
         },
+        resource: {
+          type: 'gae_app',
+          labels: {
+            module_id: process.env.GAE_SERVICE,
+            version_id: process.env.GAE_VERSION,
+          },
+        },
+        severity: 500, // Error.
       },
-      severity: 500, // Error.
-    }, `failed to fetch RTV metadata: ${err.message}`);
+      `failed to fetch RTV metadata: ${err.message}`
+    );
 
     cache.delete(url);
     return [];

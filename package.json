@@ -13,7 +13,7 @@
     "prestart": "node keys.js",
     "start": "node app.js",
     "deploy": "gcloud app deploy",
-    "lint": "eslint **/*.js",
+    "lint": "prettier '**/*.js' --check",
     "pretest": "npm run lint",
     "test": "mocha test/*.js test/**/*.js"
   },
@@ -32,12 +32,10 @@
     "source-map": "^0.6.1"
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.3",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
-    "eslint": "^4.19.1",
-    "eslint-config-google": "^0.9.1",
     "mocha": "^5.0.0",
+    "prettier": "^1.18.2",
     "sinon": "^6.0.0"
   }
 }

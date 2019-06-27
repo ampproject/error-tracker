@@ -18,7 +18,8 @@ const standardizeStackTrace = require('../../utils/standardize-stack-trace');
 
 describe('standardizeStackTrace', () => {
   describe('with a Chrome stack trace', () => {
-    const frames = standardizeStackTrace(`Error: localStorage not supported.
+    const frames = standardizeStackTrace(
+      `Error: localStorage not supported.
       at Error (native)
       at new vi (https://cdn.ampproject.org/rtv/031496877433269/v0.js:297:149)
       at https://cdn.ampproject.org/rtv/031496877433269/v0.js:298:365
@@ -29,7 +30,8 @@ describe('standardizeStackTrace', () => {
       at pf (https://cdn.ampproject.org/rtv/031496877433269/v0.js:112:409)
       at lf.$d (https://cdn.ampproject.org/rtv/031496877433269/v0.js:115:86)
       at https://cdn.ampproject.org/rtv/031496877433269/v0.js:114:188`,
-      'Error: localStorage not supported.');
+      'Error: localStorage not supported.'
+    );
 
     it('normalizes into 9 frames', () => {
       expect(frames).to.have.length(9);
@@ -53,8 +55,9 @@ describe('standardizeStackTrace', () => {
     it('extracts source locations', () => {
       for (let i = 0; i < frames.length; i++) {
         expect(frames[i].source).to.equal(
-            'https://cdn.ampproject.org/rtv/031496877433269/v0.js',
-            `frame ${i}`);
+          'https://cdn.ampproject.org/rtv/031496877433269/v0.js',
+          `frame ${i}`
+        );
       }
     });
 
@@ -88,14 +91,17 @@ describe('standardizeStackTrace', () => {
         at new v2 (https://cdn.ampproject.org/rtv/031496877433269/v0.js.br:297:149)
       `);
       expect(frames[0].source).to.equal(
-          'https://cdn.ampproject.org/rtv/031496877433269/v0.js');
+        'https://cdn.ampproject.org/rtv/031496877433269/v0.js'
+      );
       expect(frames[1].source).to.equal(
-          'https://cdn.ampproject.org/rtv/031496877433269/v0.js');
+        'https://cdn.ampproject.org/rtv/031496877433269/v0.js'
+      );
     });
   });
 
   describe('with a Safari stack trace', () => {
-    const frames = standardizeStackTrace(`Zd@https://cdn.ampproject.org/v0.js:5:204
+    const frames = standardizeStackTrace(
+      `Zd@https://cdn.ampproject.org/v0.js:5:204
       error@https://cdn.ampproject.org/v0.js:5:314
       jh@https://cdn.ampproject.org/v0.js:237:205
       dc@https://cdn.ampproject.org/v0.js:53:69
@@ -106,7 +112,8 @@ describe('standardizeStackTrace', () => {
       [native code]
       https://cdn.ampproject.org/v0.js:115:170
       promiseReactionJob@[native code]`,
-      'Error doing something');
+      'Error doing something'
+    );
 
     it('normalizes into 9 frames', () => {
       expect(frames).to.have.length(9);
@@ -130,7 +137,9 @@ describe('standardizeStackTrace', () => {
     it('extracts source locations', () => {
       for (let i = 0; i < frames.length; i++) {
         expect(frames[i].source).to.equal(
-            'https://cdn.ampproject.org/v0.js', `frame ${i}`);
+          'https://cdn.ampproject.org/v0.js',
+          `frame ${i}`
+        );
       }
     });
 

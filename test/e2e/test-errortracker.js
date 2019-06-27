@@ -54,21 +54,23 @@ describe('Error Tracker Server', () => {
   })();
 
   function makeGetRequest(referrer, query) {
-    return chai.request(server)
-        .get('/r')
-        .set('Referer', referrer)
-        .set('User-Agent', userAgent)
-        .query(querystring.stringify(makeQuery(query)));
+    return chai
+      .request(server)
+      .get('/r')
+      .set('Referer', referrer)
+      .set('User-Agent', userAgent)
+      .query(querystring.stringify(makeQuery(query)));
   }
   function makePostRequest(type) {
     return function(referrer, query) {
       const q = makeQuery(query);
-      return chai.request(server)
-          .post('/r')
-          .type(type)
-          .set('Referer', referrer)
-          .set('User-Agent', userAgent)
-          .send(type === 'json' ? q : JSON.stringify(q));
+      return chai
+        .request(server)
+        .post('/r')
+        .type(type)
+        .set('Referer', referrer)
+        .set('User-Agent', userAgent)
+        .send(type === 'json' ? q : JSON.stringify(q));
     };
   }
 
@@ -93,18 +95,23 @@ describe('Error Tracker Server', () => {
       ' TWO.inc = function (n) {\n   return n + 1;\n };',
     ],
     sourceRoot: 'https://cdn.ampproject.org',
-    mappings: 'CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;' +
-        'CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
+    mappings:
+      'CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;' +
+      'CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
   function requestFake(url, callback) {
     Promise.resolve().then(() => {
       if (url.endsWith('.map')) {
         callback(null, null, JSON.stringify(rawSourceMap));
       } else {
-        callback(null, null, JSON.stringify({
-          'ampRuntimeVersion': '011830043289240',
-          'diversions': ['001830043289240'],
-        }));
+        callback(
+          null,
+          null,
+          JSON.stringify({
+            ampRuntimeVersion: '011830043289240',
+            diversions: ['001830043289240'],
+          })
+        );
       }
     });
   }
@@ -147,21 +154,21 @@ describe('Error Tracker Server', () => {
     describe(description, () => {
       describe('rejects bad requests', () => {
         it('without referrer', () => {
-          return makeRequest('', knownGoodQuery).then((res) => {
+          return makeRequest('', knownGoodQuery).then(res => {
             expect(res.text).to.equal('Bad Request');
           });
         });
 
         it('without version', () => {
-          const query = Object.assign({}, knownGoodQuery, {version: ''});
-          return makeRequest(referrer, query).then((res) => {
+          const query = Object.assign({}, knownGoodQuery, { version: '' });
+          return makeRequest(referrer, query).then(res => {
             expect(res.text).to.equal('Bad Request');
           });
         });
 
         it('without error message', () => {
-          const query = Object.assign({}, knownGoodQuery, {message: ''});
-          return makeRequest(referrer, query).then((res) => {
+          const query = Object.assign({}, knownGoodQuery, { message: '' });
+          return makeRequest(referrer, query).then(res => {
             expect(res.text).to.equal('Bad Request');
           });
         });
@@ -172,7 +179,7 @@ describe('Error Tracker Server', () => {
             message: 'stop_youtube',
           });
 
-          return makeRequest(referrer, query).then((res) => {
+          return makeRequest(referrer, query).then(res => {
             expect(res.text).to.equal('Bad Request');
           });
         });
@@ -183,7 +190,7 @@ describe('Error Tracker Server', () => {
           version: '$internalRuntimeVersion$',
         });
 
-        return makeRequest(referrer, query).then((res) => {
+        return makeRequest(referrer, query).then(res => {
           expect(res.status).to.equal(statusCodes.OK);
         });
       });
@@ -191,18 +198,20 @@ describe('Error Tracker Server', () => {
       describe('throttling', () => {
         it('does not throttle canary dev errors', () => {
           sandbox.stub(Math, 'random').returns(1);
-          const query = Object.assign({}, knownGoodQuery, {canary: true});
+          const query = Object.assign({}, knownGoodQuery, { canary: true });
 
-          return makeRequest(referrer, query).then((res) => {
+          return makeRequest(referrer, query).then(res => {
             expect(res.status).to.equal(statusCodes.ACCEPTED);
           });
         });
 
         it('does not throttle "control" binary type errors', () => {
           sandbox.stub(Math, 'random').returns(1);
-          const query = Object.assign({}, knownGoodQuery, {binaryType: 'control'});
+          const query = Object.assign({}, knownGoodQuery, {
+            binaryType: 'control',
+          });
 
-          return makeRequest(referrer, query).then((res) => {
+          return makeRequest(referrer, query).then(res => {
             expect(res.status).to.equal(statusCodes.ACCEPTED);
           });
         });
@@ -214,25 +223,29 @@ describe('Error Tracker Server', () => {
             assert: true,
           });
 
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
-            Math.random.returns(0.11);
-            return makeRequest(referrer, query);
-          }).then((res) => {
-            expect(res.status).to.equal(statusCodes.OK);
-          });
+          return makeRequest(referrer, query)
+            .then(res => {
+              expect(res.status).to.equal(statusCodes.ACCEPTED);
+              Math.random.returns(0.11);
+              return makeRequest(referrer, query);
+            })
+            .then(res => {
+              expect(res.status).to.equal(statusCodes.OK);
+            });
         });
 
         it('throttles 90% of dev errors', () => {
           sandbox.stub(Math, 'random').returns(0.1);
 
-          return makeRequest(referrer, knownGoodQuery).then((res) => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
-            Math.random.returns(0.11);
-            return makeRequest(referrer, knownGoodQuery);
-          }).then((res) => {
-            expect(res.status).to.equal(statusCodes.OK);
-          });
+          return makeRequest(referrer, knownGoodQuery)
+            .then(res => {
+              expect(res.status).to.equal(statusCodes.ACCEPTED);
+              Math.random.returns(0.11);
+              return makeRequest(referrer, knownGoodQuery);
+            })
+            .then(res => {
+              expect(res.status).to.equal(statusCodes.OK);
+            });
         });
 
         it('throttles 99% of user errors', () => {
@@ -241,17 +254,18 @@ describe('Error Tracker Server', () => {
             assert: true,
           });
 
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
-            Math.random.returns(0.02);
-            return makeRequest(referrer, query);
-          }).then((res) => {
-            expect(res.status).to.equal(statusCodes.OK);
-          });
+          return makeRequest(referrer, query)
+            .then(res => {
+              expect(res.status).to.equal(statusCodes.ACCEPTED);
+              Math.random.returns(0.02);
+              return makeRequest(referrer, query);
+            })
+            .then(res => {
+              expect(res.status).to.equal(statusCodes.OK);
+            });
         });
 
         describe('handles single pass experiment', () => {
-
           it('should detect single pass type', () => {
             const query = Object.assign({}, knownGoodQuery, {
               stack: '',
@@ -261,8 +275,9 @@ describe('Error Tracker Server', () => {
             });
 
             return makeRequest(referrer, query).then(res => {
-              expect(res.body.event.serviceContext.service)
-                .to.be.equal('default-sp-cdn-1p-canary');
+              expect(res.body.event.serviceContext.service).to.be.equal(
+                'default-sp-cdn-1p-canary'
+              );
             });
           });
 
@@ -275,8 +290,9 @@ describe('Error Tracker Server', () => {
             });
 
             return makeRequest(referrer, query).then(res => {
-              expect(res.body.event.serviceContext.service)
-                .to.be.equal('default-mp-cdn-1p-canary');
+              expect(res.body.event.serviceContext.service).to.be.equal(
+                'default-mp-cdn-1p-canary'
+              );
             });
           });
 
@@ -289,8 +305,9 @@ describe('Error Tracker Server', () => {
             });
 
             return makeRequest(referrer, query).then(res => {
-              expect(res.body.event.serviceContext.service)
-                .to.be.equal('default-esm-cdn-1p-canary');
+              expect(res.body.event.serviceContext.service).to.be.equal(
+                'default-esm-cdn-1p-canary'
+              );
             });
           });
 
@@ -303,11 +320,11 @@ describe('Error Tracker Server', () => {
             });
 
             return makeRequest(referrer, query).then(res => {
-              expect(res.body.event.serviceContext.service)
-                .to.be.equal('default-cdn-1p-canary');
+              expect(res.body.event.serviceContext.service).to.be.equal(
+                'default-cdn-1p-canary'
+              );
             });
           });
-
         });
 
         describe('handles binary type and canary flags', () => {
@@ -323,8 +340,9 @@ describe('Error Tracker Server', () => {
             });
 
             return makeRequest(referrer, query).then(res => {
-              expect(res.body.event.serviceContext.service)
-                .to.be.equal('default-cdn-1p-canary');
+              expect(res.body.event.serviceContext.service).to.be.equal(
+                'default-cdn-1p-canary'
+              );
             });
           });
 
@@ -337,8 +355,9 @@ describe('Error Tracker Server', () => {
               binaryType: 'production',
             });
             return makeRequest(referrer, query).then(res => {
-              expect(res.body.event.serviceContext.service)
-                .to.be.equal('default-cdn-1p');
+              expect(res.body.event.serviceContext.service).to.be.equal(
+                'default-cdn-1p'
+              );
             });
           });
 
@@ -349,8 +368,9 @@ describe('Error Tracker Server', () => {
               binaryType: 'hello-world',
             });
             return makeRequest(referrer, query).then(res => {
-              expect(res.body.event.serviceContext.service)
-                .to.be.equal('default-cdn-1p-hello-world');
+              expect(res.body.event.serviceContext.service).to.be.equal(
+                'default-cdn-1p-hello-world'
+              );
             });
           });
         });
@@ -368,12 +388,12 @@ describe('Error Tracker Server', () => {
           });
 
           it('logs http request', () => {
-            return makeRequest(referrer, query).then((res) => {
-              const {httpRequest} = res.body.event.context;
+            return makeRequest(referrer, query).then(res => {
+              const { httpRequest } = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
-                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-                '&s=&debug=1'
+                  'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                  '&s=&debug=1'
               );
               expect(httpRequest.userAgent).to.be.equal(userAgent);
               expect(httpRequest.referrer).to.be.equal(referrer);
@@ -381,29 +401,31 @@ describe('Error Tracker Server', () => {
           });
 
           it('logs missing stack trace', () => {
-            return makeRequest(referrer, query).then((res) => {
+            return makeRequest(referrer, query).then(res => {
               expect(res.body.event.message).to.be.equal(
                 `Error: ${query.message}\n    at ` +
-                'the-object-does-not-support-the-operation-or-argument.js:1:1');
+                  'the-object-does-not-support-the-operation-or-argument.js:1:1'
+              );
             });
           });
         });
 
         describe('safari stack traces', () => {
           const query = Object.assign({}, knownGoodQuery, {
-            stack: 't@https://cdn.ampproject.org/v0.js:1:18\n' +
-            'https://cdn.ampproject.org/v0.js:2:18',
+            stack:
+              't@https://cdn.ampproject.org/v0.js:1:18\n' +
+              'https://cdn.ampproject.org/v0.js:2:18',
             debug: true,
           });
 
           it('logs http request', () => {
-            return makeRequest(referrer, query).then((res) => {
-              const {httpRequest} = res.body.event.context;
+            return makeRequest(referrer, query).then(res => {
+              const { httpRequest } = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
-                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-                '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
-                'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
+                  'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                  '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
+                  'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
               );
               expect(httpRequest.userAgent).to.be.equal(userAgent);
               expect(httpRequest.referrer).to.be.equal(referrer);
@@ -412,11 +434,12 @@ describe('Error Tracker Server', () => {
 
           describe('when unminification fails', () => {
             it('logs full error', () => {
-              return makeRequest(referrer, query).then((res) => {
+              return makeRequest(referrer, query).then(res => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
-                  '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-                  '    at https://cdn.ampproject.org/v0.js:2:18');
+                    '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                    '    at https://cdn.ampproject.org/v0.js:2:18'
+                );
               });
             });
           });
@@ -427,11 +450,12 @@ describe('Error Tracker Server', () => {
             });
 
             it('logs full error', () => {
-              return makeRequest(referrer, query).then((res) => {
+              return makeRequest(referrer, query).then(res => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
-                  '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
-                  '    at n (https://cdn.ampproject.org/two.js:1:21)');
+                    '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
+                    '    at n (https://cdn.ampproject.org/two.js:1:21)'
+                );
               });
             });
           });
@@ -439,22 +463,23 @@ describe('Error Tracker Server', () => {
 
         describe('chrome stack traces', () => {
           const query = Object.assign({}, knownGoodQuery, {
-            stack: `${knownGoodQuery.message}\n` +
-            '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-            '    at https://cdn.ampproject.org/v0.js:2:18',
+            stack:
+              `${knownGoodQuery.message}\n` +
+              '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+              '    at https://cdn.ampproject.org/v0.js:2:18',
             debug: true,
           });
 
           it('logs http request', () => {
-            return makeRequest(referrer, query).then((res) => {
-              const {httpRequest} = res.body.event.context;
+            return makeRequest(referrer, query).then(res => {
+              const { httpRequest } = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
-                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-                '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
-                '%20argument.%0A%20%20%20%20at%20t%20(https%3A%2F%2Fcdn.ampproject.org' +
-                '%2Fv0.js%3A1%3A18)%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
-                'org%2Fv0.js%3A2%3A18&debug=1'
+                  'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                  '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
+                  '%20argument.%0A%20%20%20%20at%20t%20(https%3A%2F%2Fcdn.ampproject.org' +
+                  '%2Fv0.js%3A1%3A18)%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
+                  'org%2Fv0.js%3A2%3A18&debug=1'
               );
               expect(httpRequest.userAgent).to.be.equal(userAgent);
               expect(httpRequest.referrer).to.be.equal(referrer);
@@ -463,11 +488,12 @@ describe('Error Tracker Server', () => {
 
           describe('when unminification fails', () => {
             it('logs full error', () => {
-              return makeRequest(referrer, query).then((res) => {
+              return makeRequest(referrer, query).then(res => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
-                  '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-                  '    at https://cdn.ampproject.org/v0.js:2:18');
+                    '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                    '    at https://cdn.ampproject.org/v0.js:2:18'
+                );
               });
             });
           });
@@ -478,11 +504,12 @@ describe('Error Tracker Server', () => {
             });
 
             it('logs full error', () => {
-              return makeRequest(referrer, query).then((res) => {
+              return makeRequest(referrer, query).then(res => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
-                  '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
-                  '    at n (https://cdn.ampproject.org/two.js:1:21)');
+                    '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
+                    '    at n (https://cdn.ampproject.org/two.js:1:21)'
+                );
               });
             });
           });

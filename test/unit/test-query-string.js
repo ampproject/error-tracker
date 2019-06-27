@@ -32,7 +32,7 @@ describe('Query String', () => {
     it('does not strip leading `?`', () => {
       const params = parse('?foo=123');
       expect(params['?foo']).to.equal('123');
-    })
+    });
 
     it('does not decode name', () => {
       const params = parse('fo%20o=123');
@@ -74,37 +74,37 @@ describe('Query String', () => {
 
   describe('stringify', () => {
     it('builds query string', () => {
-      const result = stringify({test: 'value'});
+      const result = stringify({ test: 'value' });
       expect(result).to.equal('test=value');
     });
 
     it('does not prepend "?"', () => {
-      const result = stringify({test: 'value'});
+      const result = stringify({ test: 'value' });
       expect(result.startsWith('?')).to.equal(false);
     });
 
     it('joins multiple params with "&"', () => {
-      const result = stringify({test: 'value', next: 'next'});
+      const result = stringify({ test: 'value', next: 'next' });
       expect(result).to.equal('test=value&next=next');
     });
 
     it('leaves empty value for empty strings', () => {
-      const result = stringify({test: ''});
+      const result = stringify({ test: '' });
       expect(result).to.equal('test=');
     });
 
     it('encodes keys', () => {
-      const result = stringify({'te st': 'value'});
+      const result = stringify({ 'te st': 'value' });
       expect(result).to.equal('te%20st=value');
     });
 
     it('encodes values', () => {
-      const result = stringify({test: 'val ue'});
+      const result = stringify({ test: 'val ue' });
       expect(result).to.equal('test=val%20ue');
     });
 
     it('iterates enumerable properties', () => {
-      const obj = {test: 'value'};
+      const obj = { test: 'value' };
       Object.defineProperty(obj, 'next', {
         value: 'next',
       });
