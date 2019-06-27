@@ -13,7 +13,7 @@
     "prestart": "node keys.js",
     "start": "node app.js",
     "deploy": "gcloud app deploy",
-    "lint": "prettier '**/*.js' --check",
+    "lint": "prettier '**/*.js' --check --config ./.prettierrc.json",
     "pretest": "npm run lint",
     "test": "mocha test/*.js test/**/*.js"
   },
