@@ -44,7 +44,7 @@ module.exports = function() {
       }
     });
   }).catch(err => {
-    logs.generic.entry(
+    const entry = logs.generic.entry(
       {
         labels: {
           'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
@@ -60,6 +60,9 @@ module.exports = function() {
       },
       `failed to fetch RTV metadata: ${err.message}`
     );
+    logs.generic.write(entry, err => {
+      console.error(err);
+    });
 
     cache.delete(url);
     return [];
