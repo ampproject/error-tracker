@@ -130,10 +130,43 @@ function getSourceMapFromNetwork(url) {
         }
       }
     });
-  }).then(consumer => {
-    sourceMapConsumerCache.set(url, consumer);
-    return consumer;
-  });
+  }).then(
+    consumer => {
+      sourceMapConsumerCache.set(url, consumer);
+      return consumer;
+    },
+    err => {
+      const entry = logs.generic.entry(
+        {
+          labels: {
+            'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
+          },
+          resource: {
+            type: 'gae_app',
+            labels: {
+              module_id: process.env.GAE_SERVICE,
+              version_id: process.env.GAE_VERSION,
+            },
+          },
+          severity: 500, // Error.
+        },
+        {
+          message: 'failed retrieving source map',
+          context: {
+            url,
+            message: err.message,
+            stack: err.stack,
+          },
+        }
+      );
+      logs.generic.write(entry, writeErr => {
+        if (writeErr) {
+          console.error(writeErr);
+        }
+      });
+      throw err;
+    }
+  );
 
   requestCache.set(url, reqPromise);
   return reqPromise;
