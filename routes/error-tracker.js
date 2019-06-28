@@ -187,12 +187,12 @@ function handler(req, res, params) {
         return new Promise((resolve, reject) => {
           const entry = log.entry(metaData, event);
 
-          log.write(entry, err => {
+          log.write(entry, writeErr => {
             if (debug) {
-              if (err) {
+              if (writeErr) {
                 res.set('Content-Type', 'text/plain; charset=utf-8');
                 res.status(statusCodes.INTERNAL_SERVER_ERROR);
-                res.send(err.stack);
+                res.send(writeErr.stack);
               } else {
                 res.set('Content-Type', 'application/json; charset=utf-8');
                 res.status(statusCodes.ACCEPTED);
@@ -203,8 +203,8 @@ function handler(req, res, params) {
               }
             }
 
-            if (err) {
-              reject(err);
+            if (writeErr) {
+              reject(writeErr);
             } else {
               resolve();
             }

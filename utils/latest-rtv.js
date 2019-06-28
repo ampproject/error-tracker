@@ -60,8 +60,10 @@ module.exports = function() {
       },
       `failed to fetch RTV metadata: ${err.message}`
     );
-    logs.generic.write(entry, err => {
-      console.error(err);
+    logs.generic.write(entry, writeErr => {
+      if (writeErr) {
+        console.error(writeErr);
+      }
     });
 
     cache.delete(url);

@@ -18,22 +18,22 @@
  * @fileoverview exports log object to enable stubbing of write method
  */
 
-const logging = require('@google-cloud/logging');
+const { Logging } = require('@google-cloud/logging');
 
-exports.generic = logging({
+exports.generic = new Logging({
   projectId: 'amp-error-reporting',
 }).log('stderr');
 
-exports.errors = logging({
+exports.errors = new Logging({
   projectId: 'amp-error-reporting',
 }).log('javascript.errors');
 
-exports.users = logging({
+exports.users = new Logging({
   projectId: 'amp-error-reporting-user',
   keyFilename: 'amp-error-reporting-users.json',
 }).log('javascript.errors');
 
-exports.ads = logging({
+exports.ads = new Logging({
   projectId: 'amp-error-reporting-ads',
   keyFilename: 'amp-error-reporting-ads.json',
 }).log('javascript.errors');

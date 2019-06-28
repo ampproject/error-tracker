@@ -101,8 +101,10 @@ function read(req, res) {
         },
       }
     );
-    logs.generic.write(entry, err => {
-      console.error(err);
+    logs.generic.write(entry, writeErr => {
+      if (writeErr) {
+        console.error(writeErr);
+      }
     });
   }
 }
