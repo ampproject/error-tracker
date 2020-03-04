@@ -36,8 +36,15 @@ module.exports = function() {
         reject(err);
       } else {
         try {
-          const { ampRuntimeVersion, diversions } = JSON.parse(body);
-          resolve([ampRuntimeVersion].concat(diversions));
+          const {
+            ampRuntimeVersion,
+            ltsRuntimeVersion,
+            diversions,
+          } = JSON.parse(body);
+          const versions = [ampRuntimeVersion, ltsRuntimeVersion]
+            .concat(diversions)
+            .filter(Boolean);
+          resolve(versions);
         } catch (e) {
           reject(e);
         }
