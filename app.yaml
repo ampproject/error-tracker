@@ -6,3 +6,7 @@ automatic_scaling:
   max_num_instances: 100
   cpu_utilization:
     target_utilization: 0.8
+liveness_check:
+  path: "/_ah/health"
+readiness_check:
+  path: "/_ah/health"
