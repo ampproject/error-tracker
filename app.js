@@ -28,7 +28,7 @@ app.set('etag', false);
 app.set('trust proxy', true);
 app.set('query parser', querystring.parse);
 
-app.get('/_ah/health', function(req, res) {
+app.get(['/readiness_check', '/liveness_check', '_ah/health'], function(req, res) {
   res.sendStatus(statusCodes.OK);
 });
 
