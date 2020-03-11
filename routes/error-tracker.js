@@ -136,7 +136,7 @@ function handler(req, res, params) {
     const event = {
       serviceContext: {
         service: errorType,
-        version: version,
+        version: logTarget.versionId,
       },
       message: normalizedMessage,
       context: {

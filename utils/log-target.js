@@ -40,4 +40,11 @@ module.exports = class LoggingTarget {
 
     return logs.errors;
   }
+
+  /** Determine the version identifier to report to Stackdriver logging. */
+  get versionId() {
+    // Report the RTV.
+    // TODO: Make this a more readable string.
+    return this.opts.version;
+  }
 };

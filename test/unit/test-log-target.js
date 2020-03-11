@@ -37,7 +37,7 @@ describe('log target', () => {
       singlePassType: undefined,
       stacktrace: 'Error: Something is borked!\n  at Error(<anonymous>)',
       thirdParty: false,
-      version: 123456789,
+      version: '123456789',
     };
   });
 
@@ -67,6 +67,13 @@ describe('log target', () => {
       reportingParams.assert = true;
       const logTarget = new LogTarget(referrer, reportingParams);
       expect(logTarget.log).to.equal(logs.users);
+    });
+  });
+
+  describe('versionId', () => {
+    it('returns the release version number', () => {
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.versionId).to.equal('123456789');
     });
   });
 });
