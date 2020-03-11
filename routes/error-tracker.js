@@ -77,53 +77,34 @@ function handler(req, res, params) {
       res.sendStatus(statusCodes.BAD_REQUEST);
       return null;
     }
-
-    const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
-      ? message
-      : `Error: ${message}`;
-    const event = {
-      serviceContext: {
-        service: logTarget.serviceName,
-        version: logTarget.versionId,
-      },
-      message: normalizedMessage,
-      context: {
-        httpRequest: {
-          method: req.method,
-          url: req.originalUrl,
-          userAgent: req.get('User-Agent'),
-          referrer: referrer,
-        },
-      },
-    };
-
-    if (req.method === 'POST') {
-      event.context.httpRequest.url += `?${queryString}`;
-    }
-
-    const metaData = {
-      labels: {
-        'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
-      },
-      resource: {
-        type: 'gae_app',
-        labels: {
-          module_id: process.env.GAE_SERVICE,
-          version_id: process.env.GAE_VERSION,
-        },
-      },
-      severity: 500, // Error.
-    };
-
     if (!debug) {
       res.sendStatus(statusCodes.ACCEPTED);
     }
 
     return unminify(stack, version)
       .then(stack => {
-        if (stack.length) {
-          event.message = event.message + `\n${stack.join('\n')}`;
-        }
+        const reqUrl =
+          req.method === 'POST'
+            ? `${req.originalUrl}?${queryString}`
+            : req.originalUrl;
+        const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
+          ? message
+          : `Error: ${message}`;
+        const event = {
+          serviceContext: {
+            service: logTarget.serviceName,
+            version: logTarget.versionId,
+          },
+          message: [normalizedMessage, ...stack].join('\n'),
+          context: {
+            httpRequest: {
+              method: req.method,
+              url: reqUrl,
+              userAgent: req.get('User-Agent'),
+              referrer: referrer,
+            },
+          },
+        };
 
         return new Promise((resolve, reject) => {
           const entry = logTarget.log.entry(GAE_METADATA, event);
