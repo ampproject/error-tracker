@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-const unminify = require('../../utils/unminify');
+const unminify = require('../../utils/stacktrace/unminify');
 const Request = require('../../utils/requests/request');
-const Frame = require('../../utils/frame');
+const Frame = require('../../utils/stacktrace/frame');
 
 describe('unminify', () => {
   // https://github.com/mozilla/source-map/blob/75663e0187002920ad98ed1de21e54cb85114609/test/util.js#L161-L176

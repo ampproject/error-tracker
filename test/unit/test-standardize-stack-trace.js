@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const standardizeStackTrace = require('../../utils/standardize-stack-trace');
+const standardizeStackTrace = require('../../utils/stacktrace/standardize-stack-trace');
 
 describe('standardizeStackTrace', () => {
   describe('with a Chrome stack trace', () => {
