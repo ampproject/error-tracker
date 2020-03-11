@@ -70,6 +70,46 @@ describe('log target', () => {
     });
   });
 
+  describe('serviceName', () => {
+    describe('for CDN referrers', () => {
+      [
+        'https://cdn.ampproject.org/mywebsite.com/index.html',
+        'https://mywebsite-com.cdn.ampproject.org/index.html',
+        'https://mywebsite-com.ampproject.net/index.html',
+      ].forEach(referrer => {
+        it(`records "cdn" for ${referrer}`, () => {
+          const logTarget = new LogTarget(referrer, reportingParams);
+          expect(logTarget.serviceName).to.contain('-cdn-');
+        });
+      });
+    });
+
+    describe('for origin referrers', () => {
+      const serviceParams = {
+        'default-origin-1p-canary': { binaryType: '', canary: true },
+        'default-origin-1p-user': { assert: true },
+        'default-origin-1p-expected': { expected: true },
+        'default-origin-3p': { runtime: '', thirdParty: true },
+        'default-origin-3p-experimental-expected': {
+          runtime: '3p',
+          binaryType: 'experimental',
+          expected: true,
+        },
+      };
+
+      for (const [expectedName, params] of Object.entries(serviceParams)) {
+        it(`correctly constructs "${expectedName}`, () => {
+          const logTarget = new LogTarget(
+            referrer,
+            Object.assign(reportingParams, params)
+          );
+
+          expect(logTarget.serviceName).to.equal(expectedName);
+        });
+      }
+    });
+  });
+
   describe('versionId', () => {
     it('returns the release version number', () => {
       const logTarget = new LogTarget(referrer, reportingParams);

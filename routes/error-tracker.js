@@ -61,12 +61,6 @@ function handler(req, res, params) {
     return null;
   }
 
-  let errorType = 'default';
-
-  if (singlePassType) {
-    errorType += `-${singlePassType}`;
-  }
-
   let throttleRate =
     canary || binaryType === 'control' || binaryType === 'rc' ? 1 : 0.1;
   if (assert) {
@@ -79,37 +73,14 @@ function handler(req, res, params) {
   // if request comes from the cache and thus only from valid
   // AMP docs we log as "Error"
   if (
-    referrer.startsWith('https://cdn.ampproject.org/') ||
-    referrer.includes('.cdn.ampproject.org/') ||
-    referrer.includes('.ampproject.net/')
+    !referrer.startsWith('https://cdn.ampproject.org/') &&
+    !referrer.includes('.cdn.ampproject.org/') &&
+    !referrer.includes('.ampproject.net/')
   ) {
-    errorType += '-cdn';
-  } else {
-    errorType += '-origin';
     throttleRate /= 20;
   }
 
-  if (runtime) {
-    errorType += '-' + runtime;
-  } else if (thirdParty) {
-    errorType += '-3p';
-  } else {
-    errorType += '-1p';
-  }
-
-  // Do not append binary type if 'production' since that is the default
-  if (binaryType) {
-    if (binaryType !== 'production') {
-      errorType += `-${binaryType}`;
-    }
-  } else if (canary) {
-    errorType += '-canary';
-  }
-  if (assert) {
-    errorType += '-user';
-  }
   if (expected) {
-    errorType += '-expected';
     throttleRate /= 10;
   }
 
@@ -135,7 +106,7 @@ function handler(req, res, params) {
       : `Error: ${message}`;
     const event = {
       serviceContext: {
-        service: errorType,
+        service: logTarget.serviceName,
         version: logTarget.versionId,
       },
       message: normalizedMessage,

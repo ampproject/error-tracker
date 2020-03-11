@@ -20,6 +20,11 @@
 
 const logs = require('./log');
 
+const CDN_REGEX = new RegExp(
+  '^https://cdn.ampproject.org/|.cdn.ampproject.org/|.ampproject.net/',
+  'i'
+);
+
 module.exports = class LoggingTarget {
   constructor(referrer, reportingParams) {
     this.opts = { referrer, ...reportingParams };
@@ -39,6 +44,44 @@ module.exports = class LoggingTarget {
     }
 
     return logs.errors;
+  }
+
+  /** Construct the service bucket name for Stackdriver logging. */
+  get serviceName() {
+    // TODO: Drastically reduce combinatoral explosion of buckets.
+    const name = ['default'];
+
+    if (this.opts.singlePassType) {
+      name.push(this.opts.singlePassType);
+    }
+    name.push(CDN_REGEX.test(this.opts.referrer) ? 'cdn' : 'origin');
+
+    if (this.opts.runtime) {
+      name.push(this.opts.runtime);
+    } else if (this.opts.thirdParty) {
+      name.push('3p');
+    } else {
+      name.push('1p');
+    }
+
+    // Do not append binary type if 'production' since that is the default
+    if (this.opts.binaryType) {
+      if (this.opts.binaryType !== 'production') {
+        name.push(this.opts.binaryType);
+      }
+    } else if (this.opts.canary) {
+      name.push('canary');
+    }
+
+    if (this.opts.assert) {
+      name.push('user');
+    }
+
+    if (this.opts.expected) {
+      name.push('expected');
+    }
+
+    return name.join('-');
   }
 
   /** Determine the version identifier to report to Stackdriver logging. */
