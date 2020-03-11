@@ -90,4 +90,33 @@ module.exports = class LoggingTarget {
     // TODO: Make this a more readable string.
     return this.opts.version;
   }
+
+  /** Determine throttle level for error type. */
+  get throttleRate() {
+    let throttleRate = 1;
+
+    // Throttle errors from Stable.
+    if (
+      !this.opts.canary &&
+      !['control', 'rc'].includes(this.opts.binaryType)
+    ) {
+      throttleRate /= 10;
+    }
+
+    // Throttle user errors.
+    if (this.opts.assert) {
+      throttleRate /= 10;
+    }
+
+    // Throttle errors on origin pages; they may not be valid AMP docs.
+    if (!CDN_REGEX.test(this.opts.referrer)) {
+      throttleRate /= 20;
+    }
+
+    if (this.opts.expected) {
+      throttleRate /= 10;
+    }
+
+    return throttleRate;
+  }
 };

@@ -61,30 +61,9 @@ function handler(req, res, params) {
     return null;
   }
 
-  let throttleRate =
-    canary || binaryType === 'control' || binaryType === 'rc' ? 1 : 0.1;
-  if (assert) {
-    throttleRate /= 10;
-  }
-
   const logTarget = new LogTarget(referrer, reportingParams);
-  const log = logTarget.log;
 
-  // if request comes from the cache and thus only from valid
-  // AMP docs we log as "Error"
-  if (
-    !referrer.startsWith('https://cdn.ampproject.org/') &&
-    !referrer.includes('.cdn.ampproject.org/') &&
-    !referrer.includes('.ampproject.net/')
-  ) {
-    throttleRate /= 20;
-  }
-
-  if (expected) {
-    throttleRate /= 10;
-  }
-
-  if (Math.random() > throttleRate) {
+  if (Math.random() > logTarget.throttleRate) {
     res.sendStatus(statusCodes.OK);
     return null;
   }
@@ -149,9 +128,9 @@ function handler(req, res, params) {
         }
 
         return new Promise((resolve, reject) => {
-          const entry = log.entry(metaData, event);
+          const entry = logTarget.log.entry(metaData, event);
 
-          log.write(entry, writeErr => {
+          logTarget.log.write(entry, writeErr => {
             if (debug) {
               if (writeErr) {
                 res.set('Content-Type', 'text/plain; charset=utf-8');

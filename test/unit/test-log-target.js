@@ -98,7 +98,7 @@ describe('log target', () => {
       };
 
       for (const [expectedName, params] of Object.entries(serviceParams)) {
-        it(`correctly constructs "${expectedName}`, () => {
+        it(`correctly constructs "${expectedName}"`, () => {
           const logTarget = new LogTarget(
             referrer,
             Object.assign(reportingParams, params)
@@ -114,6 +114,62 @@ describe('log target', () => {
     it('returns the release version number', () => {
       const logTarget = new LogTarget(referrer, reportingParams);
       expect(logTarget.versionId).to.equal('123456789');
+    });
+  });
+
+  describe('throttleRate', () => {
+    beforeEach(() => {
+      referrer = 'https://cdn.ampproject.org/mywebsite.com/index.html';
+    });
+
+    it('throttles Stable by a factor of 10', () => {
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1 / 10, 1e-6);
+    });
+
+    it('does not throttle canary', () => {
+      reportingParams.canary = true;
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1, 1e-6);
+    });
+
+    it('does not throttle Control', () => {
+      reportingParams.binaryType = 'control';
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1, 1e-6);
+    });
+
+    it('does not throttle RC', () => {
+      reportingParams.binaryType = 'rc';
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1, 1e-6);
+    });
+
+    it('throttles user errors by a factor of 10', () => {
+      reportingParams.assert = true;
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1 / 100, 1e-6);
+    });
+
+    it('throttles errors from origin pages by a factor of 20', () => {
+      referrer = 'https://myrandomwebsite.com';
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1 / 200, 1e-6);
+    });
+
+    it('throttles expected errors by a factor of 10', () => {
+      reportingParams.expected = true;
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1 / 100, 1e-6);
+    });
+
+    it('throttles expected user errors in RC on origin by 2000', () => {
+      referrer = 'https://myrandomwebsite.com';
+      reportingParams.assert = true;
+      reportingParams.binaryType = 'rc';
+      reportingParams.expected = true;
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1 / 2000, 1e-6);
     });
   });
 });
