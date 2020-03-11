@@ -17,7 +17,7 @@
  * to prevent reports for old errors from getting through.
  */
 
-const Request = require('./request');
+const Request = require('./requests/request');
 const Cache = require('./cache');
 const logs = require('./log');
 

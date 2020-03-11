@@ -19,7 +19,7 @@
  */
 
 const sourceMap = require('source-map');
-const Request = require('./request');
+const Request = require('./requests/request');
 const Cache = require('./cache');
 const Frame = require('./frame');
 const twoWeeks = 2 * 7 * 24 * 60 * 60 * 1000;

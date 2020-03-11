@@ -15,7 +15,7 @@
  */
 
 const unminify = require('../../utils/unminify');
-const Request = require('../../utils/request');
+const Request = require('../../utils/requests/request');
 const Frame = require('../../utils/frame');
 
 describe('unminify', () => {

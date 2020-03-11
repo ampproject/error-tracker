@@ -24,7 +24,7 @@ const logs = require('../utils/log');
 const standardizeStackTrace = require('../utils/standardize-stack-trace');
 const ignoreMessageOrException = require('../utils/should-ignore');
 const unminify = require('../utils/unminify');
-const querystring = require('../utils/query-string');
+const querystring = require('../utils/requests/query-string');
 const latestRtv = require('../utils/latest-rtv');
 
 /**
