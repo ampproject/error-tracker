@@ -37,33 +37,17 @@ const latestRtv = require('../utils/latest-rtv');
 function handler(req, res, params) {
   const referrer = req.get('Referrer');
   const reportingParams = extractReportingParams(params);
-  const {
-    assert,
-    binaryType,
-    canary,
-    debug,
-    expected,
-    message,
-    queryString,
-    runtime,
-    singlePassType,
-    stacktrace,
-    thirdParty,
-    version,
-  } = reportingParams;
+  const { debug, message, queryString, stacktrace, version } = reportingParams;
+  const logTarget = new LogTarget(referrer, reportingParams);
 
   if (!referrer || !version || !message) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
-  if (version.includes('internalRuntimeVersion')) {
-    res.sendStatus(statusCodes.OK);
-    return null;
-  }
-
-  const logTarget = new LogTarget(referrer, reportingParams);
-
-  if (Math.random() > logTarget.throttleRate) {
+  if (
+    version.includes('internalRuntimeVersion') ||
+    Math.random() > logTarget.throttleRate
+  ) {
     res.sendStatus(statusCodes.OK);
     return null;
   }
