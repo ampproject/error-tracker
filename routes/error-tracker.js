@@ -20,7 +20,7 @@
 
 const statusCodes = require('http-status-codes');
 const extractReportingParams = require('../utils/requests/extract-reporting-params');
-const logs = require('../utils/log');
+const LogTarget = require('../utils/log-target');
 const standardizeStackTrace = require('../utils/stacktrace/standardize-stack-trace');
 const ignoreMessageOrException = require('../utils/stacktrace/should-ignore');
 const unminify = require('../utils/stacktrace/unminify');
@@ -36,6 +36,7 @@ const latestRtv = require('../utils/latest-rtv');
  */
 function handler(req, res, params) {
   const referrer = req.get('Referrer');
+  const reportingParams = extractReportingParams(params);
   const {
     assert,
     binaryType,
@@ -49,7 +50,7 @@ function handler(req, res, params) {
     stacktrace,
     thirdParty,
     version,
-  } = extractReportingParams(params);
+  } = reportingParams;
 
   if (!referrer || !version || !message) {
     res.sendStatus(statusCodes.BAD_REQUEST);
@@ -72,15 +73,8 @@ function handler(req, res, params) {
     throttleRate /= 10;
   }
 
-  let log = logs.errors;
-  if (
-    runtime === 'inabox' ||
-    message.includes('Signing service error for google')
-  ) {
-    log = logs.ads;
-  } else if (assert) {
-    log = logs.users;
-  }
+  const logTarget = new LogTarget(referrer, reportingParams);
+  const log = logTarget.log;
 
   // if request comes from the cache and thus only from valid
   // AMP docs we log as "Error"
