@@ -40,6 +40,19 @@ const GAE_METADATA = {
   severity: 500, // Error.
 };
 
+/** Logs an event to Stackdriver. */
+function logEvent(log, event) {
+  return new Promise((resolve, reject) => {
+    log.write(log.entry(GAE_METADATA, event), writeErr => {
+      if (writeErr) {
+        reject(writeErr);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 /**
  * Extracts relevant information from request, handles edge cases and prepares
  * entry object to be logged and sends it to unminification.
@@ -105,33 +118,27 @@ function handler(req, res, params) {
             },
           },
         };
+        const logPromise = logEvent(logTarget.log, event);
 
-        return new Promise((resolve, reject) => {
-          const entry = logTarget.log.entry(GAE_METADATA, event);
+        // TODO(#102): Investigate if this can ever be set, and remove if not.
+        if (debug) {
+          return logPromise
+            .then(() => {
+              console.log('THEN');
+              res.set('Content-Type', 'application/json; charset=utf-8');
+              res.status(statusCodes.ACCEPTED);
+              res.send({ event, metaData: GAE_METADATA });
+            })
+            .catch(writeErr => {
+              console.log('CATCH');
+              res.set('Content-Type', 'text/plain; charset=utf-8');
+              res.status(statusCodes.INTERNAL_SERVER_ERROR);
+              res.send(writeErr.stack);
+              return Promise.reject(writeErr);
+            });
+        }
 
-          logTarget.log.write(entry, writeErr => {
-            if (debug) {
-              if (writeErr) {
-                res.set('Content-Type', 'text/plain; charset=utf-8');
-                res.status(statusCodes.INTERNAL_SERVER_ERROR);
-                res.send(writeErr.stack);
-              } else {
-                res.set('Content-Type', 'application/json; charset=utf-8');
-                res.status(statusCodes.ACCEPTED);
-                res.send({
-                  event: event,
-                  metaData: GAE_METADATA,
-                });
-              }
-            }
-
-            if (writeErr) {
-              reject(writeErr);
-            } else {
-              resolve();
-            }
-          });
-        });
+        return logPromise;
       })
       .catch(err => {
         console.error(err);
