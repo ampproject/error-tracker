@@ -19,12 +19,11 @@
  */
 
 const statusCodes = require('http-status-codes');
-const safeDecodeURIComponent = require('safe-decode-uri-component');
+const extractReportingParams = require('../utils/requests/extract-reporting-params');
 const logs = require('../utils/log');
 const standardizeStackTrace = require('../utils/stacktrace/standardize-stack-trace');
 const ignoreMessageOrException = require('../utils/stacktrace/should-ignore');
 const unminify = require('../utils/stacktrace/unminify');
-const querystring = require('../utils/requests/query-string');
 const latestRtv = require('../utils/latest-rtv');
 
 /**
@@ -37,8 +36,20 @@ const latestRtv = require('../utils/latest-rtv');
  */
 function handler(req, res, params) {
   const referrer = req.get('Referrer');
-  const version = params.v;
-  const message = safeDecodeURIComponent(params.m || '');
+  const {
+    assert,
+    binaryType,
+    canary,
+    debug,
+    expected,
+    message,
+    queryString,
+    runtime,
+    singlePassType,
+    stacktrace,
+    thirdParty,
+    version,
+  } = extractReportingParams(params);
 
   if (!referrer || !version || !message) {
     res.sendStatus(statusCodes.BAD_REQUEST);
@@ -48,15 +59,6 @@ function handler(req, res, params) {
     res.sendStatus(statusCodes.OK);
     return null;
   }
-
-  const runtime = params.rt;
-  const assert = params.a === '1';
-  const canary = params.ca === '1';
-  const binaryType = params.bt || '';
-  const expected = params.ex === '1';
-  const debug = params.debug === '1';
-  const thirdParty = params['3p'] === '1';
-  const singlePassType = params.spt;
 
   let errorType = 'default';
 
@@ -128,10 +130,7 @@ function handler(req, res, params) {
       return null;
     }
 
-    const stack = standardizeStackTrace(
-      safeDecodeURIComponent(params.s || ''),
-      message
-    );
+    const stack = standardizeStackTrace(stacktrace, message);
     if (ignoreMessageOrException(message, stack)) {
       res.sendStatus(statusCodes.BAD_REQUEST);
       return null;
@@ -157,7 +156,7 @@ function handler(req, res, params) {
     };
 
     if (req.method === 'POST') {
-      event.context.httpRequest.url += '?' + querystring.stringify(params);
+      event.context.httpRequest.url += `?${queryString}`;
     }
 
     const metaData = {
