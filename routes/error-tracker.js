@@ -26,6 +26,20 @@ const ignoreMessageOrException = require('../utils/stacktrace/should-ignore');
 const unminify = require('../utils/stacktrace/unminify');
 const latestRtv = require('../utils/latest-rtv');
 
+const GAE_METADATA = {
+  labels: {
+    'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
+  },
+  resource: {
+    type: 'gae_app',
+    labels: {
+      module_id: process.env.GAE_SERVICE,
+      version_id: process.env.GAE_VERSION,
+    },
+  },
+  severity: 500, // Error.
+};
+
 /**
  * Extracts relevant information from request, handles edge cases and prepares
  * entry object to be logged and sends it to unminification.
@@ -112,7 +126,7 @@ function handler(req, res, params) {
         }
 
         return new Promise((resolve, reject) => {
-          const entry = logTarget.log.entry(metaData, event);
+          const entry = logTarget.log.entry(GAE_METADATA, event);
 
           logTarget.log.write(entry, writeErr => {
             if (debug) {
@@ -125,7 +139,7 @@ function handler(req, res, params) {
                 res.status(statusCodes.ACCEPTED);
                 res.send({
                   event: event,
-                  metaData: metaData,
+                  metaData: GAE_METADATA,
                 });
               }
             }
