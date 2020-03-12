@@ -64,7 +64,13 @@ function logEvent(log, event) {
 function handler(req, res, params) {
   const referrer = req.get('Referrer');
   const reportingParams = extractReportingParams(params);
-  const { debug, message, queryString, stacktrace, version } = reportingParams;
+  const {
+    debug,
+    message,
+    buildQueryString,
+    stacktrace,
+    version,
+  } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);
 
   if (!referrer || !version || !message) {
@@ -98,7 +104,7 @@ function handler(req, res, params) {
       .then(stack => {
         const reqUrl =
           req.method === 'POST'
-            ? `${req.originalUrl}?${queryString}`
+            ? `${req.originalUrl}?${buildQueryString()}`
             : req.originalUrl;
         const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
           ? message
