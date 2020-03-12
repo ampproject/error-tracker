@@ -108,7 +108,7 @@ function handler(req, res, params) {
             service: logTarget.serviceName,
             version: logTarget.versionId,
           },
-          message: [normalizedMessage, ...stack].join('\n'),
+          message: [normalizedMessage].concat(stack).join('\n'),
           context: {
             httpRequest: {
               method: req.method,
