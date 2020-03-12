@@ -21,7 +21,9 @@
 const logs = require('./log');
 
 const CDN_REGEX = new RegExp(
-  '^https://cdn.ampproject.org/|.cdn.ampproject.org/|.ampproject.net/',
+  '^https://cdn\\.ampproject.org/|' +
+    '\\.cdn\\.ampproject\\.org/|' +
+    '\\.ampproject\\.net/',
   'i'
 );
 
