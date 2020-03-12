@@ -34,14 +34,16 @@ module.exports = class LoggingTarget {
 
   /** Select which error logging project to report to. */
   get log() {
+    const { runtime, message, assert } = this.opts;
+
     if (
-      this.opts.runtime === 'inabox' ||
-      this.opts.message.includes('Signing service error for google')
+      runtime === 'inabox' ||
+      message.includes('Signing service error for google')
     ) {
       return logs.ads;
     }
 
-    if (this.opts.assert) {
+    if (assert) {
       return logs.users;
     }
 
@@ -51,35 +53,44 @@ module.exports = class LoggingTarget {
   /** Construct the service bucket name for Stackdriver logging. */
   get serviceName() {
     // TODO: Drastically reduce combinatoral explosion of buckets.
+    const {
+      singlePassType,
+      referrer,
+      runtime,
+      thirdParty,
+      binaryType,
+      canary,
+      assert,
+      expected,
+    } = this.opts;
     const name = ['default'];
 
-    if (this.opts.singlePassType) {
-      name.push(this.opts.singlePassType);
+    if (singlePassType) {
+      name.push(singlePassType);
     }
-    name.push(CDN_REGEX.test(this.opts.referrer) ? 'cdn' : 'origin');
+    name.push(CDN_REGEX.test(referrer) ? 'cdn' : 'origin');
 
-    if (this.opts.runtime) {
-      name.push(this.opts.runtime);
-    } else if (this.opts.thirdParty) {
+    if (runtime) {
+      name.push(runtime);
+    } else if (thirdParty) {
       name.push('3p');
     } else {
       name.push('1p');
     }
 
     // Do not append binary type if 'production' since that is the default
-    if (this.opts.binaryType) {
-      if (this.opts.binaryType !== 'production') {
-        name.push(this.opts.binaryType);
+    if (binaryType) {
+      if (binaryType !== 'production') {
+        name.push(binaryType);
       }
-    } else if (this.opts.canary) {
+    } else if (canary) {
       name.push('canary');
     }
 
-    if (this.opts.assert) {
+    if (assert) {
       name.push('user');
     }
-
-    if (this.opts.expected) {
+    if (expected) {
       name.push('expected');
     }
 
@@ -95,27 +106,25 @@ module.exports = class LoggingTarget {
 
   /** Determine throttle level for error type. */
   get throttleRate() {
+    const { canary, binaryType, assert, referrer, expected } = this.opts;
     let throttleRate = 1;
 
     // Throttle errors from Stable.
-    if (
-      !this.opts.canary &&
-      !['control', 'rc'].includes(this.opts.binaryType)
-    ) {
+    if (!canary && !['control', 'rc'].includes(binaryType)) {
       throttleRate /= 10;
     }
 
     // Throttle user errors.
-    if (this.opts.assert) {
+    if (assert) {
       throttleRate /= 10;
     }
 
     // Throttle errors on origin pages; they may not be valid AMP docs.
-    if (!CDN_REGEX.test(this.opts.referrer)) {
+    if (!CDN_REGEX.test(referrer)) {
       throttleRate /= 20;
     }
 
-    if (this.opts.expected) {
+    if (expected) {
       throttleRate /= 10;
     }
 
