@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const Frame = require('../../utils/frame');
+const Frame = require('../../utils/stacktrace/frame');
 
 describe('Frame', () => {
   describe('#toString', () => {

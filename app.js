@@ -17,9 +17,9 @@
 const express = require('express');
 const statusCodes = require('http-status-codes');
 const errorTracker = require('./routes/error-tracker');
-const querystring = require('./utils/query-string');
-const parseErrorHandling = require('./utils/parse-error-handling');
-const json = require('./utils/json');
+const querystring = require('./utils/requests/query-string');
+const parseErrorHandling = require('./utils/requests/parse-error-handling');
+const json = require('./utils/requests/json');
 
 const app = express();
 const port = parseInt(process.env.PORT, 10) || 8080;

@@ -15,7 +15,7 @@
  */
 
 const statusCodes = require('http-status-codes');
-const logs = require('./log');
+const logs = require('../log');
 
 let timestamp = 0;
 const fiveMin = 5 * 60 * 1000;

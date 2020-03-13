@@ -19,13 +19,39 @@
  */
 
 const statusCodes = require('http-status-codes');
-const safeDecodeURIComponent = require('safe-decode-uri-component');
-const logs = require('../utils/log');
-const standardizeStackTrace = require('../utils/standardize-stack-trace');
-const ignoreMessageOrException = require('../utils/should-ignore');
-const unminify = require('../utils/unminify');
-const querystring = require('../utils/query-string');
+const extractReportingParams = require('../utils/requests/extract-reporting-params');
+const LogTarget = require('../utils/log-target');
+const standardizeStackTrace = require('../utils/stacktrace/standardize-stack-trace');
+const ignoreMessageOrException = require('../utils/stacktrace/should-ignore');
+const unminify = require('../utils/stacktrace/unminify');
 const latestRtv = require('../utils/latest-rtv');
+
+const GAE_METADATA = {
+  labels: {
+    'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
+  },
+  resource: {
+    type: 'gae_app',
+    labels: {
+      module_id: process.env.GAE_SERVICE,
+      version_id: process.env.GAE_VERSION,
+    },
+  },
+  severity: 500, // Error.
+};
+
+/** Logs an event to Stackdriver. */
+function logEvent(log, event) {
+  return new Promise((resolve, reject) => {
+    log.write(log.entry(GAE_METADATA, event), writeErr => {
+      if (writeErr) {
+        reject(writeErr);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
 
 /**
  * Extracts relevant information from request, handles edge cases and prepares
@@ -37,87 +63,24 @@ const latestRtv = require('../utils/latest-rtv');
  */
 function handler(req, res, params) {
   const referrer = req.get('Referrer');
-  const version = params.v;
-  const message = safeDecodeURIComponent(params.m || '');
+  const reportingParams = extractReportingParams(params);
+  const {
+    debug,
+    message,
+    buildQueryString,
+    stacktrace,
+    version,
+  } = reportingParams;
+  const logTarget = new LogTarget(referrer, reportingParams);
 
   if (!referrer || !version || !message) {
     res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
-  if (version.includes('internalRuntimeVersion')) {
-    res.sendStatus(statusCodes.OK);
-    return null;
-  }
-
-  const runtime = params.rt;
-  const assert = params.a === '1';
-  const canary = params.ca === '1';
-  const binaryType = params.bt || '';
-  const expected = params.ex === '1';
-  const debug = params.debug === '1';
-  const thirdParty = params['3p'] === '1';
-  const singlePassType = params.spt;
-
-  let errorType = 'default';
-
-  if (singlePassType) {
-    errorType += `-${singlePassType}`;
-  }
-
-  let throttleRate =
-    canary || binaryType === 'control' || binaryType === 'rc' ? 1 : 0.1;
-  if (assert) {
-    throttleRate /= 10;
-  }
-
-  let log = logs.errors;
   if (
-    runtime === 'inabox' ||
-    message.includes('Signing service error for google')
+    version.includes('internalRuntimeVersion') ||
+    Math.random() > logTarget.throttleRate
   ) {
-    log = logs.ads;
-  } else if (assert) {
-    log = logs.users;
-  }
-
-  // if request comes from the cache and thus only from valid
-  // AMP docs we log as "Error"
-  if (
-    referrer.startsWith('https://cdn.ampproject.org/') ||
-    referrer.includes('.cdn.ampproject.org/') ||
-    referrer.includes('.ampproject.net/')
-  ) {
-    errorType += '-cdn';
-  } else {
-    errorType += '-origin';
-    throttleRate /= 20;
-  }
-
-  if (runtime) {
-    errorType += '-' + runtime;
-  } else if (thirdParty) {
-    errorType += '-3p';
-  } else {
-    errorType += '-1p';
-  }
-
-  // Do not append binary type if 'production' since that is the default
-  if (binaryType) {
-    if (binaryType !== 'production') {
-      errorType += `-${binaryType}`;
-    }
-  } else if (canary) {
-    errorType += '-canary';
-  }
-  if (assert) {
-    errorType += '-user';
-  }
-  if (expected) {
-    errorType += '-expected';
-    throttleRate /= 10;
-  }
-
-  if (Math.random() > throttleRate) {
     res.sendStatus(statusCodes.OK);
     return null;
   }
@@ -128,88 +91,60 @@ function handler(req, res, params) {
       return null;
     }
 
-    const stack = standardizeStackTrace(
-      safeDecodeURIComponent(params.s || ''),
-      message
-    );
+    const stack = standardizeStackTrace(stacktrace, message);
     if (ignoreMessageOrException(message, stack)) {
       res.sendStatus(statusCodes.BAD_REQUEST);
       return null;
     }
-
-    const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
-      ? message
-      : `Error: ${message}`;
-    const event = {
-      serviceContext: {
-        service: errorType,
-        version: version,
-      },
-      message: normalizedMessage,
-      context: {
-        httpRequest: {
-          method: req.method,
-          url: req.originalUrl,
-          userAgent: req.get('User-Agent'),
-          referrer: referrer,
-        },
-      },
-    };
-
-    if (req.method === 'POST') {
-      event.context.httpRequest.url += '?' + querystring.stringify(params);
-    }
-
-    const metaData = {
-      labels: {
-        'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
-      },
-      resource: {
-        type: 'gae_app',
-        labels: {
-          module_id: process.env.GAE_SERVICE,
-          version_id: process.env.GAE_VERSION,
-        },
-      },
-      severity: 500, // Error.
-    };
-
     if (!debug) {
       res.sendStatus(statusCodes.ACCEPTED);
     }
 
     return unminify(stack, version)
       .then(stack => {
-        if (stack.length) {
-          event.message = event.message + `\n${stack.join('\n')}`;
+        const reqUrl =
+          req.method === 'POST'
+            ? `${req.originalUrl}?${buildQueryString()}`
+            : req.originalUrl;
+        const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
+          ? message
+          : `Error: ${message}`;
+        const event = {
+          serviceContext: {
+            service: logTarget.serviceName,
+            version: logTarget.versionId,
+          },
+          message: [normalizedMessage].concat(stack).join('\n'),
+          context: {
+            httpRequest: {
+              method: req.method,
+              url: reqUrl,
+              userAgent: req.get('User-Agent'),
+              referrer: referrer,
+            },
+          },
+        };
+        const logPromise = logEvent(logTarget.log, event);
+
+        // TODO(#102): Investigate if this can ever be set, and remove if not.
+        if (debug) {
+          return logPromise
+            .then(() => {
+              console.log('THEN');
+              res.set('Content-Type', 'application/json; charset=utf-8');
+              res.status(statusCodes.ACCEPTED);
+              res.send({ event, metaData: GAE_METADATA });
+            })
+            .catch(writeErr => {
+              console.log('CATCH');
+              res.set('Content-Type', 'text/plain; charset=utf-8');
+              res.status(statusCodes.INTERNAL_SERVER_ERROR);
+              res.send(writeErr.stack);
+              return Promise.reject(writeErr);
+            });
         }
 
-        return new Promise((resolve, reject) => {
-          const entry = log.entry(metaData, event);
-
-          log.write(entry, writeErr => {
-            if (debug) {
-              if (writeErr) {
-                res.set('Content-Type', 'text/plain; charset=utf-8');
-                res.status(statusCodes.INTERNAL_SERVER_ERROR);
-                res.send(writeErr.stack);
-              } else {
-                res.set('Content-Type', 'application/json; charset=utf-8');
-                res.status(statusCodes.ACCEPTED);
-                res.send({
-                  event: event,
-                  metaData: metaData,
-                });
-              }
-            }
-
-            if (writeErr) {
-              reject(writeErr);
-            } else {
-              resolve();
-            }
-          });
-        });
+        return logPromise;
       })
       .catch(err => {
         console.error(err);

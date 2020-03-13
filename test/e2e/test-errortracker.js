@@ -17,8 +17,8 @@
 const statusCodes = require('http-status-codes');
 const app = require('../../app');
 const logs = require('../../utils/log');
-const Request = require('../../utils/request');
-const querystring = require('../../utils/query-string');
+const Request = require('../../utils/requests/request');
+const querystring = require('../../utils/requests/query-string');
 
 describe('Error Tracker Server', () => {
   const makeQuery = (function() {
