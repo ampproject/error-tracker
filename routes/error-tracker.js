@@ -124,23 +124,21 @@ async function handler(req, res, params) {
     return res.sendStatus(statusCodes.BAD_REQUEST);
   }
 
+  const debugInfo = { event, metaData: GAE_METADATA };
+
+  // Accept the error report and try to log it.
+  res.status(statusCodes.ACCEPTED);
   try {
     await logEvent(logTarget.log, event);
-    res.status(statusCodes.ACCEPTED);
-
-    if (debug) {
-      res.set('Content-Type', 'application/json; charset=utf-8');
-      res.send({ event, metaData: GAE_METADATA });
-    } else {
-      res.end();
-    }
   } catch (err) {
     console.error(err);
-
+    debugInfo.error = writeErr.stack;
+  } finally {
     if (debug) {
-      res.set('Content-Type', 'text/plain; charset=utf-8');
-      res.status(statusCodes.INTERNAL_SERVER_ERROR);
-      res.send(writeErr.stack);
+      res.set('Content-Type', 'application/json; charset=utf-8');
+      res.send(debugInfo);
+    } else {
+      res.end();
     }
   }
 }
