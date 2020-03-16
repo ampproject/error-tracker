@@ -46,53 +46,22 @@ async function logEvent(log, event) {
 }
 
 /**
- * Extracts relevant information from request, handles edge cases and prepares
- * entry object to be logged and sends it to unminification.
- * @param {Request} req
- * @param {Response} res
- * @param {!Object<string, string>} params
- * @return {?Promise} May return a promise that rejects on logging error
+ * Construct an event object for logging.
+ * @param {!Request} req
+ * @param {!Object<string, string|function>} reportingParams
+ * @param {!LogTarget} logTarget
+ * @return {Promise<?Object<string, string>>} event object, or `null` if the
+ *    error should be ignored.
  */
-async function handler(req, res, params) {
-  const referrer = req.get('Referrer');
-  const reportingParams = extractReportingParams(params);
-  const {
-    debug,
-    message,
-    buildQueryString,
-    stacktrace,
-    version,
-  } = reportingParams;
-  const logTarget = new LogTarget(referrer, reportingParams);
-
-  if (!referrer || !version || !message) {
-    res.sendStatus(statusCodes.BAD_REQUEST);
-    return null;
-  }
-  if (
-    version.includes('internalRuntimeVersion') ||
-    Math.random() > logTarget.throttleRate
-  ) {
-    res.sendStatus(statusCodes.OK);
-    return null;
-  }
-
-  const rtvs = await latestRtv();
-  if (rtvs.length > 0 && !rtvs.includes(version)) {
-    res.sendStatus(statusCodes.OK);
-    return null;
-  }
+async function buildEvent(req, reportingParams, logTarget) {
+  const { buildQueryString, message, stacktrace, version } = reportingParams;
 
   const stack = standardizeStackTrace(stacktrace, message);
   if (ignoreMessageOrException(message, stack)) {
-    res.sendStatus(statusCodes.BAD_REQUEST);
     return null;
   }
-  if (!debug) {
-    res.sendStatus(statusCodes.ACCEPTED);
-  }
-
   const unminifiedStack = await unminify(stack, version);
+
   const reqUrl =
     req.method === 'POST'
       ? `${req.originalUrl}?${buildQueryString()}`
@@ -100,7 +69,8 @@ async function handler(req, res, params) {
   const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
     ? message
     : `Error: ${message}`;
-  const event = {
+
+  return {
     serviceContext: {
       service: logTarget.serviceName,
       version: logTarget.versionId,
@@ -111,25 +81,63 @@ async function handler(req, res, params) {
         method: req.method,
         url: reqUrl,
         userAgent: req.get('User-Agent'),
-        referrer: referrer,
+        referrer: req.get('Referrer'),
       },
     },
   };
+}
+/**
+ * Extracts relevant information from request, handles edge cases and prepares
+ * entry object to be logged and sends it to unminification.
+ * @param {Request} req
+ * @param {Response} res
+ * @param {!Object<string, string>} params
+ * @return {?Promise} May return a promise that rejects on logging error
+ */
+async function handler(req, res, params) {
+  const referrer = req.get('Referrer');
+  const reportingParams = extractReportingParams(params);
+  const { debug, message, version } = reportingParams;
+  const logTarget = new LogTarget(referrer, reportingParams);
+
+  // Reject requests missing essential info.
+  if (!referrer || !version || !message) {
+    return res.sendStatus(statusCodes.BAD_REQUEST);
+  }
+  // Accept but ignore requests that get throttled.
+  if (
+    version.includes('internalRuntimeVersion') ||
+    Math.random() > logTarget.throttleRate
+  ) {
+    return res.sendStatus(statusCodes.OK);
+  }
+
+  const rtvs = await latestRtv();
+  // Drop requests from RTVs that are no longer being served.
+  if (rtvs.length > 0 && !rtvs.includes(version)) {
+    return res.sendStatus(statusCodes.OK);
+  }
+
+  const event = await buildEvent(req, reportingParams, logTarget);
+  // Drop reports of errors that should be ignored.
+  if (!event) {
+    return res.sendStatus(statusCodes.BAD_REQUEST);
+  }
 
   try {
     await logEvent(logTarget.log, event);
+    res.status(statusCodes.ACCEPTED);
 
     if (debug) {
-      console.log('THEN');
       res.set('Content-Type', 'application/json; charset=utf-8');
-      res.status(statusCodes.ACCEPTED);
       res.send({ event, metaData: GAE_METADATA });
+    } else {
+      res.end();
     }
   } catch (err) {
     console.error(err);
 
     if (debug) {
-      console.log('CATCH');
       res.set('Content-Type', 'text/plain; charset=utf-8');
       res.status(statusCodes.INTERNAL_SERVER_ERROR);
       res.send(writeErr.stack);
