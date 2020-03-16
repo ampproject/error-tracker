@@ -41,7 +41,7 @@ const GAE_METADATA = {
 };
 
 /** Logs an event to Stackdriver. */
-function logEvent(log, event) {
+async function logEvent(log, event) {
   return new Promise((resolve, reject) => {
     log.write(log.entry(GAE_METADATA, event), writeErr => {
       if (writeErr) {
@@ -85,71 +85,64 @@ async function handler(req, res, params) {
     return null;
   }
 
-  return latestRtv().then(rtvs => {
-    if (rtvs.length > 0 && !rtvs.includes(version)) {
-      res.sendStatus(statusCodes.OK);
-      return null;
+  const rtvs = await latestRtv();
+  if (rtvs.length > 0 && !rtvs.includes(version)) {
+    res.sendStatus(statusCodes.OK);
+    return null;
+  }
+
+  const stack = standardizeStackTrace(stacktrace, message);
+  if (ignoreMessageOrException(message, stack)) {
+    res.sendStatus(statusCodes.BAD_REQUEST);
+    return null;
+  }
+  if (!debug) {
+    res.sendStatus(statusCodes.ACCEPTED);
+  }
+
+  const unminifiedStack = await unminify(stack, version);
+  const reqUrl =
+    req.method === 'POST'
+      ? `${req.originalUrl}?${buildQueryString()}`
+      : req.originalUrl;
+  const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
+    ? message
+    : `Error: ${message}`;
+  const event = {
+    serviceContext: {
+      service: logTarget.serviceName,
+      version: logTarget.versionId,
+    },
+    message: [normalizedMessage].concat(unminifiedStack).join('\n'),
+    context: {
+      httpRequest: {
+        method: req.method,
+        url: reqUrl,
+        userAgent: req.get('User-Agent'),
+        referrer: referrer,
+      },
+    },
+  };
+
+  try {
+    await logEvent(logTarget.log, event);
+
+    if (debug) {
+      console.log('THEN');
+      res.set('Content-Type', 'application/json; charset=utf-8');
+      res.status(statusCodes.ACCEPTED);
+      res.send({ event, metaData: GAE_METADATA });
     }
+  } catch (err) {
+    console.error(err);
 
-    const stack = standardizeStackTrace(stacktrace, message);
-    if (ignoreMessageOrException(message, stack)) {
-      res.sendStatus(statusCodes.BAD_REQUEST);
-      return null;
+    if (debug) {
+      console.log('CATCH');
+      res.set('Content-Type', 'text/plain; charset=utf-8');
+      res.status(statusCodes.INTERNAL_SERVER_ERROR);
+      res.send(writeErr.stack);
     }
-    if (!debug) {
-      res.sendStatus(statusCodes.ACCEPTED);
-    }
-
-    return unminify(stack, version)
-      .then(stack => {
-        const reqUrl =
-          req.method === 'POST'
-            ? `${req.originalUrl}?${buildQueryString()}`
-            : req.originalUrl;
-        const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
-          ? message
-          : `Error: ${message}`;
-        const event = {
-          serviceContext: {
-            service: logTarget.serviceName,
-            version: logTarget.versionId,
-          },
-          message: [normalizedMessage].concat(stack).join('\n'),
-          context: {
-            httpRequest: {
-              method: req.method,
-              url: reqUrl,
-              userAgent: req.get('User-Agent'),
-              referrer: referrer,
-            },
-          },
-        };
-        const logPromise = logEvent(logTarget.log, event);
-
-        // TODO(#102): Investigate if this can ever be set, and remove if not.
-        if (debug) {
-          return logPromise
-            .then(() => {
-              console.log('THEN');
-              res.set('Content-Type', 'application/json; charset=utf-8');
-              res.status(statusCodes.ACCEPTED);
-              res.send({ event, metaData: GAE_METADATA });
-            })
-            .catch(writeErr => {
-              console.log('CATCH');
-              res.set('Content-Type', 'text/plain; charset=utf-8');
-              res.status(statusCodes.INTERNAL_SERVER_ERROR);
-              res.send(writeErr.stack);
-              return Promise.reject(writeErr);
-            });
-        }
-
-        return logPromise;
-      })
-      .catch(err => {
-        console.error(err);
-      });
-  });
+  }
 }
 
 module.exports = handler;
