@@ -42,15 +42,7 @@ const GAE_METADATA = {
 
 /** Logs an event to Stackdriver. */
 async function logEvent(log, event) {
-  return new Promise((resolve, reject) => {
-    log.write(log.entry(GAE_METADATA, event), writeErr => {
-      if (writeErr) {
-        reject(writeErr);
-      } else {
-        resolve();
-      }
-    });
-  });
+  await log.write(log.entry(GAE_METADATA, event));
 }
 
 /**
