@@ -61,7 +61,7 @@ function logEvent(log, event) {
  * @param {!Object<string, string>} params
  * @return {?Promise} May return a promise that rejects on logging error
  */
-function handler(req, res, params) {
+async function handler(req, res, params) {
   const referrer = req.get('Referrer');
   const reportingParams = extractReportingParams(params);
   const {

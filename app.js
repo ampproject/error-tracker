@@ -28,22 +28,17 @@ app.set('etag', false);
 app.set('trust proxy', true);
 app.set('query parser', querystring.parse);
 
-app.get(['/readiness_check', '/liveness_check', '/_ah/health'], function(
-  req,
-  res
-) {
+app.get(['/readiness_check', '/liveness_check', '/_ah/health'], (req, res) => {
   res.sendStatus(statusCodes.OK);
 });
 
-app.get('/r', (req, res) => {
-  return errorTracker(req, res, req.query);
-});
-app.post('/r', json, (req, res) => {
+app.get('/r', (req, res) => errorTracker(req, res, req.query));
+app.post('/r', json, async (req, res) => {
   // Allow non-credentialed posts from anywhere.
   // Not strictly necessary, but it avoids an error being reported by the
   // browser.
   res.set('Access-Control-Allow-Origin', '*');
-  return errorTracker(req, res, req.body);
+  return await errorTracker(req, res, req.body);
 });
 
 // Handle BodyParser PayloadTooLargeError errors
