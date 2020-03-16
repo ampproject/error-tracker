@@ -41,7 +41,7 @@ const GAE_METADATA = {
 };
 
 /** Extract parameters from a GET or POST request. */
-function getParams(req) {
+function getRequestParams(req) {
   return req.method === 'POST' ? req.body : req.query;
 }
 
@@ -101,7 +101,7 @@ async function buildEvent(req, reportingParams, logTarget) {
  */
 async function handler(req, res) {
   const referrer = req.get('Referrer');
-  const params = getParams(req);
+  const params = getRequestParams(req);
   const reportingParams = extractReportingParams(params);
   const { debug, message, version } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);
