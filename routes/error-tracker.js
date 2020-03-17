@@ -40,19 +40,57 @@ const GAE_METADATA = {
   severity: 500, // Error.
 };
 
-/** Logs an event to Stackdriver. */
-function logEvent(log, event) {
-  return new Promise((resolve, reject) => {
-    log.write(log.entry(GAE_METADATA, event), writeErr => {
-      if (writeErr) {
-        reject(writeErr);
-      } else {
-        resolve();
-      }
-    });
-  });
+/** Extract parameters from a GET or POST request. */
+function getRequestParams(req) {
+  return req.method === 'POST' ? req.body : req.query;
 }
 
+/** Logs an event to Stackdriver. */
+async function logEvent(log, event) {
+  await log.write(log.entry(GAE_METADATA, event));
+}
+
+/**
+ * Construct an event object for logging.
+ * @param {!Request} req
+ * @param {!Object<string, string|function>} reportingParams
+ * @param {!LogTarget} logTarget
+ * @return {Promise<?Object<string, string>>} event object, or `null` if the
+ *    error should be ignored.
+ */
+async function buildEvent(req, reportingParams, logTarget) {
+  const { buildQueryString, message, stacktrace, version } = reportingParams;
+
+  const stack = standardizeStackTrace(stacktrace, message);
+  if (ignoreMessageOrException(message, stack)) {
+    return null;
+  }
+  const unminifiedStack = await unminify(stack, version);
+
+  const reqUrl =
+    req.method === 'POST'
+      ? `${req.originalUrl}?${buildQueryString()}`
+      : req.originalUrl;
+  const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
+    ? message
+    : `Error: ${message}`;
+
+  return {
+    serviceContext: {
+      service: logTarget.serviceName,
+      version: logTarget.versionId,
+    },
+    message: [normalizedMessage].concat(unminifiedStack).join('\n'),
+    context: {
+      httpRequest: {
+        method: req.method,
+        url: reqUrl,
+        userAgent: req.get('User-Agent'),
+        referrer: req.get('Referrer'),
+      },
+    },
+  };
+}
 /**
  * Extracts relevant information from request, handles edge cases and prepares
  * entry object to be logged and sends it to unminification.
@@ -61,95 +99,61 @@ function logEvent(log, event) {
  * @param {!Object<string, string>} params
  * @return {?Promise} May return a promise that rejects on logging error
  */
-function handler(req, res, params) {
+async function handler(req, res) {
   const referrer = req.get('Referrer');
+  const params = getRequestParams(req);
   const reportingParams = extractReportingParams(params);
-  const {
-    debug,
-    message,
-    buildQueryString,
-    stacktrace,
-    version,
-  } = reportingParams;
+  const { debug, message, version } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);
 
+  // Reject requests missing essential info.
   if (!referrer || !version || !message) {
-    res.sendStatus(statusCodes.BAD_REQUEST);
-    return null;
+    return res.sendStatus(statusCodes.BAD_REQUEST);
   }
+  // Accept but ignore requests that get throttled.
   if (
     version.includes('internalRuntimeVersion') ||
     Math.random() > logTarget.throttleRate
   ) {
-    res.sendStatus(statusCodes.OK);
-    return null;
+    return res.sendStatus(statusCodes.OK);
   }
 
-  return latestRtv().then(rtvs => {
-    if (rtvs.length > 0 && !rtvs.includes(version)) {
-      res.sendStatus(statusCodes.OK);
-      return null;
+  const rtvs = await latestRtv();
+  // Drop requests from RTVs that are no longer being served.
+  if (rtvs.length > 0 && !rtvs.includes(version)) {
+    return res.sendStatus(statusCodes.OK);
+  }
+
+  let event;
+  try {
+    event = await buildEvent(req, reportingParams, logTarget);
+  } catch (unminifyError) {
+    console.error(unminifyError);
+    return res.sendStatus(statusCodes.UNPROCESSABLE_ENTITY);
+  }
+
+  // Drop reports of errors that should be ignored.
+  if (!event) {
+    return res.sendStatus(statusCodes.BAD_REQUEST);
+  }
+
+  const debugInfo = { event, metaData: GAE_METADATA };
+
+  // Accept the error report and try to log it.
+  res.status(statusCodes.ACCEPTED);
+  try {
+    await logEvent(logTarget.log, event);
+  } catch (err) {
+    console.error(err);
+    debugInfo.error = writeErr.stack;
+  } finally {
+    if (debug) {
+      res.set('Content-Type', 'application/json; charset=utf-8');
+      res.send(debugInfo);
+    } else {
+      res.end();
     }
-
-    const stack = standardizeStackTrace(stacktrace, message);
-    if (ignoreMessageOrException(message, stack)) {
-      res.sendStatus(statusCodes.BAD_REQUEST);
-      return null;
-    }
-    if (!debug) {
-      res.sendStatus(statusCodes.ACCEPTED);
-    }
-
-    return unminify(stack, version)
-      .then(stack => {
-        const reqUrl =
-          req.method === 'POST'
-            ? `${req.originalUrl}?${buildQueryString()}`
-            : req.originalUrl;
-        const normalizedMessage = /^[A-Z][a-z]+: /.test(message)
-          ? message
-          : `Error: ${message}`;
-        const event = {
-          serviceContext: {
-            service: logTarget.serviceName,
-            version: logTarget.versionId,
-          },
-          message: [normalizedMessage].concat(stack).join('\n'),
-          context: {
-            httpRequest: {
-              method: req.method,
-              url: reqUrl,
-              userAgent: req.get('User-Agent'),
-              referrer: referrer,
-            },
-          },
-        };
-        const logPromise = logEvent(logTarget.log, event);
-
-        // TODO(#102): Investigate if this can ever be set, and remove if not.
-        if (debug) {
-          return logPromise
-            .then(() => {
-              console.log('THEN');
-              res.set('Content-Type', 'application/json; charset=utf-8');
-              res.status(statusCodes.ACCEPTED);
-              res.send({ event, metaData: GAE_METADATA });
-            })
-            .catch(writeErr => {
-              console.log('CATCH');
-              res.set('Content-Type', 'text/plain; charset=utf-8');
-              res.status(statusCodes.INTERNAL_SERVER_ERROR);
-              res.send(writeErr.stack);
-              return Promise.reject(writeErr);
-            });
-        }
-
-        return logPromise;
-      })
-      .catch(err => {
-        console.error(err);
-      });
-  });
+  }
 }
 
 module.exports = handler;
