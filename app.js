@@ -38,7 +38,7 @@ app.post('/r', json, async (req, res) => {
   // Not strictly necessary, but it avoids an error being reported by the
   // browser.
   res.set('Access-Control-Allow-Origin', '*');
-  return await errorTracker(req, res);
+  return errorTracker(req, res);
 });
 
 // Handle BodyParser PayloadTooLargeError errors
