@@ -15,6 +15,3 @@
 
 # Node.js dependencies:
 node_modules/
-
-# API Secrets
-*.json
