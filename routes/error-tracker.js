@@ -129,7 +129,7 @@ async function handler(req, res) {
     event = await buildEvent(req, reportingParams, logTarget);
   } catch (unminifyError) {
     console.error(unminifyError);
-    return res.sendStatus(statusCodes.ACCEPTED);
+    return res.sendStatus(statusCodes.INTERNAL_SERVER_ERROR);
   }
 
   // Drop reports of errors that should be ignored.
