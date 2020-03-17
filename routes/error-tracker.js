@@ -124,7 +124,14 @@ async function handler(req, res) {
     return res.sendStatus(statusCodes.OK);
   }
 
-  const event = await buildEvent(req, reportingParams, logTarget);
+  let event;
+  try {
+    event = await buildEvent(req, reportingParams, logTarget);
+  } catch (unminifyError) {
+    console.error(unminifyError);
+    return res.sendStatus(statusCodes.ACCEPTED);
+  }
+
   // Drop reports of errors that should be ignored.
   if (!event) {
     return res.sendStatus(statusCodes.BAD_REQUEST);
