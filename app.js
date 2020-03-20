@@ -22,7 +22,6 @@ const querystring = require('./utils/requests/query-string');
 const parseErrorHandling = require('./utils/requests/parse-error-handling');
 
 const app = express();
-const port = parseInt(process.env.PORT, 10) || 8080;
 const jsonParser = express.json({
   limit: 10 * 1024, /* 10kb */
   type: () => true,  // Attempt to allow any content-type.
@@ -39,18 +38,12 @@ app.get(['/', '/r'], (req, res) => {
   return errorTracker(req, res);
 });
 
-app.post(['/', '/r'], jsonParser, async (req, res) => {
+app.post(['/', '/r'], jsonParser, (req, res) => {
   // Allow non-credentialed posts from anywhere.
   // Not strictly necessary, but it avoids an error being reported by the
   // browser.
   res.set('Access-Control-Allow-Origin', '*');
   return errorTracker(req, res);
 });
-
-if (require.main === module) {
-  app.listen(port, function() {
-    console.log('App Started on port ' + port);
-  });
-}
 
 module.exports = app;
