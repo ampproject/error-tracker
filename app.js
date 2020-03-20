@@ -34,7 +34,11 @@ app.set('query parser', querystring.parse);
 // Handle BodyParser PayloadTooLargeError errors
 app.use(parseErrorHandling);
 
-app.get('/r', errorTracker);
+app.get('/r', (req, res) => {
+  req.body = req.query;
+  return errorTracker(req, res);
+});
+
 app.post('/r', jsonParser, async (req, res) => {
   // Allow non-credentialed posts from anywhere.
   // Not strictly necessary, but it avoids an error being reported by the
