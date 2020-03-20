@@ -11,8 +11,8 @@
   },
   "scripts": {
     "prestart": "node keys.js",
-    "start": "node app.js",
-    "deploy": "gcloud app deploy",
+    "start": "node server.js",
+    "deploy": "gcloud functions deploy r",
     "lint": "prettier '**/*.js' --check",
     "pretest": "npm run lint",
     "test": "mocha test/*.js test/**/*.js"
