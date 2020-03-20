@@ -34,10 +34,6 @@ app.set('query parser', querystring.parse);
 // Handle BodyParser PayloadTooLargeError errors
 app.use(parseErrorHandling);
 
-app.get(['/readiness_check', '/liveness_check', '/_ah/health'], (req, res) => {
-  res.sendStatus(statusCodes.OK);
-});
-
 app.get('/r', errorTracker);
 app.post('/r', jsonParser, async (req, res) => {
   // Allow non-credentialed posts from anywhere.
