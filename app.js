@@ -23,8 +23,8 @@ const parseErrorHandling = require('./utils/requests/parse-error-handling');
 
 const app = express();
 const jsonParser = express.json({
-  limit: 10 * 1024, /* 10kb */
-  type: () => true,  // Attempt to allow any content-type.
+  limit: 10 * 1024 /* 10kb */,
+  type: () => true, // Attempt to allow any content-type.
 });
 
 app.set('etag', false);
