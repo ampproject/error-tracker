@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 The AMP HTML Authors. All Rights Reserved.
+ * Copyright 2020 The AMP HTML Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,5 @@
  * limitations under the License.
  */
 
-const parseJson = require('body/json');
-
-module.exports = function json(req, res, next) {
-  parseJson(
-    req,
-    res,
-    {
-      limit: 10 * 1024 /* 10kb */,
-    },
-    (err, json) => {
-      if (err) {
-        return next(err);
-      }
-      req.body = json;
-      next();
-    }
-  );
-};
+const app = require('./app');
+module.exports = { app };

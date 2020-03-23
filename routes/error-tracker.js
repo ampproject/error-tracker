@@ -40,11 +40,6 @@ const GAE_METADATA = {
   severity: 500, // Error.
 };
 
-/** Extract parameters from a GET or POST request. */
-function getRequestParams(req) {
-  return req.method === 'POST' ? req.body : req.query;
-}
-
 /** Logs an event to Stackdriver. */
 async function logEvent(log, event) {
   await log.write(log.entry(GAE_METADATA, event));
@@ -101,7 +96,7 @@ async function buildEvent(req, reportingParams, logTarget) {
  */
 async function handler(req, res) {
   const referrer = req.get('Referrer');
-  const params = getRequestParams(req);
+  const params = req.body;
   const reportingParams = extractReportingParams(params);
   const { debug, message, version } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);

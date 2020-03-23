@@ -16,38 +16,29 @@
 
 const express = require('express');
 const statusCodes = require('http-status-codes');
+
 const errorTracker = require('./routes/error-tracker');
 const querystring = require('./utils/requests/query-string');
 const parseErrorHandling = require('./utils/requests/parse-error-handling');
-const json = require('./utils/requests/json');
 
 const app = express();
-const port = parseInt(process.env.PORT, 10) || 8080;
+const jsonParser = express.json({
+  limit: 10 * 1024 /* 10kb */,
+  type: () => true, // Attempt to allow any content-type.
+});
 
 app.set('etag', false);
 app.set('trust proxy', true);
 app.set('query parser', querystring.parse);
+// Handle BodyParser PayloadTooLargeError errors
+app.use(parseErrorHandling);
 
-app.get(['/readiness_check', '/liveness_check', '/_ah/health'], (req, res) => {
-  res.sendStatus(statusCodes.OK);
-});
-
-app.get('/r', errorTracker);
-app.post('/r', json, async (req, res) => {
+app.post(['/', '/r'], jsonParser, (req, res) => {
   // Allow non-credentialed posts from anywhere.
   // Not strictly necessary, but it avoids an error being reported by the
   // browser.
   res.set('Access-Control-Allow-Origin', '*');
   return errorTracker(req, res);
 });
-
-// Handle BodyParser PayloadTooLargeError errors
-app.use(parseErrorHandling);
-
-if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, function() {
-    console.log('App Started on port ' + port);
-  });
-}
 
 module.exports = app;
