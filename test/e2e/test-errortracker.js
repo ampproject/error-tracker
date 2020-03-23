@@ -53,14 +53,6 @@ describe('Error Tracker Server', () => {
     };
   })();
 
-  function makeGetRequest(referrer, query) {
-    return chai
-      .request(server)
-      .get('/r')
-      .set('Referer', referrer)
-      .set('User-Agent', userAgent)
-      .query(querystring.stringify(makeQuery(query)));
-  }
   function makePostRequest(type) {
     return function(referrer, query) {
       const q = makeQuery(query);
@@ -146,7 +138,6 @@ describe('Error Tracker Server', () => {
     sandbox.restore();
   });
 
-  testSuite('GET', makeGetRequest);
   testSuite('POST JSON', makePostRequest('json'));
   testSuite('POST Text', makePostRequest('text/plain'));
 
