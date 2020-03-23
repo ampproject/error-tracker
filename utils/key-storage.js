@@ -34,10 +34,11 @@
  * limitations under the License.
  */
 
-const {Storage} = require('@google-cloud/storage');
+const { Storage } = require('@google-cloud/storage');
 
 const PROJECT_ID = 'amp-error-reporting';
-const BUCKET_NAME = 'amp-error-reporting.appspot.com';
+const BUCKET_NAME = `${PROJECT_ID}.appspot.com`;
+const KEYS = ['ads', 'users'].map(k => `amp-error-reporting-${k}.json`);
 
 /**
  * Google Cloud Storage interface for uploading and downloading files.
@@ -72,4 +73,44 @@ class CloudStorage {
   async downloadToFile(filename, destination) {
     await this.storage.file(filename).download({ destination });
   }
-};
+}
+
+/**
+ * Interface for accessing error reporting project key files.
+ */
+class KeyStorage extends CloudStorage {
+  /**
+   * Constructor.
+   * @param {string} projectId Cloud project ID.
+   * @param {string} bucketName Cloud Storage bucket name.
+   * @param {string} keyFilename key JSON file name.
+   */
+  constructor(projectId, bucketName, keyFilename) {
+    super(projectId, bucketName);
+    this.keyFilename = keyFilename;
+  }
+
+  /**
+   * Read the key file from storage.
+   * @return {Promise<string>} file contents.
+   */
+  async download() {
+    return super.download(this.keyFilename);
+  }
+
+  /**
+   * Download a file from storage.
+   * @param {string} filename file to download.
+   * @param {string} destination location to download to.
+   * @return {Promise}
+   */
+  async downloadToFile(destination) {
+    await super.downloadToFile(this.keyFilename, destination);
+  }
+}
+
+const keys = KEYS.map(
+  keyFilename => new KeyStorage(PROJECT_ID, BUCKET_NAME, keyFilename)
+);
+
+module.exports = { keys };
