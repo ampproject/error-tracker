@@ -6,7 +6,9 @@
 const fs = require('fs');
 const { keys } = require('./utils/key-storage');
 
-const missingKeys = keys.filter(ks => !fs.existsSync(ks.keyFilename));
+const missingKeys = Object.values(keys).filter(
+  ks => !fs.existsSync(ks.keyFilename)
+);
 if (!missingKeys.length) {
   process.exit(0);
 }

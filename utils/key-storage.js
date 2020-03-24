@@ -38,7 +38,10 @@ const { Storage } = require('@google-cloud/storage');
 
 const PROJECT_ID = 'amp-error-reporting';
 const BUCKET_NAME = `${PROJECT_ID}.appspot.com`;
-const KEYS = ['ads', 'users'].map(k => `amp-error-reporting-${k}.json`);
+const KEYS = {
+  ads: 'amp-error-reporting-ads.json',
+  users: 'amp-error-reporting-users.json',
+};
 
 /**
  * Google Cloud Storage interface for uploading and downloading files.
@@ -99,6 +102,14 @@ class KeyStorage extends CloudStorage {
   }
 
   /**
+   * Download and attempt to parse the credentials in the key file.
+   * @return {Promise<!Object>}
+   */
+  async credentials() {
+    return this.download().then(JSON.parse);
+  }
+
+  /**
    * Download a file from storage.
    * @param {string} filename file to download.
    * @param {string} destination location to download to.
@@ -109,8 +120,9 @@ class KeyStorage extends CloudStorage {
   }
 }
 
-const keys = KEYS.map(
-  keyFilename => new KeyStorage(PROJECT_ID, BUCKET_NAME, keyFilename)
-);
+const keys = {};
+Object.entries(KEYS).forEach(([name, keyStorage]) => {
+  keys[name] = new KeyStorage(PROJECT_ID, BUCKET_NAME, keyStorage.keyFilename);
+});
 
-module.exports = { keys };
+module.exports = { keys, KeyStorage };
