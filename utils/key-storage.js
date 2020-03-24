@@ -63,7 +63,7 @@ class CloudStorage {
    * @return {Promise<string>} file contents.
    */
   async download(filename) {
-    const [contents] = await this.storage.file(filename).download();
+    const [contents] = await this.bucket.file(filename).download();
     return contents.toString('utf8');
   }
 
@@ -74,7 +74,7 @@ class CloudStorage {
    * @return {Promise}
    */
   async downloadToFile(filename, destination) {
-    await this.storage.file(filename).download({ destination });
+    await this.bucket.file(filename).download({ destination });
   }
 }
 
@@ -121,8 +121,8 @@ class KeyStorage extends CloudStorage {
 }
 
 const keys = {};
-Object.entries(KEYS).forEach(([name, keyStorage]) => {
-  keys[name] = new KeyStorage(PROJECT_ID, BUCKET_NAME, keyStorage.keyFilename);
+Object.entries(KEYS).forEach(([name, keyFilename]) => {
+  keys[name] = new KeyStorage(PROJECT_ID, BUCKET_NAME, keyFilename);
 });
 
 module.exports = { keys, KeyStorage };
