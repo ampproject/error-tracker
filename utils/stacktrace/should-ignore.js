@@ -22,6 +22,7 @@ const errorsToIgnore = [
   'stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)',
 ];
+const JS_REGEX = /\.(mjs|js(\.br)?)$/;
 
 /**
  * @param {!Array<!Frame>} stack
@@ -29,7 +30,7 @@ const errorsToIgnore = [
  */
 function isNonJSStackTrace(stack) {
   return !stack.every(({ source }) => {
-    return source.endsWith('.js') || source.endsWith('.js.br');
+    return JS_REGEX.test(source);
   });
 }
 
