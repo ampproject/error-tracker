@@ -101,6 +101,12 @@ async function handler(req, res) {
   const { debug, message, version } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);
 
+  // Drop logs to the user or ads projects if the instance is still
+  // authenticating
+  if (!logTarget.log) {
+    return res.sendStatus(statusCodes.SERVICE_UNAVAILABLE);
+  }
+
   // Reject requests missing essential info.
   if (!referrer || !version || !message) {
     return res.sendStatus(statusCodes.BAD_REQUEST);
@@ -132,7 +138,11 @@ async function handler(req, res) {
     return res.sendStatus(statusCodes.BAD_REQUEST);
   }
 
-  const debugInfo = { event, metaData: GAE_METADATA };
+  const debugInfo = {
+    event,
+    metaData: GAE_METADATA,
+    projectId: logTarget.log.logging.projectId,
+  };
 
   // Accept the error report and try to log it.
   res.status(statusCodes.ACCEPTED);

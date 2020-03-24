@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+const sinon = require('sinon');
+const {KeyStorage} = require('../../utils/key-storage');
+sinon.stub(KeyStorage.prototype, 'credentials').returns(
+  Promise.resolve({
+    client_email: 'email@project.aim.gserviceaccount.com',
+    private_key: "-----BEGIN PRIVATE KEY-----\nblahblahblah\n-----END PRIVATE KEY-----"
+  })
+);
+
 const statusCodes = require('http-status-codes');
 const app = require('../../app');
 const logs = require('../../utils/log');
