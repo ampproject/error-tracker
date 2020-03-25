@@ -15,7 +15,7 @@
  */
 
 const sinon = require('sinon');
-const {KeyStorage} = require('../../utils/key-storage');
+const {KeyStorage} = require('../../utils/credentials');
 sinon.stub(KeyStorage.prototype, 'credentials').returns(
   Promise.resolve({
     client_email: 'email@project.aim.gserviceaccount.com',

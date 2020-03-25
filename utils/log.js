@@ -18,7 +18,7 @@
  * @fileoverview exports log object to enable stubbing of write method
  */
 
-const { keys } = require('./key-storage');
+const { keys } = require('./credentials');
 const { Logging } = require('@google-cloud/logging');
 
 exports.generic = new Logging({
