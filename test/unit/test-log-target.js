@@ -48,7 +48,6 @@ describe('log target', () => {
   describe('log', () => {
     it('returns error log', async () => {
       const logTarget = new LogTarget(referrer, reportingParams);
-      await logTarget.ready;
 
       expect(await logTarget.log).to.equal(await logs.errors);
     });
@@ -56,7 +55,6 @@ describe('log target', () => {
     it('returns ads log for inabox', async () => {
       reportingParams.runtime = 'inabox';
       const logTarget = new LogTarget(referrer, reportingParams);
-      await logTarget.ready;
 
       expect(await logTarget.log).to.equal(await logs.ads);
     });
@@ -64,7 +62,6 @@ describe('log target', () => {
     it('returns ads log for signing service error', async () => {
       reportingParams.message = 'Error: Signing service error for google';
       const logTarget = new LogTarget(referrer, reportingParams);
-      await logTarget.ready;
 
       expect(await logTarget.log).to.equal(await logs.ads);
     });
@@ -72,7 +69,6 @@ describe('log target', () => {
     it('returns user log for asserts', async () => {
       reportingParams.assert = true;
       const logTarget = new LogTarget(referrer, reportingParams);
-      await logTarget.ready;
 
       expect(await logTarget.log).to.equal(await logs.users);
     });
