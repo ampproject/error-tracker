@@ -22,7 +22,7 @@ const errorsToIgnore = [
   'stop_youtube',
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)',
 ];
-const JS_REGEX = /\.(mjs|js(\.br)?)$/;
+const JS_REGEX = /\.m?js$/;
 
 /**
  * @param {!Array<!Frame>} stack
