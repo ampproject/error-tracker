@@ -30,10 +30,11 @@ const CDN_REGEX = new RegExp(
 module.exports = class LoggingTarget {
   constructor(referrer, reportingParams) {
     this.opts = { referrer, ...reportingParams };
+    this.log = this.logPromise();
   }
 
   /** Select which error logging project to report to. */
-  get log() {
+  logPromise() {
     const { runtime, message, assert } = this.opts;
 
     if (

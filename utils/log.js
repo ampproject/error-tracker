@@ -18,22 +18,41 @@
  * @fileoverview exports log object to enable stubbing of write method
  */
 
+const { getCredentials } = require('./credentials');
 const { Logging } = require('@google-cloud/logging');
 
-exports.generic = new Logging({
-  projectId: 'amp-error-reporting',
-}).log('stderr');
+exports.generic = Promise.resolve(
+  new Logging({
+    projectId: 'amp-error-reporting',
+  }).log('stderr')
+);
 
-exports.errors = new Logging({
-  projectId: 'amp-error-reporting',
-}).log('javascript.errors');
+exports.errors = Promise.resolve(
+  new Logging({
+    projectId: 'amp-error-reporting',
+  }).log('javascript.errors')
+);
 
-exports.users = new Logging({
-  projectId: 'amp-error-reporting-user',
-  keyFilename: 'amp-error-reporting-users.json',
-}).log('javascript.errors');
+exports.users = getCredentials('amp-error-reporting-users.json')
+  .then(credentials =>
+    new Logging({
+      projectId: 'amp-error-reporting-user',
+      credentials,
+    }).log('javascript.errors')
+  )
+  .catch(error => {
+    console.error(error);
+    return exports.errors;
+  });
 
-exports.ads = new Logging({
-  projectId: 'amp-error-reporting-ads',
-  keyFilename: 'amp-error-reporting-ads.json',
-}).log('javascript.errors');
+exports.ads = getCredentials('amp-error-reporting-ads.json')
+  .then(credentials =>
+    new Logging({
+      projectId: 'amp-error-reporting-ads',
+      credentials,
+    }).log('javascript.errors')
+  )
+  .catch(error => {
+    console.error(error);
+    return exports.errors;
+  });

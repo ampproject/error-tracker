@@ -16,11 +16,18 @@
 
 const statusCodes = require('http-status-codes');
 const app = require('../../app');
-const logs = require('../../utils/log');
+const logPromises = require('../../utils/log');
 const Request = require('../../utils/requests/request');
 const querystring = require('../../utils/requests/query-string');
 
 describe('Error Tracker Server', () => {
+  const logs = {};
+  before(async () => {
+    for (const key in logPromises) {
+      logs[key] = await logPromises[key];
+    }
+  });
+
   const makeQuery = (function() {
     const mappings = {
       version: 'v',
@@ -118,7 +125,7 @@ describe('Error Tracker Server', () => {
     server.close();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     sandbox = sinon.createSandbox({
       useFakeTimers: true,
     });

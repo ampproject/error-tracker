@@ -50,8 +50,9 @@ module.exports = function() {
         }
       }
     });
-  }).catch(err => {
-    const entry = logs.generic.entry(
+  }).catch(async err => {
+    const genericLog = await logs.generic;
+    const entry = genericLog.entry(
       {
         labels: {
           'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
@@ -67,7 +68,7 @@ module.exports = function() {
       },
       `failed to fetch RTV metadata: ${err.message}`
     );
-    logs.generic.write(entry, writeErr => {
+    genericLog.write(entry, writeErr => {
       if (writeErr) {
         console.error(writeErr);
       }
