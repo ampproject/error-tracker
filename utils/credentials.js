@@ -46,16 +46,6 @@ class CloudStorage {
     const [contents] = await this.bucket.file(filename).download();
     return contents.toString('utf8');
   }
-
-  /**
-   * Download a file from storage.
-   * @param {string} filename file to download.
-   * @param {string} destination location to download to.
-   * @return {Promise}
-   */
-  async downloadToFile(filename, destination) {
-    await this.bucket.file(filename).download({ destination });
-  }
 }
 
 const keyStorage = new CloudStorage(PROJECT_ID, BUCKET_NAME);
