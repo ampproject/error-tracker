@@ -102,12 +102,6 @@ async function handler(req, res) {
   const logTarget = new LogTarget(referrer, reportingParams);
   await logTarget.ready;
 
-  // Drop logs to the user or ads projects if the instance is still
-  // authenticating
-  if (!logTarget.log) {
-    return res.sendStatus(statusCodes.SERVICE_UNAVAILABLE);
-  }
-
   // Reject requests missing essential info.
   if (!referrer || !version || !message) {
     return res.sendStatus(statusCodes.BAD_REQUEST);
