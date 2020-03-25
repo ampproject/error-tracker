@@ -100,6 +100,7 @@ async function handler(req, res) {
   const reportingParams = extractReportingParams(params);
   const { debug, message, version } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);
+  await logTarget.ready;
 
   // Drop logs to the user or ads projects if the instance is still
   // authenticating

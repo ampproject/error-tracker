@@ -20,6 +20,12 @@ const chai = require('chai');
 const chaihttp = require('chai-http');
 const sinon = require('sinon');
 
+const credentials = require('../utils/credentials');
+sinon.stub(credentials, 'getCredentials').resolves({
+  client_email: 'email@project.aim.gserviceaccount.com',
+  private_key:
+    '-----BEGIN PRIVATE KEY-----\nblahblahblah\n-----END PRIVATE KEY-----',
+});
 chai.use(chaihttp);
 
 global.chai = chai;
