@@ -50,7 +50,7 @@ describe('log target', () => {
       const logTarget = new LogTarget(referrer, reportingParams);
       await logTarget.ready;
 
-      expect(logTarget.log).to.equal(await logs.errors);
+      expect(await logTarget.log).to.equal(await logs.errors);
     });
 
     it('returns ads log for inabox', async () => {
@@ -58,7 +58,7 @@ describe('log target', () => {
       const logTarget = new LogTarget(referrer, reportingParams);
       await logTarget.ready;
 
-      expect(logTarget.log).to.equal(await logs.ads);
+      expect(await logTarget.log).to.equal(await logs.ads);
     });
 
     it('returns ads log for signing service error', async () => {
@@ -66,7 +66,7 @@ describe('log target', () => {
       const logTarget = new LogTarget(referrer, reportingParams);
       await logTarget.ready;
 
-      expect(logTarget.log).to.equal(await logs.ads);
+      expect(await logTarget.log).to.equal(await logs.ads);
     });
 
     it('returns user log for asserts', async () => {
@@ -74,7 +74,7 @@ describe('log target', () => {
       const logTarget = new LogTarget(referrer, reportingParams);
       await logTarget.ready;
 
-      expect(logTarget.log).to.equal(await logs.users);
+      expect(await logTarget.log).to.equal(await logs.users);
     });
   });
 

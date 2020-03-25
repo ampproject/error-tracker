@@ -100,7 +100,7 @@ async function handler(req, res) {
   const reportingParams = extractReportingParams(params);
   const { debug, message, version } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);
-  await logTarget.ready;
+  const log = await logTarget.log;
 
   // Reject requests missing essential info.
   if (!referrer || !version || !message) {
@@ -136,13 +136,13 @@ async function handler(req, res) {
   const debugInfo = {
     event,
     metaData: GAE_METADATA,
-    projectId: logTarget.log.logging.projectId,
+    projectId: log.logging.projectId,
   };
 
   // Accept the error report and try to log it.
   res.status(statusCodes.ACCEPTED);
   try {
-    await logEvent(logTarget.log, event);
+    await logEvent(log, event);
   } catch (err) {
     console.error(err);
     debugInfo.error = writeErr.stack;
