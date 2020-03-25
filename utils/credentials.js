@@ -22,10 +22,6 @@ const { Storage } = require('@google-cloud/storage');
 
 const PROJECT_ID = 'amp-error-reporting';
 const BUCKET_NAME = `${PROJECT_ID}.appspot.com`;
-const KEYS = {
-  ads: 'amp-error-reporting-ads.json',
-  users: 'amp-error-reporting-users.json',
-};
 
 /**
  * Google Cloud Storage interface for uploading and downloading files.
@@ -62,51 +58,9 @@ class CloudStorage {
   }
 }
 
-/**
- * Interface for accessing error reporting project key files.
- */
-class KeyStorage extends CloudStorage {
-  /**
-   * Constructor.
-   * @param {string} projectId Cloud project ID.
-   * @param {string} bucketName Cloud Storage bucket name.
-   * @param {string} keyFilename key JSON file name.
-   */
-  constructor(projectId, bucketName, keyFilename) {
-    super(projectId, bucketName);
-    this.keyFilename = keyFilename;
-  }
-
-  /**
-   * Read the key file from storage.
-   * @return {Promise<string>} file contents.
-   */
-  async download() {
-    return super.download(this.keyFilename);
-  }
-
-  /**
-   * Download and attempt to parse the credentials in the key file.
-   * @return {Promise<!Object>}
-   */
-  async credentials() {
-    return this.download().then(JSON.parse);
-  }
-
-  /**
-   * Download a file from storage.
-   * @param {string} filename file to download.
-   * @param {string} destination location to download to.
-   * @return {Promise}
-   */
-  async downloadToFile(destination) {
-    await super.downloadToFile(this.keyFilename, destination);
-  }
+const keyStorage = new CloudStorage(PROJECT_ID, BUCKET_NAME);
+async function getCredentials(keyFilename) {
+  return keyStorage.download(keyFilename).then(JSON.parse);
 }
 
-const keys = {};
-Object.entries(KEYS).forEach(([name, keyFilename]) => {
-  keys[name] = new KeyStorage(PROJECT_ID, BUCKET_NAME, keyFilename);
-});
-
-module.exports = { keys, KeyStorage };
+module.exports = { CloudStorage, getCredentials };

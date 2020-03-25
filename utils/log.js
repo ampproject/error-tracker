@@ -18,7 +18,7 @@
  * @fileoverview exports log object to enable stubbing of write method
  */
 
-const { keys } = require('./credentials');
+const { getCredentials } = require('./credentials');
 const { Logging } = require('@google-cloud/logging');
 
 exports.generic = new Logging({
@@ -29,8 +29,7 @@ exports.errors = new Logging({
   projectId: 'amp-error-reporting',
 }).log('javascript.errors');
 
-keys.users
-  .credentials()
+getCredentials('amp-error-reporting-users.json')
   .then(credentials => {
     exports.users = new Logging({
       projectId: 'amp-error-reporting-user',
@@ -39,8 +38,7 @@ keys.users
   })
   .catch(error => console.error(error));
 
-keys.ads
-  .credentials()
+getCredentials('amp-error-reporting-ads.json')
   .then(credentials => {
     exports.ads = new Logging({
       projectId: 'amp-error-reporting-ads',
