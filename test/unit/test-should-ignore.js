@@ -19,12 +19,12 @@ const Frame = require('../../utils/stacktrace/frame');
 
 describe('shouldIgnore', () => {
   const jsFrame = new Frame('', 'file.js', '1', '2');
-  const brFrame = new Frame('', 'file.js.br', '1', '2');
   const htmlFrame = new Frame('', 'file.html', '1', '2');
+  const mjsFrame = new Frame('', 'file.mjs', '1', '2');
 
   const jsFrames = [jsFrame, jsFrame];
-  const brFrames = [brFrame, brFrame];
-  const jsBrFrames = [jsFrame, brFrame];
+  const mjsFrames = [mjsFrame, mjsFrame];
+  const mixedJsFrames = [jsFrame, mjsFrame, jsFrame];
   const mixedFrames = [jsFrame, htmlFrame, jsFrame];
   const htmlFrames = [htmlFrame, htmlFrame];
 
@@ -35,12 +35,12 @@ describe('shouldIgnore', () => {
       expect(shouldIgnore(message, jsFrames)).to.equal(false);
     });
 
-    it('does not ignore brotli js frames', () => {
-      expect(shouldIgnore(message, brFrames)).to.equal(false);
+    it('does not ignore mjs frames', () => {
+      expect(shouldIgnore(message, mjsFrames)).to.equal(false);
     });
 
-    it('does not ignore js + brotli js frames', () => {
-      expect(shouldIgnore(message, jsBrFrames)).to.equal(false);
+    it('does not ignore mixed js and mjs frames', () => {
+      expect(shouldIgnore(message, mixedJsFrames)).to.equal(false);
     });
 
     it('ignores mixed frames', () => {
