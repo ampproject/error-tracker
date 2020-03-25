@@ -16,12 +16,11 @@
 
 const sinon = require('sinon');
 const credentials = require('../../utils/credentials');
-sinon
-  .stub(credentials, 'getCredentials')
-  .resolves({
-    client_email: 'email@project.aim.gserviceaccount.com',
-    private_key: '-----BEGIN PRIVATE KEY-----\nblahblahblah\n-----END PRIVATE KEY-----',
-  });
+sinon.stub(credentials, 'getCredentials').resolves({
+  client_email: 'email@project.aim.gserviceaccount.com',
+  private_key:
+    '-----BEGIN PRIVATE KEY-----\nblahblahblah\n-----END PRIVATE KEY-----',
+});
 
 const statusCodes = require('http-status-codes');
 const app = require('../../app');
