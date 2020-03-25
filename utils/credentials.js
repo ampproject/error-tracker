@@ -63,4 +63,4 @@ async function getCredentials(keyFilename) {
   return keyStorage.download(keyFilename).then(JSON.parse);
 }
 
-module.exports = { CloudStorage, getCredentials };
+module.exports = { getCredentials };
