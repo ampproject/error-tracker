@@ -10,7 +10,6 @@
     "url": "https://github.com/ampproject/error-tracker"
   },
   "scripts": {
-    "prestart": "node keys.js",
     "start": "node server.js",
     "deploy": "gcloud functions deploy r",
     "lint": "prettier '**/*.js' --check",
