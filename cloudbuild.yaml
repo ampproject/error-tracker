@@ -1,0 +1,7 @@
+steps:
+  # Deploy the app.
+  - name: gcr.io/cloud-builders/npm
+    args:
+      - run
+      - deploy
+      - -- ${_DEPLOY_VERSION}
