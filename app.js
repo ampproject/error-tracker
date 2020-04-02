@@ -18,7 +18,6 @@ const express = require('express');
 const statusCodes = require('http-status-codes');
 
 const errorTracker = require('./routes/error-tracker');
-const querystring = require('./utils/requests/query-string');
 const parseErrorHandling = require('./utils/requests/parse-error-handling');
 
 const app = express();
@@ -29,7 +28,6 @@ const jsonParser = express.json({
 
 app.set('etag', false);
 app.set('trust proxy', true);
-app.set('query parser', querystring.parse);
 // Handle BodyParser PayloadTooLargeError errors
 app.use(parseErrorHandling);
 
