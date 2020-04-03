@@ -115,7 +115,7 @@ async function handler(req, res) {
   const rtvs = await latestRtv();
   // Drop requests from RTVs that are no longer being served.
   if (rtvs.length > 0 && !rtvs.includes(version)) {
-    return res.sendStatus(statusCodes.OK);
+    return res.sendStatus(statusCodes.GONE);
   }
 
   let event;
