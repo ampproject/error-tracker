@@ -13,6 +13,11 @@ Receives error reports emitted by AMP HTML runtime library and sends them to the
 2. Authenticate with Google Cloud: `$ gcloud auth login`
 3. Start the server: `$ npm start`
 
+## Deployment
+
+To deploy to the development endpoint `r-dev`, run `npm run deploy-dev`.
+To deploy to the staging/beta endpoint `r-beta`, commit to master (by merging a PR) to automatically trigger a cloud build. Alternately, push a tag of the form `deploy-beta-YYMMDDHHMMSS`.
+To deploy to the production/stable endpoint `r`, push a tag of the form `deploy-stable-YYMMDDHHMMSS`.
 
 This tool does not collect any user data or information.
 

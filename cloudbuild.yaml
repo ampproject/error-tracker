@@ -4,4 +4,6 @@ steps:
     args:
       - functions
       - deploy
-      - r-beta
+      - ${_DEPLOY_VERSION}
+      - --set-env-vars
+      - COMMIT_SHA=$COMMIT_SHA
