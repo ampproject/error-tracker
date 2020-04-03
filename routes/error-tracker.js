@@ -26,15 +26,13 @@ const ignoreMessageOrException = require('../utils/stacktrace/should-ignore');
 const unminify = require('../utils/stacktrace/unminify');
 const latestRtv = require('../utils/latest-rtv');
 
-const GAE_METADATA = {
-  labels: {
-    'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
-  },
+const CF_METADATA = {
   resource: {
-    type: 'gae_app',
+    type: 'cloud_function',
     labels: {
-      module_id: process.env.GAE_SERVICE,
-      version_id: process.env.GAE_VERSION,
+      service_name: process.env.K_SERVICE,
+      version_id: process.env.K_REVISION,
+      commit_sha: process.env.COMMIT_SHA,
     },
   },
   severity: 500, // Error.
@@ -42,7 +40,7 @@ const GAE_METADATA = {
 
 /** Logs an event to Stackdriver. */
 async function logEvent(log, event) {
-  await log.write(log.entry(GAE_METADATA, event));
+  await log.write(log.entry(CF_METADATA, event));
 }
 
 /**
@@ -135,7 +133,7 @@ async function handler(req, res) {
 
   const debugInfo = {
     event,
-    metaData: GAE_METADATA,
+    metaData: CF_METADATA,
     projectId: log.logging.projectId,
   };
 
