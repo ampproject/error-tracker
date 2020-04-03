@@ -21,7 +21,7 @@ const errorTracker = require('./routes/error-tracker');
 const parseErrorHandling = require('./utils/requests/parse-error-handling');
 
 const app = express();
-const BODY_LIMIT = 10 * 1024 /* 10kb */;
+const BODY_LIMIT = 10 * 1024; /* 10kb */
 function rawJsonBodyParserMiddleware(req, res, next) {
   if (!req.rawBody) {
     // Defer to bodyParser when running as a server.
