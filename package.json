@@ -10,7 +10,6 @@
     "url": "https://github.com/ampproject/error-tracker"
   },
   "scripts": {
-    "start": "node server.js",
     "dev": "functions-framework --target=app",
     "deploy": "gcloud functions deploy r",
     "deploy-beta": "gcloud functions deploy r-beta",
