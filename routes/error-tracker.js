@@ -93,6 +93,7 @@ async function buildEvent(req, reportingParams, logTarget) {
  * @return {?Promise} May return a promise that rejects on logging error
  */
 async function handler(req, res) {
+  console.log('HANDLING')
   const referrer = req.get('Referrer');
   const params = req.body;
   const reportingParams = extractReportingParams(params);
@@ -105,10 +106,10 @@ async function handler(req, res) {
     return res.sendStatus(statusCodes.BAD_REQUEST);
   }
   // Accept but ignore requests that get throttled.
-  if (
-    version.includes('internalRuntimeVersion') ||
-    Math.random() > logTarget.throttleRate
-  ) {
+  const rand = Math.random();
+  const throttleRate = logTarget.throttleRate;
+  if (version.includes('internalRuntimeVersion') || rand > throttleRate) {
+    console.log({rand, throttleRate});
     return res.sendStatus(statusCodes.OK);
   }
 

@@ -108,6 +108,7 @@ module.exports = class LoggingTarget {
   /** Determine throttle level for error type. */
   get throttleRate() {
     const { canary, binaryType, assert, referrer, expected } = this.opts;
+    console.log('Opts: ', {canary, binaryType, assert, referrer, expected});
     let throttleRate = 1;
 
     // Throttle errors from Stable.
