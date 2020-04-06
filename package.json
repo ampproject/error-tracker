@@ -10,7 +10,9 @@
     "url": "https://github.com/ampproject/error-tracker"
   },
   "scripts": {
-    "start": "node server.js",
+    "dev": "functions-framework --target=app",
+    "deploy": "gcloud functions deploy r",
+    "deploy-beta": "gcloud functions deploy r-beta",
     "deploy-dev": "gcloud functions deploy r-dev --set-env-vars COMMIT_SHA=$(git rev-parse HEAD)",
     "lint": "prettier '**/*.js' --check",
     "pretest": "npm run lint",
@@ -30,6 +32,7 @@
     "source-map": "^0.7.3"
   },
   "devDependencies": {
+    "@google-cloud/functions-framework": "1.5.0",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "mocha": "^6.1.4",

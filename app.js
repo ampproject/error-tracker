@@ -18,22 +18,36 @@ const express = require('express');
 const statusCodes = require('http-status-codes');
 
 const errorTracker = require('./routes/error-tracker');
-const querystring = require('./utils/requests/query-string');
 const parseErrorHandling = require('./utils/requests/parse-error-handling');
 
 const app = express();
-const jsonParser = express.json({
-  limit: 10 * 1024 /* 10kb */,
-  type: () => true, // Attempt to allow any content-type.
-});
+const BODY_LIMIT = 10 * 1024; /* 10kb */
+function rawJsonBodyParserMiddleware(req, res, next) {
+  if (!req.rawBody) {
+    // Defer to bodyParser when running as a server.
+    jsonParser = express.json({
+      limit: BODY_LIMIT,
+      type: () => true,
+    });
+    jsonParser(req, res, next);
+  } else if (req.rawBody.length > BODY_LIMIT) {
+    // When Cloud Functions hijacks the request, validate and parse it manually.
+    next(statusCodes.REQUEST_TOO_LONG);
+  } else {
+    req.body = JSON.parse(req.rawBody.toString());
+    next();
+  }
+}
 
 app.set('etag', false);
 app.set('trust proxy', true);
-app.set('query parser', querystring.parse);
+
+// Parse the JSON request body
+app.use(rawJsonBodyParserMiddleware);
 // Handle BodyParser PayloadTooLargeError errors
 app.use(parseErrorHandling);
 
-app.post(['/', '/r'], jsonParser, (req, res) => {
+app.post('*', (req, res) => {
   // Allow non-credentialed posts from anywhere.
   // Not strictly necessary, but it avoids an error being reported by the
   // browser.

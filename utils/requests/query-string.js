@@ -12,30 +12,6 @@
  * limitations under the License.
  */
 
-const regex = /(?:^|&)([^=&]+)(?:=([^&]*))?/g;
-
-/**
- * Parses a query string into an object.
- * Note, the string values will not be decoded.
- *
- * @param {string} query
- * @return {!Object<string, string>}
- */
-exports.parse = function parse(query) {
-  const params = Object.create(null);
-  let max = 25;
-  let match;
-
-  while (max-- && (match = regex.exec(query))) {
-    const name = match[1];
-    const value = match[2];
-    params[name] = value === void 0 ? '' : value;
-  }
-
-  regex.lastIndex = 0;
-  return params;
-};
-
 /**
  * Turns an object into a safe query string.
  * Note, this does not prepend a "?".

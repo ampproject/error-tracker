@@ -17,61 +17,6 @@
 const { parse, stringify } = require('../../utils/requests/query-string');
 
 describe('Query String', () => {
-  describe('parse', () => {
-    it('parses single query param', () => {
-      const params = parse('foo=123');
-      expect(params.foo).to.equal('123');
-    });
-
-    it('parses multiple query param', () => {
-      const params = parse('foo=123&bar=foo');
-      expect(params.foo).to.equal('123');
-      expect(params.bar).to.equal('foo');
-    });
-
-    it('does not strip leading `?`', () => {
-      const params = parse('?foo=123');
-      expect(params['?foo']).to.equal('123');
-    });
-
-    it('does not decode name', () => {
-      const params = parse('fo%20o=123');
-      expect(params['fo%20o']).to.equal('123');
-    });
-
-    it('does not decode value', () => {
-      const params = parse('foo=123%20');
-      expect(params.foo).to.equal('123%20');
-    });
-
-    it('limits maximum params to 25', () => {
-      const qs = [];
-      for (let i = 0; i < 26; i++) {
-        qs.push(`${i}=${i}`);
-      }
-
-      const params = parse(qs.join('&'));
-
-      const keys = Object.keys(params);
-      expect(keys).to.have.length(25);
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        expect(params[key]).to.equal(key);
-      }
-    });
-
-    it('properly resets after maximum hit', () => {
-      const qs = [];
-      for (let i = 0; i < 26; i++) {
-        qs.push(`${i}=${i}`);
-      }
-      parse(qs.join('&'));
-
-      const params = parse('foo=123');
-      expect(params.foo).to.equal('123');
-    });
-  });
-
   describe('stringify', () => {
     it('builds query string', () => {
       const result = stringify({ test: 'value' });
