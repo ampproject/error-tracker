@@ -149,6 +149,12 @@ describe('log target', () => {
       expect(logTarget.throttleRate).to.be.closeTo(1, 1e-6);
     });
 
+    it('does not throttle Nightly', () => {
+      reportingParams.binaryType = 'nightly';
+      const logTarget = new LogTarget(referrer, reportingParams);
+      expect(logTarget.throttleRate).to.be.closeTo(1, 1e-6);
+    });
+
     it('throttles user errors by a factor of 10', () => {
       reportingParams.assert = true;
       const logTarget = new LogTarget(referrer, reportingParams);
