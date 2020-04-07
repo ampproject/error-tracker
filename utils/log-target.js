@@ -111,7 +111,7 @@ module.exports = class LoggingTarget {
     let throttleRate = 1;
 
     // Throttle errors from Stable.
-    if (!canary && !['control', 'rc'].includes(binaryType)) {
+    if (!canary && !['control', 'rc', 'nightly'].includes(binaryType)) {
       throttleRate /= 10;
     }
 
