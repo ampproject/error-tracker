@@ -56,6 +56,7 @@ async function buildEvent(req, reportingParams, logTarget) {
 
   const stack = standardizeStackTrace(stacktrace, message);
   if (ignoreMessageOrException(message, stack)) {
+    console.warn(`Ignored "${message}`);
     return null;
   }
   const unminifiedStack = await unminify(stack, version);
