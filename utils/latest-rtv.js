@@ -70,7 +70,7 @@ module.exports = function() {
     );
     genericLog.write(entry, writeErr => {
       if (writeErr) {
-        console.error('Error logging RTV fetch error: ', writeErr);
+        console.warn('Error logging RTV fetch error: ', writeErr);
       }
     });
 

@@ -123,7 +123,7 @@ async function handler(req, res) {
   try {
     event = await buildEvent(req, reportingParams, logTarget);
   } catch (unminifyError) {
-    console.error('Error unminifying:', unminifyError);
+    console.warn('Error unminifying:', unminifyError);
     return res.sendStatus(statusCodes.UNPROCESSABLE_ENTITY);
   }
 
@@ -143,7 +143,7 @@ async function handler(req, res) {
   try {
     await logEvent(log, event);
   } catch (err) {
-    console.error('Error writing to log: ', err);
+    console.warn('Error writing to log: ', err);
     debugInfo.error = writeErr.stack;
   } finally {
     if (debug) {
