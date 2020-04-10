@@ -103,6 +103,9 @@ async function handler(req, res) {
 
   // Reject requests missing essential info.
   if (!referrer || !version || !message) {
+    !referrer && console.warn('Missing referrer');
+    !version && console.warn('Missing version');
+    !message && console.warn('Missing message');
     return res.sendStatus(statusCodes.BAD_REQUEST);
   }
   // Accept but ignore requests that get throttled.
