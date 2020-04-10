@@ -56,6 +56,7 @@ async function buildEvent(req, reportingParams, logTarget) {
 
   const stack = standardizeStackTrace(stacktrace, message);
   if (ignoreMessageOrException(message, stack)) {
+    console.warn(`Ignored "${message}`);
     return null;
   }
   const unminifiedStack = await unminify(stack, version);
@@ -122,7 +123,7 @@ async function handler(req, res) {
   try {
     event = await buildEvent(req, reportingParams, logTarget);
   } catch (unminifyError) {
-    console.error(unminifyError);
+    console.warn('Error unminifying:', unminifyError);
     return res.sendStatus(statusCodes.UNPROCESSABLE_ENTITY);
   }
 
@@ -142,7 +143,7 @@ async function handler(req, res) {
   try {
     await logEvent(log, event);
   } catch (err) {
-    console.error(err);
+    console.warn('Error writing to log: ', err);
     debugInfo.error = writeErr.stack;
   } finally {
     if (debug) {
