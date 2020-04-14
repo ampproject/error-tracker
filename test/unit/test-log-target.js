@@ -72,6 +72,13 @@ describe('log target', () => {
 
       expect(await logTarget.log).to.equal(await logs.users);
     });
+
+    it('returns expected log for expected errors', async () => {
+      reportingParams.expected = true;
+      const logTarget = new LogTarget(referrer, reportingParams);
+
+      expect(await logTarget.log).to.equal(await logs.expected);
+    });
   });
 
   describe('serviceName', () => {
