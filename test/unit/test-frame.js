@@ -32,4 +32,28 @@ describe('Frame', () => {
       });
     });
   });
+
+  describe('path deduplication', () => {
+    it('fixes duplicated source paths', () => {
+      const samples = [{
+        duped: 'https://raw.githubusercontent.com/ampproject/amphtml/2004142326360/extensions/amp-viewer-integration/0.1/messaging/extensions/amp-viewer-integration/0.1/messaging/messaging.js',
+        fixed: 'https://raw.githubusercontent.com/ampproject/amphtml/2004142326360/extensions/amp-viewer-integration/0.1/messaging/messaging.js',
+      }, {
+        duped: 'https://raw.githubusercontent.com/ampproject/amphtml/2004071640410/src/service/src/service/storage-impl.js',
+        fixed: 'https://raw.githubusercontent.com/ampproject/amphtml/2004071640410/src/service/storage-impl.js',
+      }, {
+        duped: 'https://raw.githubusercontent.com/ampproject/amphtml/2004071640410/src/src/chunk.js',
+        fixed: 'https://raw.githubusercontent.com/ampproject/amphtml/2004071640410/src/chunk.js',
+      }, {
+        duped: 'unexpected-token.js',
+        fixed: 'unexpected-token.js',
+      }];
+
+      samples.forEach(({duped, fixed}) => {
+        const frame = new Frame('name', duped, '1', '2');
+        console.log(duped, fixed)
+        expect(frame.source).to.equal(fixed);
+      });
+    });
+  });
 });

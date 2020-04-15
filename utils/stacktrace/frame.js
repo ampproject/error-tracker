@@ -24,9 +24,26 @@ class Frame {
    */
   constructor(name, source, line, column) {
     this.name = name;
-    this.source = source;
+    this.source = this.dedupeSource(source);
     this.line = parseInt(line, 10);
     this.column = parseInt(column, 10);
+  }
+
+  /**
+   * Dedupes source paths.
+   * Temporary fix until #27665 fixes the sourcemaps.
+   * @param {string} source
+   * @return {string}
+   */
+  dedupeSource(source) {
+    if (!source) {
+      return source;
+    }
+
+    const matches = source.match(/ampproject\/amphtml\/\d+\/(.+)\/\1\/[^\/]+$/);
+    return matches
+      ? source.replace(`${matches[1]}/${matches[1]}`, matches[1])
+      : source;
   }
 
   /**
