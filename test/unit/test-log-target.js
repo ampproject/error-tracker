@@ -49,28 +49,28 @@ describe('log target', () => {
     it('returns error log', async () => {
       const logTarget = new LogTarget(referrer, reportingParams);
 
-      expect(await logTarget.log).to.equal(await logs.errors);
+      expect(logTarget.log).to.equal(logs.errors);
     });
 
     it('returns ads log for inabox', async () => {
       reportingParams.runtime = 'inabox';
       const logTarget = new LogTarget(referrer, reportingParams);
 
-      expect(await logTarget.log).to.equal(await logs.ads);
+      expect(logTarget.log).to.equal(logs.ads);
     });
 
     it('returns ads log for signing service error', async () => {
       reportingParams.message = 'Error: Signing service error for google';
       const logTarget = new LogTarget(referrer, reportingParams);
 
-      expect(await logTarget.log).to.equal(await logs.ads);
+      expect(logTarget.log).to.equal(logs.ads);
     });
 
     it('returns user log for asserts', async () => {
       reportingParams.assert = true;
       const logTarget = new LogTarget(referrer, reportingParams);
 
-      expect(await logTarget.log).to.equal(await logs.users);
+      expect(logTarget.log).to.equal(logs.users);
     });
   });
 

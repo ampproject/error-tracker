@@ -20,26 +20,12 @@
 
 const { Logging } = require('@google-cloud/logging');
 
-exports.generic = Promise.resolve(
-  new Logging({
-    projectId: 'amp-error-reporting',
-  }).log('stderr')
-);
+exports.generic = new Logging({
+  projectId: 'amp-error-reporting',
+}).log('stderr');
 
-exports.errors = Promise.resolve(
-  new Logging({
-    projectId: 'amp-error-reporting',
-  }).log('javascript.errors')
-);
+const jsLog = projectId => new Logging({ projectId }).log('javascript.errors');
 
-exports.users = Promise.resolve(
-  new Logging({
-    projectId: 'amp-error-reporting-user',
-  }).log('javascript.errors')
-);
-
-exports.ads = Promise.resolve(
-  new Logging({
-    projectId: 'amp-error-reporting-ads',
-  }).log('javascript.errors')
-);
+exports.errors = jsLog('amp-error-reporting');
+exports.users = jsLog('amp-error-reporting-user');
+exports.ads = jsLog('amp-error-reporting-ads');
