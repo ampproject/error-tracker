@@ -54,6 +54,12 @@ async function logEvent(log, event) {
 async function buildEvent(req, reportingParams, logTarget) {
   const { buildQueryString, message, stacktrace, version } = reportingParams;
 
+  const userAgent = req.get('User-Agent');
+  if (userAgent.includes('Googlebot')) {
+    console.warn(`Ignored Googlebot errror report: ${message}`);
+    return null;
+  }
+
   const stack = standardizeStackTrace(stacktrace, message);
   if (ignoreMessageOrException(message, stack)) {
     console.warn(`Ignored "${message}`);
@@ -79,7 +85,7 @@ async function buildEvent(req, reportingParams, logTarget) {
       httpRequest: {
         method: req.method,
         url: reqUrl,
-        userAgent: req.get('User-Agent'),
+        userAgent,
         referrer: req.get('Referrer'),
       },
     },
