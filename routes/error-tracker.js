@@ -105,7 +105,7 @@ async function handler(req, res) {
   const reportingParams = extractReportingParams(params);
   const { debug, message, version } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);
-  const log = await logTarget.log;
+  const { log } = logTarget;
 
   // Reject requests missing essential info.
   if (!referrer || !version || !message) {
