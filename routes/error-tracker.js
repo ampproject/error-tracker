@@ -30,9 +30,7 @@ const CF_METADATA = {
   resource: {
     type: 'cloud_function',
     labels: {
-      service_name: process.env.K_SERVICE,
-      version_id: process.env.K_REVISION,
-      commit_sha: process.env.COMMIT_SHA,
+      function_name: process.env.K_SERVICE,
     },
   },
   severity: 500, // Error.
