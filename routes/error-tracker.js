@@ -56,7 +56,7 @@ async function buildEvent(req, reportingParams, logTarget) {
 
   const userAgent = req.get('User-Agent');
   if (userAgent.includes('Googlebot')) {
-    console.warn(`Ignored Googlebot errror report`);
+    console.warn(`Ignored Googlebot errror report: ${message}`);
     return null;
   }
 
