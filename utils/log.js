@@ -57,14 +57,8 @@ exports.ads = getCredentials('amp-error-reporting-ads.json')
     return exports.errors;
   });
 
-exports.expected = getCredentials('amp-error-reporting-expected.json')
-  .then(credentials =>
-    new Logging({
-      projectId: 'amp-error-reporting-expected',
-      credentials,
-    }).log('javascript.errors')
-  )
-  .catch(error => {
-    console.error(error);
-    return exports.errors;
-  });
+exports.expected = Promise.resolve(
+  new Logging({
+    projectId: 'amp-error-reporting-expected',
+  }).log('javascript.errors')
+);
