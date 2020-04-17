@@ -54,8 +54,15 @@ async function logEvent(log, event) {
 async function buildEvent(req, reportingParams, logTarget) {
   const { buildQueryString, message, stacktrace, version } = reportingParams;
 
+  const userAgent = req.get('User-Agent');
+  if (userAgent.includes('Googlebot')) {
+    console.warn(`Ignored Googlebot errror report: ${message}`);
+    return null;
+  }
+
   const stack = standardizeStackTrace(stacktrace, message);
   if (ignoreMessageOrException(message, stack)) {
+    console.warn(`Ignored "${message}`);
     return null;
   }
   const unminifiedStack = await unminify(stack, version);
@@ -78,7 +85,7 @@ async function buildEvent(req, reportingParams, logTarget) {
       httpRequest: {
         method: req.method,
         url: reqUrl,
-        userAgent: req.get('User-Agent'),
+        userAgent,
         referrer: req.get('Referrer'),
       },
     },
@@ -98,7 +105,7 @@ async function handler(req, res) {
   const reportingParams = extractReportingParams(params);
   const { debug, message, version } = reportingParams;
   const logTarget = new LogTarget(referrer, reportingParams);
-  const log = await logTarget.log;
+  const { log } = logTarget;
 
   // Reject requests missing essential info.
   if (!referrer || !version || !message) {
@@ -122,7 +129,7 @@ async function handler(req, res) {
   try {
     event = await buildEvent(req, reportingParams, logTarget);
   } catch (unminifyError) {
-    console.error(unminifyError);
+    console.warn('Error unminifying:', unminifyError);
     return res.sendStatus(statusCodes.UNPROCESSABLE_ENTITY);
   }
 
@@ -142,7 +149,7 @@ async function handler(req, res) {
   try {
     await logEvent(log, event);
   } catch (err) {
-    console.error(err);
+    console.warn('Error writing to log: ', err);
     debugInfo.error = writeErr.stack;
   } finally {
     if (debug) {

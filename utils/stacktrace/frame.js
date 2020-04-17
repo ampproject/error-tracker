@@ -13,6 +13,19 @@
  */
 
 /**
+ * Dedupes source paths.
+ * Temporary fix until #27665 fixes the sourcemaps.
+ * @param {string} source
+ * @return {string}
+ */
+function dedupeSource(source) {
+  return (
+    source &&
+    source.replace(/(ampproject\/amphtml\/\d+)(\/.+)\2(\/[^\/]+)$/, '$1$2$3')
+  );
+}
+
+/**
  * Represents a single frame in a stack trace.
  */
 class Frame {
@@ -24,7 +37,7 @@ class Frame {
    */
   constructor(name, source, line, column) {
     this.name = name;
-    this.source = source;
+    this.source = dedupeSource(source);
     this.line = parseInt(line, 10);
     this.column = parseInt(column, 10);
   }
