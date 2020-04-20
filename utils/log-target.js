@@ -35,7 +35,7 @@ module.exports = class LoggingTarget {
 
   /** Select which error logging project to report to. */
   getLog() {
-    const { runtime, message, assert } = this.opts;
+    const { runtime, message, assert, expected } = this.opts;
 
     if (
       runtime === 'inabox' ||
@@ -46,6 +46,10 @@ module.exports = class LoggingTarget {
 
     if (assert) {
       return logs.users;
+    }
+
+    if (expected) {
+      return logs.expected;
     }
 
     return logs.errors;

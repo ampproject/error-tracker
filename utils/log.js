@@ -29,3 +29,4 @@ const jsLog = projectId => new Logging({ projectId }).log('javascript.errors');
 exports.errors = jsLog('amp-error-reporting');
 exports.users = jsLog('amp-error-reporting-user');
 exports.ads = jsLog('amp-error-reporting-ads');
+exports.expected = jsLog('amp-error-reporting-expected');
