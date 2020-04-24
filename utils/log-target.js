@@ -19,6 +19,7 @@
  */
 
 const logs = require('./log');
+const rtvToString = require('./rtv-string');
 
 const CDN_REGEX = new RegExp(
   '^https://cdn\\.ampproject.org/|' +
@@ -100,9 +101,7 @@ module.exports = class LoggingTarget {
 
   /** Determine the version identifier to report to Stackdriver logging. */
   get versionId() {
-    // Report the RTV.
-    // TODO: Make this a more readable string.
-    return this.opts.version;
+    return rtvToString(this.opts.version);
   }
 
   /** Determine throttle level for error type. */
@@ -132,3 +131,4 @@ module.exports = class LoggingTarget {
     return throttleRate;
   }
 };
+module.exports.rtvToString = rtvToString;
