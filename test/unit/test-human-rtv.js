@@ -12,9 +12,9 @@
  * limitations under the License.
  */
 
-const rtvString = require('../../utils/rtv-string');
+const humanRtv = require('../../utils/human-rtv');
 
-describe('rtvString', () => {
+describe('humanRtv', () => {
   [
     ['052004030010070', '04-03 Nightly-Control (0010)'],
     ['012004030010000', '04-03 Stable (0010)'],
@@ -27,7 +27,7 @@ describe('rtvString', () => {
     ['internalRuntimeVersion', 'internalRuntimeVersion'],
   ].forEach(([rtv, str]) => {
     it(`converts "${rtv}" to "${str}"`, () => {
-      expect(rtvString(rtv)).to.equal(str);
+      expect(humanRtv(rtv)).to.equal(str);
     });
   });
 });

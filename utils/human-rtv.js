@@ -31,7 +31,7 @@ const RELEASE_CHANNELS = {
   '25': 'Ads-Experiment-C',
 };
 
-module.exports = function rtvString(rtv) {
+module.exports = function humanRtv(rtv) {
   try {
     const [
       unusedRtv,
