@@ -42,7 +42,7 @@ module.exports = function humanRtv(rtv) {
       hour,
       minute,
       cherrypicks,
-    ] = rtv.match(RTV_REGEX);
+    ] = RTV_REGEX.exec(rtv);
     const date = `${month}-${day}`;
     const channelName = RELEASE_CHANNELS[channel] || 'Unknown';
     // This component is taken directly out of the RTV to allow sanity-checking

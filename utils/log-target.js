@@ -131,4 +131,3 @@ module.exports = class LoggingTarget {
     return throttleRate;
   }
 };
-module.exports.humanRtv = humanRtv;
