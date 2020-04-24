@@ -117,7 +117,7 @@ describe('log target', () => {
   describe('versionId', () => {
     it('returns the release version string', () => {
       const logTarget = new LogTarget(referrer, reportingParams);
-      expect(logTarget.versionId).to.equal('04-03 Stable (0010+1)');
+      expect(logTarget.versionId).to.equal('04-03 Stable (0010+2)');
     });
   });
 
