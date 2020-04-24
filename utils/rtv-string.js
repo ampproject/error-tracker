@@ -41,7 +41,7 @@ module.exports = function rtvString(rtv) {
       day,
       hour,
       minute,
-      cherrypicks
+      cherrypicks,
     ] = rtv.match(RTV_REGEX);
     const date = `${month}-${day}`;
     const channelName = RELEASE_CHANNELS[channel] || 'Unknown';
@@ -55,11 +55,11 @@ module.exports = function rtvString(rtv) {
     // TODO(rcebulko): Remove once cherry-pick segment of RTV is in place.
     if (cpCount > 10) {
       cpCount = 0;
-    };
+    }
     const fingerprint = `${hour}${minute}${cpCount ? `+${cpCount}` : ''}`;
 
     return `${month}-${day} ${channelName} (${fingerprint})`;
   } catch (e) {
     return rtv;
   }
-}
+};
