@@ -35,7 +35,7 @@ module.exports = function humanRtv(rtv) {
   try {
     const [
       unusedRtv,
-      channel,
+      rtvPrefix,
       unusedYear,
       month,
       day,
@@ -44,11 +44,11 @@ module.exports = function humanRtv(rtv) {
       cherrypicks,
     ] = RTV_REGEX.exec(rtv);
     const date = `${month}-${day}`;
-    const channelName = RELEASE_CHANNELS[channel] || 'Unknown';
+    const channelName = RELEASE_CHANNELS[rtvPrefix] || 'Unknown';
     // This component is taken directly out of the RTV to allow sanity-checking
     // the match to an RTV.
 
-    let cpCount = parseInt(cherrypicks, 10);
+    let cpCount = Number(cherrypicks);
     // Temporary band-aid until the cherry-pick part of the RTV has been fully
     // adopted; ignores RTVs that look like they have an unreasonable number of
     // cherry-picks.
@@ -59,7 +59,7 @@ module.exports = function humanRtv(rtv) {
     const fingerprint = `${hour}${minute}${cpCount ? `+${cpCount}` : ''}`;
 
     return `${month}-${day} ${channelName} (${fingerprint})`;
-  } catch (e) {
+  } catch {
     return rtv;
   }
 };
