@@ -23,12 +23,12 @@ const RELEASE_CHANNELS = {
   '10': 'Experiment-A',
   '11': 'Experiment-B',
   '12': 'Experiment-C',
-  '20': 'Ads-Experiment-A-Control',
-  '21': 'Ads-Experiment-A',
-  '22': 'Ads-Experiment-B-Control',
-  '23': 'Ads-Experiment-B',
-  '24': 'Ads-Experiment-C-Control',
-  '25': 'Ads-Experiment-C',
+  '20': 'Inabox-Control-A',
+  '21': 'Inabox-Experiment-A',
+  '22': 'Inabox-Control-B',
+  '23': 'Inabox-Experiment-B',
+  '24': 'Inabox-Control-C',
+  '25': 'Inabox-Experiment-C',
 };
 
 module.exports = function humanRtv(rtv) {
