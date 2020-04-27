@@ -49,11 +49,7 @@ module.exports = function humanRtv(rtv) {
     // the match to an RTV.
 
     let cpCount = Number(cherrypicks);
-    // Temporary band-aid until the cherry-pick part of the RTV has been fully
-    // adopted; ignores RTVs that look like they have an unreasonable number of
-    // cherry-picks.
-    // TODO(rcebulko): Remove once cherry-pick segment of RTV is in place.
-    if (cpCount > 10) {
+    if (isNaN(cpCount)) {
       cpCount = 0;
     }
     const fingerprint = `${hour}${minute}${cpCount ? `+${cpCount}` : ''}`;
