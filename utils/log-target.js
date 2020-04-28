@@ -19,7 +19,8 @@
  */
 
 const logs = require('./log');
-const humanRtv = require('./human-rtv');
+const humanRtv = require('./rtv/human-rtv');
+const releaseChannels = require('./rtv/release-channels');
 
 const CDN_REGEX = new RegExp(
   '^https://cdn\\.ampproject.org/|' +
@@ -58,49 +59,23 @@ module.exports = class LoggingTarget {
 
   /** Construct the service bucket name for Stackdriver logging. */
   get serviceName() {
-    // TODO: Drastically reduce combinatoral explosion of buckets.
-    const {
-      singlePassType,
-      referrer,
-      runtime,
-      thirdParty,
-      binaryType,
-      canary,
-      assert,
-      expected,
-    } = this.opts;
-    const name = ['default'];
+    const { referrer, version, expected } = this.opts;
+    const rtvPrefix = version.substr(0, 2);
 
-    if (singlePassType) {
-      name.push(singlePassType);
-    }
-    name.push(CDN_REGEX.test(referrer) ? 'cdn' : 'origin');
+    const name = [CDN_REGEX.test(referrer) ? 'CDN' : 'Origin'];
+    name.push(
+      rtvPrefix in releaseChannels
+        ? releaseChannels[rtvPrefix].group
+        : 'Unknown'
+    );
 
-    if (runtime) {
-      name.push(runtime);
-    } else if (thirdParty) {
-      name.push('3p');
-    } else {
-      name.push('1p');
+    if (expected && this.getLog() !== logs.expected) {
+      // Expected errors are split out of the main bucket, but are present for
+      // user and inabox errors.
+      name.push('(Expected)');
     }
 
-    // Do not append binary type if 'production' since that is the default
-    if (binaryType) {
-      if (binaryType !== 'production') {
-        name.push(binaryType);
-      }
-    } else if (canary) {
-      name.push('canary');
-    }
-
-    if (assert) {
-      name.push('user');
-    }
-    if (expected) {
-      name.push('expected');
-    }
-
-    return name.join('-');
+    return name.join(' ');
   }
 
   /** Determine the version identifier to report to Stackdriver logging. */

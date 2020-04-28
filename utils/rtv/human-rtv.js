@@ -12,24 +12,8 @@
  * limitations under the License.
  */
 
+const releaseChannels = require('./release-channels');
 const RTV_REGEX = /^(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d\d)$/;
-const RELEASE_CHANNELS = {
-  '00': 'Experimental',
-  '01': 'Stable',
-  '02': 'Control',
-  '03': 'Beta',
-  '04': 'Nightly',
-  '05': 'Nightly-Control',
-  '10': 'Experiment-A',
-  '11': 'Experiment-B',
-  '12': 'Experiment-C',
-  '20': 'Inabox-Control-A',
-  '21': 'Inabox-Experiment-A',
-  '22': 'Inabox-Control-B',
-  '23': 'Inabox-Experiment-B',
-  '24': 'Inabox-Control-C',
-  '25': 'Inabox-Experiment-C',
-};
 
 module.exports = function humanRtv(rtv) {
   try {
@@ -43,15 +27,11 @@ module.exports = function humanRtv(rtv) {
       minute,
       cherrypicks,
     ] = RTV_REGEX.exec(rtv);
-    const date = `${month}-${day}`;
-    const channelName = RELEASE_CHANNELS[rtvPrefix] || 'Unknown';
-    // This component is taken directly out of the RTV to allow sanity-checking
-    // the match to an RTV.
-
-    let cpCount = Number(cherrypicks);
-    if (isNaN(cpCount)) {
-      cpCount = 0;
-    }
+    const channelName =
+      rtvPrefix in releaseChannels
+        ? releaseChannels[rtvPrefix].name
+        : 'Unknown';
+    const cpCount = Number(cherrypicks);
     const fingerprint = `${hour}${minute}${cpCount ? `+${cpCount}` : ''}`;
 
     return `${month}-${day} ${channelName} (${fingerprint})`;

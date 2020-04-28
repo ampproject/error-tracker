@@ -90,25 +90,47 @@ describe('log target', () => {
       ].forEach(referrer => {
         it(`records "cdn" for ${referrer}`, () => {
           const logTarget = new LogTarget(referrer, reportingParams);
-          expect(logTarget.serviceName).to.contain('-cdn-');
+          expect(logTarget.serviceName).to.contain('CDN');
         });
       });
     });
 
     describe('for origin referrers', () => {
-      const serviceParams = {
-        'default-origin-1p-canary': { binaryType: '', canary: true },
-        'default-origin-1p-user': { assert: true },
-        'default-origin-1p-expected': { expected: true },
-        'default-origin-3p': { runtime: '', thirdParty: true },
-        'default-origin-3p-experimental-expected': {
-          runtime: '3p',
-          binaryType: 'experimental',
-          expected: true,
-        },
-      };
+      const serviceParams = [
+        ['Origin Development', { version: '00XXXXXXXXXXXXX' }],
+        ['Origin Development', { version: '03XXXXXXXXXXXXX' }],
+        ['Origin Production', { version: '01XXXXXXXXXXXXX' }],
+        ['Origin Production', { version: '02XXXXXXXXXXXXX' }],
+        ['Origin Nightly', { version: '04XXXXXXXXXXXXX' }],
+        ['Origin Nightly', { version: '05XXXXXXXXXXXXX' }],
+        ['Origin Experiments', { version: '10XXXXXXXXXXXXX' }],
+        ['Origin Experiments', { version: '11XXXXXXXXXXXXX' }],
+        ['Origin Experiments', { version: '12XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Control-A', { version: '20XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Experiment-A', { version: '21XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Control-B', { version: '22XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Experiment-B', { version: '23XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Control-C', { version: '24XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Experiment-C', { version: '25XXXXXXXXXXXXX' }],
+        [
+          'Origin Production (Expected)',
+          {
+            assert: true,
+            version: '01XXXXXXXXXXXXX',
+            expected: true,
+          },
+        ],
+        [
+          'Origin Inabox-Experiment-B (Expected)',
+          {
+            version: '23XXXXXXXXXXXXX',
+            runtime: 'inabox',
+            expected: true,
+          },
+        ],
+      ];
 
-      for (const [expectedName, params] of Object.entries(serviceParams)) {
+      for (const [expectedName, params] of serviceParams) {
         it(`correctly constructs "${expectedName}"`, () => {
           const logTarget = new LogTarget(
             referrer,

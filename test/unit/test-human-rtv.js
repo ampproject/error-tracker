@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-const humanRtv = require('../../utils/human-rtv');
+const humanRtv = require('../../utils/rtv/human-rtv');
 
 describe('humanRtv', () => {
   [
