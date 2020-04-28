@@ -83,7 +83,7 @@ module.exports = class LoggingTarget {
     const name = [CDN_REGEX.test(referrer) ? 'CDN' : 'Origin'];
     name.push(CHANNEL_TYPES[rtvPrefix] || 'Unknown');
 
-    if ([logs.ads, logs.users].includes(this.getLog())) {
+    if (expected && [logs.ads, logs.users].includes(this.getLog())) {
       // Expected errors are split out of the main bucket, but are present for
       // user and inabox errors.
       name.push('(Expected)');
