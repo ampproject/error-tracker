@@ -17,9 +17,9 @@
  * to prevent reports for old errors from getting through.
  */
 
-const Request = require('./requests/request');
-const Cache = require('./cache');
-const logs = require('./log');
+const Request = require('../requests/request');
+const Cache = require('../cache');
+const logs = require('../log');
 
 const url = 'https://cdn.ampproject.org/rtv/metadata';
 const fiveMin = 5 * 60 * 1000;

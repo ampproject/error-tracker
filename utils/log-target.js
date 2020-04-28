@@ -19,8 +19,8 @@
  */
 
 const logs = require('./log');
-const humanRtv = require('./human-rtv');
-const releaseChannels = require('./release-channels');
+const humanRtv = require('./rtv/human-rtv');
+const releaseChannels = require('./rtv/release-channels');
 
 const CDN_REGEX = new RegExp(
   '^https://cdn\\.ampproject.org/|' +

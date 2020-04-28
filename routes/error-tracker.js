@@ -24,7 +24,7 @@ const LogTarget = require('../utils/log-target');
 const standardizeStackTrace = require('../utils/stacktrace/standardize-stack-trace');
 const ignoreMessageOrException = require('../utils/stacktrace/should-ignore');
 const unminify = require('../utils/stacktrace/unminify');
-const latestRtv = require('../utils/latest-rtv');
+const latestRtv = require('../utils/rtv/latest-rtv');
 
 const CF_METADATA = {
   resource: {
