@@ -27,6 +27,25 @@ const CDN_REGEX = new RegExp(
     '\\.ampproject\\.net/',
   'i'
 );
+const CHANNEL_TYPES = {
+  '00': 'Development',
+  '01': 'Production',
+  '02': 'Production',
+  '03': 'Development',
+  '04': 'Nightly',
+  '05': 'Nightly',
+  '10': 'Experiments',
+  '11': 'Experiments',
+  '12': 'Experiments',
+  // Ads error reporting will get all of the below channels, so the service
+  // bucket names can be more verbose.
+  '20': 'Inabox-Control-A',
+  '21': 'Inabox-Experiment-A',
+  '22': 'Inabox-Control-B',
+  '23': 'Inabox-Experiment-B',
+  '24': 'Inabox-Control-C',
+  '25': 'Inabox-Experiment-C',
+}
 
 module.exports = class LoggingTarget {
   constructor(referrer, reportingParams) {
@@ -58,49 +77,19 @@ module.exports = class LoggingTarget {
 
   /** Construct the service bucket name for Stackdriver logging. */
   get serviceName() {
-    // TODO: Drastically reduce combinatoral explosion of buckets.
-    const {
-      singlePassType,
-      referrer,
-      runtime,
-      thirdParty,
-      binaryType,
-      canary,
-      assert,
-      expected,
-    } = this.opts;
-    const name = ['default'];
+    const {referrer, version, expected} = this.opts;
+    const rtvPrefix = version.substr(0, 2);
 
-    if (singlePassType) {
-      name.push(singlePassType);
-    }
-    name.push(CDN_REGEX.test(referrer) ? 'cdn' : 'origin');
+    const name = [CDN_REGEX.test(referrer) ? 'CDN' : 'Origin'];
+    name.push(CHANNEL_TYPES[rtvPrefix] || 'Unknown');
 
-    if (runtime) {
-      name.push(runtime);
-    } else if (thirdParty) {
-      name.push('3p');
-    } else {
-      name.push('1p');
+    if ([logs.ads, logs.users].includes(this.getLog())) {
+      // Expected errors are split out of the main bucket, but are present for
+      // user and inabox errors.
+      name.push('(Expected)');
     }
 
-    // Do not append binary type if 'production' since that is the default
-    if (binaryType) {
-      if (binaryType !== 'production') {
-        name.push(binaryType);
-      }
-    } else if (canary) {
-      name.push('canary');
-    }
-
-    if (assert) {
-      name.push('user');
-    }
-    if (expected) {
-      name.push('expected');
-    }
-
-    return name.join('-');
+    return name.join(' ');
   }
 
   /** Determine the version identifier to report to Stackdriver logging. */
