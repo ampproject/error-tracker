@@ -97,31 +97,37 @@ describe('log target', () => {
 
     describe('for origin referrers', () => {
       const serviceParams = [
-        ['Origin Development', {version: '00XXXXXXXXXXXXX'}],
-        ['Origin Development', {version: '03XXXXXXXXXXXXX'}],
-        ['Origin Production', {version: '01XXXXXXXXXXXXX'}],
-        ['Origin Production', {version: '02XXXXXXXXXXXXX'}],
-        ['Origin Nightly', {version: '04XXXXXXXXXXXXX'}],
-        ['Origin Nightly', {version: '05XXXXXXXXXXXXX'}],
-        ['Origin Experiments', {version: '10XXXXXXXXXXXXX'}],
-        ['Origin Experiments', {version: '11XXXXXXXXXXXXX'}],
-        ['Origin Experiments', {version: '12XXXXXXXXXXXXX'}],
-        ['Origin Inabox-Control-A', {version: '20XXXXXXXXXXXXX'}],
-        ['Origin Inabox-Experiment-A', {version: '21XXXXXXXXXXXXX'}],
-        ['Origin Inabox-Control-B', {version: '22XXXXXXXXXXXXX'}],
-        ['Origin Inabox-Experiment-B', {version: '23XXXXXXXXXXXXX'}],
-        ['Origin Inabox-Control-C', {version: '24XXXXXXXXXXXXX'}],
-        ['Origin Inabox-Experiment-C', {version: '25XXXXXXXXXXXXX'}],
-        ['Origin Production (Expected)', {
-          assert: true,
-          version: '01XXXXXXXXXXXXX',
-          expected: true
-        }],
-        ['Origin Inabox-Experiment-B (Expected)', {
-          version: '23XXXXXXXXXXXXX',
-          runtime: 'inabox',
-          expected: true
-        }],
+        ['Origin Development', { version: '00XXXXXXXXXXXXX' }],
+        ['Origin Development', { version: '03XXXXXXXXXXXXX' }],
+        ['Origin Production', { version: '01XXXXXXXXXXXXX' }],
+        ['Origin Production', { version: '02XXXXXXXXXXXXX' }],
+        ['Origin Nightly', { version: '04XXXXXXXXXXXXX' }],
+        ['Origin Nightly', { version: '05XXXXXXXXXXXXX' }],
+        ['Origin Experiments', { version: '10XXXXXXXXXXXXX' }],
+        ['Origin Experiments', { version: '11XXXXXXXXXXXXX' }],
+        ['Origin Experiments', { version: '12XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Control-A', { version: '20XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Experiment-A', { version: '21XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Control-B', { version: '22XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Experiment-B', { version: '23XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Control-C', { version: '24XXXXXXXXXXXXX' }],
+        ['Origin Inabox-Experiment-C', { version: '25XXXXXXXXXXXXX' }],
+        [
+          'Origin Production (Expected)',
+          {
+            assert: true,
+            version: '01XXXXXXXXXXXXX',
+            expected: true,
+          },
+        ],
+        [
+          'Origin Inabox-Experiment-B (Expected)',
+          {
+            version: '23XXXXXXXXXXXXX',
+            runtime: 'inabox',
+            expected: true,
+          },
+        ],
       ];
 
       for (const [expectedName, params] of serviceParams) {

@@ -45,7 +45,7 @@ const CHANNEL_TYPES = {
   '23': 'Inabox-Experiment-B',
   '24': 'Inabox-Control-C',
   '25': 'Inabox-Experiment-C',
-}
+};
 
 module.exports = class LoggingTarget {
   constructor(referrer, reportingParams) {
@@ -77,7 +77,7 @@ module.exports = class LoggingTarget {
 
   /** Construct the service bucket name for Stackdriver logging. */
   get serviceName() {
-    const {referrer, version, expected} = this.opts;
+    const { referrer, version, expected } = this.opts;
     const rtvPrefix = version.substr(0, 2);
 
     const name = [CDN_REGEX.test(referrer) ? 'CDN' : 'Origin'];
