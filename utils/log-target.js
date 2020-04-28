@@ -20,6 +20,7 @@
 
 const logs = require('./log');
 const humanRtv = require('./human-rtv');
+const releaseChannels = require('./release-channels');
 
 const CDN_REGEX = new RegExp(
   '^https://cdn\\.ampproject.org/|' +
@@ -27,25 +28,6 @@ const CDN_REGEX = new RegExp(
     '\\.ampproject\\.net/',
   'i'
 );
-const CHANNEL_TYPES = {
-  '00': 'Development',
-  '01': 'Production',
-  '02': 'Production',
-  '03': 'Development',
-  '04': 'Nightly',
-  '05': 'Nightly',
-  '10': 'Experiments',
-  '11': 'Experiments',
-  '12': 'Experiments',
-  // Ads error reporting will get all of the below channels, so the service
-  // bucket names can be more verbose.
-  '20': 'Inabox-Control-A',
-  '21': 'Inabox-Experiment-A',
-  '22': 'Inabox-Control-B',
-  '23': 'Inabox-Experiment-B',
-  '24': 'Inabox-Control-C',
-  '25': 'Inabox-Experiment-C',
-};
 
 module.exports = class LoggingTarget {
   constructor(referrer, reportingParams) {
@@ -81,7 +63,11 @@ module.exports = class LoggingTarget {
     const rtvPrefix = version.substr(0, 2);
 
     const name = [CDN_REGEX.test(referrer) ? 'CDN' : 'Origin'];
-    name.push(CHANNEL_TYPES[rtvPrefix] || 'Unknown');
+    name.push(
+      rtvPrefix in releaseChannels
+        ? releaseChannels[rtvPrefix].group
+        : 'Unknown'
+    );
 
     if (expected && this.getLog() !== logs.expected) {
       // Expected errors are split out of the main bucket, but are present for
