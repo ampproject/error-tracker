@@ -32,7 +32,7 @@ function extractReportingParams(params) {
     expected: boolProp('ex'),
     message: safeDecodeURIComponent(strProp('m')),
     buildQueryString: () => querystring.stringify(params),
-    prethrottled: boolProp('params.pt'),
+    prethrottled: boolProp('pt'),
     runtime: params.rt,
     singlePassType: params.spt,
     stacktrace: safeDecodeURIComponent(strProp('s')),

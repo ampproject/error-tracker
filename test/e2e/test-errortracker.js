@@ -40,9 +40,17 @@ describe('Error Tracker Server', () => {
       debug: 'debug',
       thirdParty: '3p',
       binaryType: 'bt',
+      prethrottled: 'pt',
       singlePassType: 'spt',
     };
-    const booleans = ['assert', 'canary', 'expected', 'debug', 'thirdParty'];
+    const booleans = [
+      'assert',
+      'canary',
+      'expected',
+      'debug',
+      'thirdParty',
+      'prethrottled',
+    ];
 
     return function makeQuery(options) {
       const query = {};
@@ -81,6 +89,7 @@ describe('Error Tracker Server', () => {
     message: 'The object does not support the operation or argument.',
     assert: false,
     runtime: '1p',
+    binaryType: 'production',
     // chai.request will encode this for us.
     stack: 'Error: stuff\n at file.js:1:2\n at n (file2.js:3:4)',
   });
@@ -214,6 +223,30 @@ describe('Error Tracker Server', () => {
           });
         });
 
+        it('throttles 90% of production errors', () => {
+          sandbox.stub(Math, 'random').returns(0.1);
+          const query = Object.assign({}, knownGoodQuery);
+
+          return makeRequest(referrer, query)
+            .then(res => {
+              expect(res.status).to.equal(statusCodes.ACCEPTED);
+              Math.random.returns(0.11);
+              return makeRequest(referrer, query);
+            })
+            .then(res => {
+              expect(res.status).to.equal(statusCodes.OK);
+            });
+        });
+
+        it('does not throttles pre-throttled production errors', () => {
+          sandbox.stub(Math, 'random').returns(0.99);
+          const query = Object.assign({ prethrottled: true }, knownGoodQuery);
+
+          return makeRequest(referrer, query).then(res => {
+            expect(res.status).to.equal(statusCodes.ACCEPTED);
+          });
+        });
+
         it('throttles 90% of canary user errors', () => {
           sandbox.stub(Math, 'random').returns(0.1);
           const query = Object.assign({}, knownGoodQuery, {
@@ -248,9 +281,7 @@ describe('Error Tracker Server', () => {
 
         it('throttles 99% of user errors', () => {
           sandbox.stub(Math, 'random').returns(0.01);
-          const query = Object.assign({}, knownGoodQuery, {
-            assert: true,
-          });
+          const query = Object.assign({}, knownGoodQuery, { assert: true });
 
           return makeRequest(referrer, query)
             .then(res => {
@@ -281,7 +312,7 @@ describe('Error Tracker Server', () => {
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
                   'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-                  '&s=&debug=1'
+                  '&bt=production&s=&debug=1'
               );
               expect(httpRequest.userAgent).to.be.equal(userAgent);
               expect(httpRequest.referrer).to.be.equal(referrer);
@@ -312,6 +343,7 @@ describe('Error Tracker Server', () => {
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
                   'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                  '&bt=production' +
                   '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
                   'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
               );
@@ -364,6 +396,7 @@ describe('Error Tracker Server', () => {
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
                   'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                  '&bt=production' +
                   '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
                   '%20argument.%0A%20%20%20%20at%20t%20(https%3A%2F%2Fcdn.ampproject.org' +
                   '%2Fv0.js%3A1%3A18)%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +

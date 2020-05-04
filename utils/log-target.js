@@ -91,7 +91,7 @@ module.exports = class LoggingTarget {
       assert,
       referrer,
       expected,
-      prethrottled
+      prethrottled,
     } = this.opts;
     let throttleRate = 1;
 
