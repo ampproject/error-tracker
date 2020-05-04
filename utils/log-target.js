@@ -85,11 +85,18 @@ module.exports = class LoggingTarget {
 
   /** Determine throttle level for error type. */
   get throttleRate() {
-    const { canary, binaryType, assert, referrer, expected } = this.opts;
+    const {
+      canary,
+      binaryType,
+      assert,
+      referrer,
+      expected,
+      prethrottled,
+    } = this.opts;
     let throttleRate = 1;
 
-    // Throttle errors from Stable.
-    if (!canary && !['control', 'rc', 'nightly'].includes(binaryType)) {
+    // Throttle errors from Stable, unless pre-throttled on the client.
+    if (!canary && binaryType === 'production' && !prethrottled) {
       throttleRate /= 10;
     }
 
