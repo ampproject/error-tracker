@@ -23,15 +23,22 @@ const errorsToIgnore = [
   'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)',
 ];
 const JS_REGEX = /\.m?js$/;
+const AMP_SCRIPT_REGEX = /amp-script\[src=/;
+
+/**
+ * @param {!Array<!Frame>} stack
+ * @return {boolean} True if no line in the stack is from an amp-script
+ */
+function isAmpScriptStackTrace(stack) {
+  return stack.some(({ source }) => AMP_SCRIPT_REGEX.test(source));
+}
 
 /**
  * @param {!Array<!Frame>} stack
  * @return {boolean} True if its a non JS stack trace
  */
 function isNonJSStackTrace(stack) {
-  return !stack.every(({ source }) => {
-    return JS_REGEX.test(source);
-  });
+  return !stack.every(({ source }) => JS_REGEX.test(source));
 }
 
 /**
@@ -48,7 +55,11 @@ function includesBlacklistedError(message) {
  * @return {boolean}
  */
 function shouldIgnore(message, stack) {
-  return includesBlacklistedError(message) || isNonJSStackTrace(stack);
+  return (
+    includesBlacklistedError(message) ||
+    isNonJSStackTrace(stack) ||
+    isAmpScriptStackTrace(stack)
+  );
 }
 
 module.exports = shouldIgnore;

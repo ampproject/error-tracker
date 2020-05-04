@@ -21,12 +21,19 @@ describe('shouldIgnore', () => {
   const jsFrame = new Frame('', 'file.js', '1', '2');
   const htmlFrame = new Frame('', 'file.html', '1', '2');
   const mjsFrame = new Frame('', 'file.mjs', '1', '2');
+  const ampScriptFrame = new Frame(
+    '',
+    'amp-script[src="custom.js?v=1"].js',
+    '1',
+    '2'
+  );
 
   const jsFrames = [jsFrame, jsFrame];
   const mjsFrames = [mjsFrame, mjsFrame];
   const mixedJsFrames = [jsFrame, mjsFrame, jsFrame];
   const mixedFrames = [jsFrame, htmlFrame, jsFrame];
   const htmlFrames = [htmlFrame, htmlFrame];
+  const ampScriptFrames = [ampScriptFrame, jsFrame, ampScriptFrame, jsFrame];
 
   describe('with acceptable error message', () => {
     const message = 'Error: something happened!';
@@ -49,6 +56,10 @@ describe('shouldIgnore', () => {
 
     it('ignores html frames', () => {
       expect(shouldIgnore(message, htmlFrames)).to.equal(true);
+    });
+
+    it('ignores amp-scipt frames', () => {
+      expect(shouldIgnore(message, ampScriptFrames)).to.equal(true);
     });
   });
 
