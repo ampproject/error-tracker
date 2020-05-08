@@ -97,8 +97,8 @@ describe('log target', () => {
 
     describe('for origin referrers', () => {
       const serviceParams = [
-        ['Origin Development', { version: '00XXXXXXXXXXXXX' }],
-        ['Origin Development', { version: '03XXXXXXXXXXXXX' }],
+        ['Origin 1%', { version: '00XXXXXXXXXXXXX' }],
+        ['Origin 1%', { version: '03XXXXXXXXXXXXX' }],
         ['Origin Production', { version: '01XXXXXXXXXXXXX' }],
         ['Origin Production', { version: '02XXXXXXXXXXXXX' }],
         ['Origin Nightly', { version: '04XXXXXXXXXXXXX' }],
