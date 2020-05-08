@@ -18,10 +18,10 @@
  */
 
 module.exports = {
-  '00': { group: 'Development', name: 'Experimental' },
+  '00': { group: '1%', name: 'Experimental' },
   '01': { group: 'Production', name: 'Stable' },
   '02': { group: 'Production', name: 'Control' },
-  '03': { group: 'Development', name: 'Beta' },
+  '03': { group: '1%', name: 'Beta' },
   '04': { group: 'Nightly', name: 'Nightly' },
   '05': { group: 'Nightly', name: 'Nightly-Control' },
   '10': { group: 'Experiments', name: 'Experiment-A' },
