@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@google-cloud/logging": "^5.5.5",
-    "@google-cloud/storage": "^3.5.0",
+    "@google-cloud/storage": "^5.0.1",
     "express": "^4.17.1",
     "http-status-codes": "^1.4.0",
     "lodash.debounce": "^4.0.8",
