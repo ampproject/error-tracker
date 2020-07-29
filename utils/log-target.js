@@ -105,11 +105,6 @@ module.exports = class LoggingTarget {
       throttleRate /= 10;
     }
 
-    // Throttle errors on origin pages; they may not be valid AMP docs.
-    if (!CDN_REGEX.test(referrer)) {
-      throttleRate /= 20;
-    }
-
     if (expected) {
       throttleRate /= 10;
     }

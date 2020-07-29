@@ -190,10 +190,10 @@ describe('log target', () => {
       expect(logTarget.throttleRate).to.be.closeTo(1 / 100, 1e-6);
     });
 
-    it('throttles errors from origin pages by a factor of 20', () => {
+    it('throttles errors from origin pages by a factor of 10', () => {
       referrer = 'https://myrandomwebsite.com';
       const logTarget = new LogTarget(referrer, reportingParams);
-      expect(logTarget.throttleRate).to.be.closeTo(1 / 200, 1e-6);
+      expect(logTarget.throttleRate).to.be.closeTo(1 / 10, 1e-6);
     });
 
     it('throttles expected errors by a factor of 10', () => {
@@ -202,13 +202,13 @@ describe('log target', () => {
       expect(logTarget.throttleRate).to.be.closeTo(1 / 100, 1e-6);
     });
 
-    it('throttles expected user errors in RC on origin by 2000', () => {
+    it('throttles expected user errors in RC on origin by 100', () => {
       referrer = 'https://myrandomwebsite.com';
       reportingParams.assert = true;
       reportingParams.binaryType = 'rc';
       reportingParams.expected = true;
       const logTarget = new LogTarget(referrer, reportingParams);
-      expect(logTarget.throttleRate).to.be.closeTo(1 / 2000, 1e-6);
+      expect(logTarget.throttleRate).to.be.closeTo(1 / 100, 1e-6);
     });
   });
 });
