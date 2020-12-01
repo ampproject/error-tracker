@@ -148,7 +148,7 @@ async function handler(req, res) {
     await logEvent(log, event);
   } catch (err) {
     console.warn('Error writing to log: ', err);
-    debugInfo.error = writeErr.stack;
+    debugInfo.error = err.stack;
   } finally {
     if (debug) {
       res.set('Content-Type', 'application/json; charset=utf-8');
