@@ -18,13 +18,13 @@
  * obtained.
  */
 
-const sourceMap = require('source-map');
+const { TraceMap, originalPositionFor } = require('@jridgewell/trace-mapping');
 const Request = require('../requests/request');
 const Cache = require('../cache');
 const Frame = require('./frame');
 const twoWeeks = 2 * 7 * 24 * 60 * 60 * 1000;
 
-const sourceMapConsumerCache = new Cache(twoWeeks);
+const traceMapCache = new Cache(twoWeeks);
 const requestCache = new Map();
 
 const cdnJsRegex = new RegExp(
@@ -47,16 +47,11 @@ const cdnJsRegex = new RegExp(
  * For stack frames that are not CDN JS, we do not attempt to load a
  * real SourceMapConsumer.
  */
-const nilConsumer = {
-  originalPositionFor({ line, column }) {
-    return {
-      source: null,
-      name: null,
-      line: null,
-      column: null,
-    };
-  },
-};
+const nilConsumer = new TraceMap({
+  version: 3,
+  sources: [],
+  mappings: [],
+});
 
 /**
  * Formats unversioned CDN JS files into the versioned url
@@ -99,7 +94,7 @@ function normalizeCdnJsUrl(url, version) {
  * references unminified.
  */
 function unminifyFrame(frame, consumer) {
-  const { name, source, line, column } = consumer.originalPositionFor({
+  const { name, source, line, column } = originalPositionFor(consumer, {
     line: frame.line,
     column: frame.column,
   });
@@ -124,7 +119,7 @@ function getSourceMapFromNetwork(url) {
         reject(err);
       } else {
         try {
-          resolve(new sourceMap.SourceMapConsumer(JSON.parse(body)));
+          resolve(new TraceMap(body));
         } catch (e) {
           reject(e);
         }
@@ -132,7 +127,7 @@ function getSourceMapFromNetwork(url) {
     });
   }).then(
     consumer => {
-      sourceMapConsumerCache.set(url, consumer);
+      traceMapCache.set(url, consumer);
       return consumer;
     },
     err => {
@@ -185,8 +180,8 @@ function extractSourceMaps(stack, version) {
       return Promise.resolve(nilConsumer);
     }
 
-    if (sourceMapConsumerCache.has(sourceMapUrl)) {
-      return Promise.resolve(sourceMapConsumerCache.get(sourceMapUrl));
+    if (traceMapCache.has(sourceMapUrl)) {
+      return Promise.resolve(traceMapCache.get(sourceMapUrl));
     }
 
     if (requestCache.has(sourceMapUrl)) {
