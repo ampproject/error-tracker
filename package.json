@@ -24,12 +24,12 @@
   "dependencies": {
     "@google-cloud/logging": "^5.5.5",
     "@google-cloud/storage": "^3.5.0",
+    "@jridgewell/trace-mapping": "0.3.4",
     "express": "^4.17.1",
     "http-status-codes": "^1.4.0",
     "lodash.debounce": "^4.0.8",
     "request": "^2.88.0",
-    "safe-decode-uri-component": "1.2.1-native",
-    "source-map": "^0.7.3"
+    "safe-decode-uri-component": "1.2.1-native"
   },
   "devDependencies": {
     "@google-cloud/functions-framework": "1.5.0",
@@ -37,6 +37,7 @@
     "chai-http": "^4.3.0",
     "mocha": "^6.1.4",
     "prettier": "^1.18.2",
-    "sinon": "^7.3.2"
+    "sinon": "^7.3.2",
+    "source-map": "0.6.1"
   }
 }
