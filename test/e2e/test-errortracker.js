@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const statusCodes = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const app = require('../../app');
 const logPromises = require('../../utils/log');
 const Request = require('../../utils/requests/request');
@@ -198,7 +198,7 @@ describe('Error Tracker Server', () => {
         });
 
         return makeRequest(referrer, query).then((res) => {
-          expect(res.status).to.equal(statusCodes.OK);
+          expect(res.status).to.equal(StatusCodes.OK);
         });
       });
 
@@ -208,7 +208,7 @@ describe('Error Tracker Server', () => {
           const query = Object.assign({}, knownGoodQuery, { canary: true });
 
           return makeRequest(referrer, query).then((res) => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
+            expect(res.status).to.equal(StatusCodes.ACCEPTED);
           });
         });
 
@@ -219,7 +219,7 @@ describe('Error Tracker Server', () => {
           });
 
           return makeRequest(referrer, query).then((res) => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
+            expect(res.status).to.equal(StatusCodes.ACCEPTED);
           });
         });
 
@@ -229,12 +229,12 @@ describe('Error Tracker Server', () => {
 
           return makeRequest(referrer, query)
             .then((res) => {
-              expect(res.status).to.equal(statusCodes.ACCEPTED);
+              expect(res.status).to.equal(StatusCodes.ACCEPTED);
               Math.random.returns(0.11);
               return makeRequest(referrer, query);
             })
             .then((res) => {
-              expect(res.status).to.equal(statusCodes.OK);
+              expect(res.status).to.equal(StatusCodes.OK);
             });
         });
 
@@ -243,7 +243,7 @@ describe('Error Tracker Server', () => {
           const query = Object.assign({ prethrottled: true }, knownGoodQuery);
 
           return makeRequest(referrer, query).then((res) => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
+            expect(res.status).to.equal(StatusCodes.ACCEPTED);
           });
         });
 
@@ -256,12 +256,12 @@ describe('Error Tracker Server', () => {
 
           return makeRequest(referrer, query)
             .then((res) => {
-              expect(res.status).to.equal(statusCodes.ACCEPTED);
+              expect(res.status).to.equal(StatusCodes.ACCEPTED);
               Math.random.returns(0.11);
               return makeRequest(referrer, query);
             })
             .then((res) => {
-              expect(res.status).to.equal(statusCodes.OK);
+              expect(res.status).to.equal(StatusCodes.OK);
             });
         });
 
@@ -270,12 +270,12 @@ describe('Error Tracker Server', () => {
 
           return makeRequest(referrer, knownGoodQuery)
             .then((res) => {
-              expect(res.status).to.equal(statusCodes.ACCEPTED);
+              expect(res.status).to.equal(StatusCodes.ACCEPTED);
               Math.random.returns(0.11);
               return makeRequest(referrer, knownGoodQuery);
             })
             .then((res) => {
-              expect(res.status).to.equal(statusCodes.OK);
+              expect(res.status).to.equal(StatusCodes.OK);
             });
         });
 
@@ -285,12 +285,12 @@ describe('Error Tracker Server', () => {
 
           return makeRequest(referrer, query)
             .then((res) => {
-              expect(res.status).to.equal(statusCodes.ACCEPTED);
+              expect(res.status).to.equal(StatusCodes.ACCEPTED);
               Math.random.returns(0.02);
               return makeRequest(referrer, query);
             })
             .then((res) => {
-              expect(res.status).to.equal(statusCodes.OK);
+              expect(res.status).to.equal(StatusCodes.OK);
             });
         });
       });

@@ -18,7 +18,7 @@
  * to unmininification.
  */
 
-const statusCodes = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const extractReportingParams = require('../utils/requests/extract-reporting-params');
 const LogTarget = require('../utils/log-target');
 const standardizeStackTrace = require('../utils/stacktrace/standardize-stack-trace');
@@ -107,20 +107,20 @@ async function handler(req, res) {
 
   // Reject requests missing essential info.
   if (!referrer || !version || !message) {
-    return res.sendStatus(statusCodes.BAD_REQUEST);
+    return res.sendStatus(StatusCodes.BAD_REQUEST);
   }
   // Accept but ignore requests that get throttled.
   if (
     version.includes('internalRuntimeVersion') ||
     Math.random() > logTarget.throttleRate
   ) {
-    return res.sendStatus(statusCodes.OK);
+    return res.sendStatus(StatusCodes.OK);
   }
 
   const rtvs = await latestRtv();
   // Drop requests from RTVs that are no longer being served.
   if (rtvs.length > 0 && !rtvs.includes(version)) {
-    return res.sendStatus(statusCodes.GONE);
+    return res.sendStatus(StatusCodes.GONE);
   }
 
   let event;
@@ -128,12 +128,12 @@ async function handler(req, res) {
     event = await buildEvent(req, reportingParams, logTarget);
   } catch (unminifyError) {
     console.warn('Error unminifying:', unminifyError);
-    return res.sendStatus(statusCodes.UNPROCESSABLE_ENTITY);
+    return res.sendStatus(StatusCodes.UNPROCESSABLE_ENTITY);
   }
 
   // Drop reports of errors that should be ignored.
   if (!event) {
-    return res.sendStatus(statusCodes.BAD_REQUEST);
+    return res.sendStatus(StatusCodes.BAD_REQUEST);
   }
 
   const debugInfo = {
@@ -143,7 +143,7 @@ async function handler(req, res) {
   };
 
   // Accept the error report and try to log it.
-  res.status(statusCodes.ACCEPTED);
+  res.status(StatusCodes.ACCEPTED);
   try {
     await logEvent(log, event);
   } catch (err) {

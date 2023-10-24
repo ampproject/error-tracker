@@ -15,7 +15,7 @@
  */
 
 const express = require('express');
-const statusCodes = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 
 const errorTracker = require('./routes/error-tracker');
 const parseErrorHandling = require('./utils/requests/parse-error-handling');
@@ -32,7 +32,7 @@ function rawJsonBodyParserMiddleware(req, res, next) {
     jsonParser(req, res, next);
   } else if (req.rawBody.length > BODY_LIMIT) {
     // When Cloud Functions hijacks the request, validate and parse it manually.
-    next(statusCodes.REQUEST_TOO_LONG);
+    next(StatusCodes.REQUEST_TOO_LONG);
   } else {
     req.body = JSON.parse(req.rawBody.toString());
     next();
