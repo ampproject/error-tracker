@@ -39,7 +39,7 @@ function isNonJSStackTrace(stack) {
  * @return {boolean}
  */
 function includesBlacklistedError(message) {
-  return errorsToIgnore.some(msg => message.includes(msg));
+  return errorsToIgnore.some((msg) => message.includes(msg));
 }
 
 /**

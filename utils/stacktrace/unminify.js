@@ -126,11 +126,11 @@ function getSourceMapFromNetwork(url) {
       }
     });
   }).then(
-    consumer => {
+    (consumer) => {
       traceMapCache.set(url, consumer);
       return consumer;
     },
-    err => {
+    (err) => {
       const entry = logs.generic.entry(
         {
           labels: {
@@ -154,7 +154,7 @@ function getSourceMapFromNetwork(url) {
           },
         }
       );
-      logs.generic.write(entry, writeErr => {
+      logs.generic.write(entry, (writeErr) => {
         if (writeErr) {
           console.error(writeErr);
         }
@@ -201,7 +201,7 @@ function unminify(stack, version) {
   const promises = extractSourceMaps(stack, version);
 
   return Promise.all(promises).then(
-    consumers => {
+    (consumers) => {
       return stack.map((frame, i) => unminifyFrame(frame, consumers[i]));
     },
     () => stack

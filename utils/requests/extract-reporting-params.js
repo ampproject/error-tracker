@@ -21,8 +21,8 @@ const querystring = require('./query-string');
 const safeDecodeURIComponent = require('safe-decode-uri-component');
 
 function extractReportingParams(params) {
-  const boolProp = key => params[key] === '1';
-  const strProp = key => params[key] || '';
+  const boolProp = (key) => params[key] === '1';
+  const strProp = (key) => params[key] || '';
 
   return {
     assert: boolProp('a'),

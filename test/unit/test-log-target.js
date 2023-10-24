@@ -87,7 +87,7 @@ describe('log target', () => {
         'https://cdn.ampproject.org/mywebsite.com/index.html',
         'https://mywebsite-com.cdn.ampproject.org/index.html',
         'https://mywebsite-com.ampproject.net/index.html',
-      ].forEach(referrer => {
+      ].forEach((referrer) => {
         it(`records "cdn" for ${referrer}`, () => {
           const logTarget = new LogTarget(referrer, reportingParams);
           expect(logTarget.serviceName).to.contain('CDN');

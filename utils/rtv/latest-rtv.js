@@ -26,7 +26,7 @@ const fiveMin = 5 * 60 * 1000;
 const fiftyMin = 50 * 60 * 1000;
 const cache = new Cache(fiveMin, fiftyMin);
 
-module.exports = function() {
+module.exports = function () {
   if (cache.has(url)) {
     return cache.get(url);
   }
@@ -36,11 +36,8 @@ module.exports = function() {
         reject(err);
       } else {
         try {
-          const {
-            ampRuntimeVersion,
-            ltsRuntimeVersion,
-            diversions,
-          } = JSON.parse(body);
+          const { ampRuntimeVersion, ltsRuntimeVersion, diversions } =
+            JSON.parse(body);
           const versions = [ampRuntimeVersion, ltsRuntimeVersion]
             .concat(diversions)
             .filter(Boolean);
@@ -50,7 +47,7 @@ module.exports = function() {
         }
       }
     });
-  }).catch(async err => {
+  }).catch(async (err) => {
     const genericLog = await logs.generic;
     const entry = genericLog.entry(
       {
@@ -68,7 +65,7 @@ module.exports = function() {
       },
       `failed to fetch RTV metadata: ${err.message}`
     );
-    genericLog.write(entry, writeErr => {
+    genericLog.write(entry, (writeErr) => {
       if (writeErr) {
         console.warn('Error logging RTV fetch error: ', writeErr);
       }

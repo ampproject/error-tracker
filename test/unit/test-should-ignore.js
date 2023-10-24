@@ -56,7 +56,7 @@ describe('shouldIgnore', () => {
     [
       'stop_youtube',
       'null%20is%20not%20an%20object%20(evaluating%20%27elt.parentNode%27)',
-    ].forEach(message => {
+    ].forEach((message) => {
       describe(`"${message}"`, () => {
         it('ignores js frames', () => {
           expect(shouldIgnore(message, jsFrames)).to.equal(true);
