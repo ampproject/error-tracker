@@ -17,7 +17,7 @@
  * Provides information about release channel prefixes.
  */
 
-module.exports = {
+export default {
   '00': { group: '1%', name: 'Experimental' },
   '01': { group: 'Production', name: 'Stable' },
   '02': { group: 'Production', name: 'Control' },

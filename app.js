@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-const express = require('express');
-const { StatusCodes } = require('http-status-codes');
+import express from 'express';
+import { StatusCodes } from 'http-status-codes';
 
-const errorTracker = require('./routes/error-tracker');
-const parseErrorHandling = require('./utils/requests/parse-error-handling');
+import errorTracker from './routes/error-tracker.js';
+import parseErrorHandling from './utils/requests/parse-error-handling.js';
+
+const BODY_LIMIT = 10 * 1024; /* 10kb */
+const jsonParser = express.json({
+  limit: BODY_LIMIT,
+  type: () => true,
+});
 
 const app = express();
-const BODY_LIMIT = 10 * 1024; /* 10kb */
 function rawJsonBodyParserMiddleware(req, res, next) {
   if (!req.rawBody) {
     // Defer to bodyParser when running as a server.
-    jsonParser = express.json({
-      limit: BODY_LIMIT,
-      type: () => true,
-    });
     jsonParser(req, res, next);
   } else if (req.rawBody.length > BODY_LIMIT) {
     // When Cloud Functions hijacks the request, validate and parse it manually.
@@ -55,4 +56,4 @@ app.post('*', (req, res) => {
   return errorTracker(req, res);
 });
 
-module.exports = app;
+export default app;

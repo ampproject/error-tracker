@@ -14,5 +14,6 @@
  * limitations under the License.
  */
 
-const app = require('./app');
-module.exports = { app };
+import app from './app.js';
+
+export { app };

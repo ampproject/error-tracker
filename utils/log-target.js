@@ -18,9 +18,9 @@
  * Stackdriver Logging.
  */
 
-const logs = require('./log');
-const humanRtv = require('./rtv/human-rtv');
-const releaseChannels = require('./rtv/release-channels');
+import * as logs from './log.js';
+import humanRtv from './rtv/human-rtv.js';
+import releaseChannels from './rtv/release-channels.js';
 
 const CDN_REGEX = new RegExp(
   '^https://cdn\\.ampproject.org/|' +
@@ -29,7 +29,7 @@ const CDN_REGEX = new RegExp(
   'i'
 );
 
-module.exports = class LoggingTarget {
+export default class LoggingTarget {
   constructor(referrer, reportingParams) {
     this.opts = { referrer, ...reportingParams };
     this.log = this.getLog();
@@ -37,7 +37,7 @@ module.exports = class LoggingTarget {
 
   /** Select which error logging project to report to. */
   getLog() {
-    const { runtime, message, assert, expected } = this.opts;
+    const { assert, expected, message, runtime } = this.opts;
 
     if (
       runtime === 'inabox' ||
@@ -59,7 +59,7 @@ module.exports = class LoggingTarget {
 
   /** Construct the service bucket name for Stackdriver logging. */
   get serviceName() {
-    const { referrer, version, expected } = this.opts;
+    const { expected, referrer, version } = this.opts;
     const rtvPrefix = version.substr(0, 2);
 
     const name = [CDN_REGEX.test(referrer) ? 'CDN' : 'Origin'];
@@ -85,8 +85,7 @@ module.exports = class LoggingTarget {
 
   /** Determine throttle level for error type. */
   get throttleRate() {
-    const { canary, binaryType, assert, referrer, expected, prethrottled } =
-      this.opts;
+    const { assert, binaryType, canary, expected, prethrottled } = this.opts;
     let throttleRate = 1;
 
     // Throttle errors from Stable, unless pre-throttled on the client.
@@ -105,4 +104,4 @@ module.exports = class LoggingTarget {
 
     return throttleRate;
   }
-};
+}

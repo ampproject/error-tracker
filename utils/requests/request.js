@@ -18,4 +18,6 @@
  * @fileoverview exports request method to enable stubbing.
  */
 
-exports.request = require('request');
+import request from 'request';
+
+export { request };

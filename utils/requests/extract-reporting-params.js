@@ -17,8 +17,8 @@
  * Parses options from the error reporting URL params into an object with clear
  * keys and sanitized values.
  */
-const querystring = require('./query-string');
-const safeDecodeURIComponent = require('safe-decode-uri-component');
+import { stringify } from './query-string.js';
+import safeDecodeURIComponent from 'safe-decode-uri-component';
 
 function extractReportingParams(params) {
   const boolProp = (key) => params[key] === '1';
@@ -31,7 +31,7 @@ function extractReportingParams(params) {
     debug: boolProp('debug'),
     expected: boolProp('ex'),
     message: safeDecodeURIComponent(strProp('m')),
-    buildQueryString: () => querystring.stringify(params),
+    buildQueryString: () => stringify(params),
     prethrottled: boolProp('pt'),
     runtime: params.rt,
     singlePassType: params.spt,
@@ -41,4 +41,4 @@ function extractReportingParams(params) {
   };
 }
 
-module.exports = extractReportingParams;
+export default extractReportingParams;

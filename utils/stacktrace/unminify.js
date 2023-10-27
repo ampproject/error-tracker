@@ -18,10 +18,12 @@
  * obtained.
  */
 
-const { TraceMap, originalPositionFor } = require('@jridgewell/trace-mapping');
-const Request = require('../requests/request');
-const Cache = require('../cache');
-const Frame = require('./frame');
+import { TraceMap, originalPositionFor } from '@jridgewell/trace-mapping';
+import { request } from '../requests/request.js';
+import Cache from '../cache.js';
+import Frame from './frame.js';
+import logs from '@google-cloud/logging';
+
 const twoWeeks = 2 * 7 * 24 * 60 * 60 * 1000;
 
 const traceMapCache = new Cache(twoWeeks);
@@ -94,7 +96,7 @@ function normalizeCdnJsUrl(url, version) {
  * references unminified.
  */
 function unminifyFrame(frame, consumer) {
-  const { name, source, line, column } = originalPositionFor(consumer, {
+  const { column, line, name, source } = originalPositionFor(consumer, {
     line: frame.line,
     column: frame.column,
   });
@@ -112,7 +114,7 @@ function unminifyFrame(frame, consumer) {
  */
 function getSourceMapFromNetwork(url) {
   const reqPromise = new Promise((resolve, reject) => {
-    Request.request(url, (err, _, body) => {
+    request(url, (err, _, body) => {
       requestCache.delete(url);
 
       if (err) {
@@ -208,5 +210,5 @@ function unminify(stack, version) {
   );
 }
 
-module.exports = unminify;
+export default unminify;
 unminify.normalizeCdnJsUrl = normalizeCdnJsUrl;

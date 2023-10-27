@@ -51,4 +51,4 @@ function shouldIgnore(message, stack) {
   return includesBlacklistedError(message) || isNonJSStackTrace(stack);
 }
 
-module.exports = shouldIgnore;
+export default shouldIgnore;

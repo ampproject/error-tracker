@@ -18,16 +18,16 @@
  * @fileoverview exports log object to enable stubbing of write method
  */
 
-const { Logging } = require('@google-cloud/logging');
+import { Logging } from '@google-cloud/logging';
 
-exports.generic = new Logging({
+export const generic = new Logging({
   projectId: 'amp-error-reporting',
 }).log('stderr');
 
 const jsLog = (projectId) =>
   new Logging({ projectId }).log('javascript.errors');
 
-exports.errors = jsLog('amp-error-reporting');
-exports.users = jsLog('amp-error-reporting-user');
-exports.ads = jsLog('amp-error-reporting-ads');
-exports.expected = jsLog('amp-error-reporting-expected');
+export const errors = jsLog('amp-error-reporting');
+export const users = jsLog('amp-error-reporting-user');
+export const ads = jsLog('amp-error-reporting-ads');
+export const expected = jsLog('amp-error-reporting-expected');

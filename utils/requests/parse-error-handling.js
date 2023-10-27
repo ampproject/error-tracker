@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-const { StatusCodes } = require('http-status-codes');
-const logs = require('../log');
+import { StatusCodes } from 'http-status-codes';
+import * as logs from '../log.js';
 
 let timestamp = 0;
 const fiveMin = 5 * 60 * 1000;
 const truncatedLength = 2 * 1024; // 2kb
 
-module.exports = function (err, req, res, next) {
+export default function (err, req, res, next) {
   if (err.statusCode !== StatusCodes.REQUEST_TOO_LONG) {
     // Some other error. Let it propagate.
     return next(err);
@@ -33,7 +33,7 @@ module.exports = function (err, req, res, next) {
     read(req, res);
     timestamp = now;
   }
-};
+}
 
 /**
  * @param {!Request} req

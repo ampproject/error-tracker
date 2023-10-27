@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-const debounce = require('lodash.debounce');
+import debounce from 'lodash.debounce';
 
 /**
  * A wrapper around JS Map object to ensure no entry stays in map
@@ -100,4 +100,4 @@ class Cache {
   }
 }
 
-module.exports = Cache;
+export default Cache;

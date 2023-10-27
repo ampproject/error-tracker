@@ -12,10 +12,8 @@
  * limitations under the License.
  */
 
-const sinon = require('sinon');
-
-const logs = require('../../utils/log');
-const LogTarget = require('../../utils/log-target');
+import * as logs from '../../utils/log.js';
+import LogTarget from '../../utils/log-target.js';
 
 describe('log target', () => {
   let sandbox;
