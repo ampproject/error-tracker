@@ -1,0 +1,21 @@
+{
+  "extends": ["config:recommended"],
+  "commitMessagePrefix": "📦",
+  "timezone": "America/Los_Angeles",
+  "schedule": "after 12am every weekday",
+  "dependencyDashboard": true,
+  "packageRules": [
+    {
+      "groupName": "devDependencies",
+      "matchFileNames": ["package.json"],
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true
+    },
+    {
+      "groupName": "dependencies",
+      "matchFileNames": ["package.json"],
+      "matchDepTypes": ["dependencies"],
+      "automerge": false
+    }
+  ]
+}

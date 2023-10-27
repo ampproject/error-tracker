@@ -94,7 +94,7 @@ describe('unminify', () => {
   });
 
   it('unminifies multiple frames (same file)', () => {
-    return unminify([frame1, frame2], '123').then(unminified => {
+    return unminify([frame1, frame2], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(1);
 
       const f1 = unminified[0];
@@ -109,7 +109,7 @@ describe('unminify', () => {
   });
 
   it('unminifies multiple frames (multiple files)', () => {
-    return unminify([frame1, frame3], '123').then(unminified => {
+    return unminify([frame1, frame3], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(2);
 
       const f1 = unminified[0];
@@ -135,7 +135,7 @@ describe('unminify', () => {
         }
       });
     });
-    return unminify([frame1, frame3], '123').then(unminified => {
+    return unminify([frame1, frame3], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(2);
 
       const f1 = unminified[0];
@@ -150,7 +150,7 @@ describe('unminify', () => {
   });
 
   it('does not unminify non-cdn js files', () => {
-    return unminify([frame1, nonCdnFrame], '123').then(unminified => {
+    return unminify([frame1, nonCdnFrame], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(1);
 
       const f1 = unminified[0];
@@ -165,7 +165,7 @@ describe('unminify', () => {
   });
 
   it('does not request same file twice (same stack)', () => {
-    return unminify([frame1, frame2], '123').then(unminified => {
+    return unminify([frame1, frame2], '123').then((unminified) => {
       expect(Request.request.callCount).to.equal(1);
     });
   });

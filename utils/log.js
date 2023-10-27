@@ -24,7 +24,8 @@ exports.generic = new Logging({
   projectId: 'amp-error-reporting',
 }).log('stderr');
 
-const jsLog = projectId => new Logging({ projectId }).log('javascript.errors');
+const jsLog = (projectId) =>
+  new Logging({ projectId }).log('javascript.errors');
 
 exports.errors = jsLog('amp-error-reporting');
 exports.users = jsLog('amp-error-reporting-user');

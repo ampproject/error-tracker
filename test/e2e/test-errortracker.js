@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const statusCodes = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const app = require('../../app');
 const logPromises = require('../../utils/log');
 const Request = require('../../utils/requests/request');
@@ -28,7 +28,7 @@ describe('Error Tracker Server', () => {
     }
   });
 
-  const makeQuery = (function() {
+  const makeQuery = (function () {
     const mappings = {
       version: 'v',
       message: 'm',
@@ -69,7 +69,7 @@ describe('Error Tracker Server', () => {
   })();
 
   function makePostRequest(type) {
-    return function(referrer, query) {
+    return function (referrer, query) {
       const q = makeQuery(query);
       return chai
         .request(server)
@@ -161,21 +161,21 @@ describe('Error Tracker Server', () => {
     describe(description, () => {
       describe('rejects bad requests', () => {
         it('without referrer', () => {
-          return makeRequest('', knownGoodQuery).then(res => {
+          return makeRequest('', knownGoodQuery).then((res) => {
             expect(res.text).to.equal('Bad Request');
           });
         });
 
         it('without version', () => {
           const query = Object.assign({}, knownGoodQuery, { version: '' });
-          return makeRequest(referrer, query).then(res => {
+          return makeRequest(referrer, query).then((res) => {
             expect(res.text).to.equal('Bad Request');
           });
         });
 
         it('without error message', () => {
           const query = Object.assign({}, knownGoodQuery, { message: '' });
-          return makeRequest(referrer, query).then(res => {
+          return makeRequest(referrer, query).then((res) => {
             expect(res.text).to.equal('Bad Request');
           });
         });
@@ -186,7 +186,7 @@ describe('Error Tracker Server', () => {
             message: 'stop_youtube',
           });
 
-          return makeRequest(referrer, query).then(res => {
+          return makeRequest(referrer, query).then((res) => {
             expect(res.text).to.equal('Bad Request');
           });
         });
@@ -197,8 +197,8 @@ describe('Error Tracker Server', () => {
           version: '$internalRuntimeVersion$',
         });
 
-        return makeRequest(referrer, query).then(res => {
-          expect(res.status).to.equal(statusCodes.OK);
+        return makeRequest(referrer, query).then((res) => {
+          expect(res.status).to.equal(StatusCodes.OK);
         });
       });
 
@@ -207,8 +207,8 @@ describe('Error Tracker Server', () => {
           sandbox.stub(Math, 'random').returns(1);
           const query = Object.assign({}, knownGoodQuery, { canary: true });
 
-          return makeRequest(referrer, query).then(res => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.status).to.equal(StatusCodes.ACCEPTED);
           });
         });
 
@@ -218,8 +218,8 @@ describe('Error Tracker Server', () => {
             binaryType: 'control',
           });
 
-          return makeRequest(referrer, query).then(res => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.status).to.equal(StatusCodes.ACCEPTED);
           });
         });
 
@@ -228,13 +228,13 @@ describe('Error Tracker Server', () => {
           const query = Object.assign({}, knownGoodQuery);
 
           return makeRequest(referrer, query)
-            .then(res => {
-              expect(res.status).to.equal(statusCodes.ACCEPTED);
+            .then((res) => {
+              expect(res.status).to.equal(StatusCodes.ACCEPTED);
               Math.random.returns(0.11);
               return makeRequest(referrer, query);
             })
-            .then(res => {
-              expect(res.status).to.equal(statusCodes.OK);
+            .then((res) => {
+              expect(res.status).to.equal(StatusCodes.OK);
             });
         });
 
@@ -242,8 +242,8 @@ describe('Error Tracker Server', () => {
           sandbox.stub(Math, 'random').returns(0.99);
           const query = Object.assign({ prethrottled: true }, knownGoodQuery);
 
-          return makeRequest(referrer, query).then(res => {
-            expect(res.status).to.equal(statusCodes.ACCEPTED);
+          return makeRequest(referrer, query).then((res) => {
+            expect(res.status).to.equal(StatusCodes.ACCEPTED);
           });
         });
 
@@ -255,13 +255,13 @@ describe('Error Tracker Server', () => {
           });
 
           return makeRequest(referrer, query)
-            .then(res => {
-              expect(res.status).to.equal(statusCodes.ACCEPTED);
+            .then((res) => {
+              expect(res.status).to.equal(StatusCodes.ACCEPTED);
               Math.random.returns(0.11);
               return makeRequest(referrer, query);
             })
-            .then(res => {
-              expect(res.status).to.equal(statusCodes.OK);
+            .then((res) => {
+              expect(res.status).to.equal(StatusCodes.OK);
             });
         });
 
@@ -269,13 +269,13 @@ describe('Error Tracker Server', () => {
           sandbox.stub(Math, 'random').returns(0.1);
 
           return makeRequest(referrer, knownGoodQuery)
-            .then(res => {
-              expect(res.status).to.equal(statusCodes.ACCEPTED);
+            .then((res) => {
+              expect(res.status).to.equal(StatusCodes.ACCEPTED);
               Math.random.returns(0.11);
               return makeRequest(referrer, knownGoodQuery);
             })
-            .then(res => {
-              expect(res.status).to.equal(statusCodes.OK);
+            .then((res) => {
+              expect(res.status).to.equal(StatusCodes.OK);
             });
         });
 
@@ -284,13 +284,13 @@ describe('Error Tracker Server', () => {
           const query = Object.assign({}, knownGoodQuery, { assert: true });
 
           return makeRequest(referrer, query)
-            .then(res => {
-              expect(res.status).to.equal(statusCodes.ACCEPTED);
+            .then((res) => {
+              expect(res.status).to.equal(StatusCodes.ACCEPTED);
               Math.random.returns(0.02);
               return makeRequest(referrer, query);
             })
-            .then(res => {
-              expect(res.status).to.equal(statusCodes.OK);
+            .then((res) => {
+              expect(res.status).to.equal(StatusCodes.OK);
             });
         });
       });
@@ -307,7 +307,7 @@ describe('Error Tracker Server', () => {
           });
 
           it('logs http request', () => {
-            return makeRequest(referrer, query).then(res => {
+            return makeRequest(referrer, query).then((res) => {
               const { httpRequest } = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
@@ -320,7 +320,7 @@ describe('Error Tracker Server', () => {
           });
 
           it('logs missing stack trace', () => {
-            return makeRequest(referrer, query).then(res => {
+            return makeRequest(referrer, query).then((res) => {
               expect(res.body.event.message).to.be.equal(
                 `Error: ${query.message}\n    at ` +
                   'the-object-does-not-support-the-operation-or-argument.js:1:1'
@@ -338,7 +338,7 @@ describe('Error Tracker Server', () => {
           });
 
           it('logs http request', () => {
-            return makeRequest(referrer, query).then(res => {
+            return makeRequest(referrer, query).then((res) => {
               const { httpRequest } = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
@@ -354,7 +354,7 @@ describe('Error Tracker Server', () => {
 
           describe('when unminification fails', () => {
             it('logs full error', () => {
-              return makeRequest(referrer, query).then(res => {
+              return makeRequest(referrer, query).then((res) => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
                     '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
@@ -370,7 +370,7 @@ describe('Error Tracker Server', () => {
             });
 
             it('logs full error', () => {
-              return makeRequest(referrer, query).then(res => {
+              return makeRequest(referrer, query).then((res) => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
                     '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
@@ -391,7 +391,7 @@ describe('Error Tracker Server', () => {
           });
 
           it('logs http request', () => {
-            return makeRequest(referrer, query).then(res => {
+            return makeRequest(referrer, query).then((res) => {
               const { httpRequest } = res.body.event.context;
               expect(httpRequest.url).to.be.equal(
                 '/r?v=011830043289240&m=The%20object%20does%20' +
@@ -409,7 +409,7 @@ describe('Error Tracker Server', () => {
 
           describe('when unminification fails', () => {
             it('logs full error', () => {
-              return makeRequest(referrer, query).then(res => {
+              return makeRequest(referrer, query).then((res) => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
                     '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
@@ -425,7 +425,7 @@ describe('Error Tracker Server', () => {
             });
 
             it('logs full error', () => {
-              return makeRequest(referrer, query).then(res => {
+              return makeRequest(referrer, query).then((res) => {
                 expect(res.body.event.message).to.be.equal(
                   'Error: The object does not support the operation or argument.\n' +
                     '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +

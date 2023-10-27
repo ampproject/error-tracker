@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-const statusCodes = require('http-status-codes');
+const { StatusCodes } = require('http-status-codes');
 const logs = require('../log');
 
 let timestamp = 0;
 const fiveMin = 5 * 60 * 1000;
 const truncatedLength = 2 * 1024; // 2kb
 
-module.exports = function(err, req, res, next) {
-  if (err.statusCode !== statusCodes.REQUEST_TOO_LONG) {
+module.exports = function (err, req, res, next) {
+  if (err.statusCode !== StatusCodes.REQUEST_TOO_LONG) {
     // Some other error. Let it propagate.
     return next(err);
   }
@@ -60,7 +60,7 @@ function read(req, res) {
   function onEnd() {
     log(message);
     cleanup();
-    res.sendStatus(statusCodes.REQUEST_TOO_LONG);
+    res.sendStatus(StatusCodes.REQUEST_TOO_LONG);
   }
 
   /** */
@@ -101,7 +101,7 @@ function read(req, res) {
         },
       }
     );
-    logs.generic.write(entry, writeErr => {
+    logs.generic.write(entry, (writeErr) => {
       if (writeErr) {
         console.error(writeErr);
       }
