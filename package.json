@@ -15,7 +15,6 @@
     "deploy-beta": "gcloud functions deploy r-beta",
     "deploy-dev": "gcloud functions deploy r-dev --set-env-vars COMMIT_SHA=$(git rev-parse HEAD)",
     "lint": "eslint .",
-    "pretest": "npm run lint",
     "test": "mocha test/*.js test/**/*.js"
   },
   "dependencies": {
