@@ -1,9 +1,10 @@
 steps:
-  # Deploy the app.
-  - name: gcr.io/cloud-builders/gcloud
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     args:
+      - gcloud
       - functions
       - deploy
       - ${_DEPLOY_VERSION}
+      - --runtime=${_RUNTIME}
       - --set-env-vars
       - COMMIT_SHA=$COMMIT_SHA
