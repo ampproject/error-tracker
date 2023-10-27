@@ -10,6 +10,7 @@
     "url": "https://github.com/ampproject/error-tracker"
   },
   "scripts": {
+    "postinstall": "cd node_modules/safe-decode-uri-component && node-gyp rebuild",
     "dev": "functions-framework --target=app",
     "deploy": "gcloud functions deploy r",
     "deploy-beta": "gcloud functions deploy r-beta",
