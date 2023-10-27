@@ -1,4 +1,4 @@
-runtime: nodejs
+runtime: nodejs20
 env: flexible
 threadsafe: true
 automatic_scaling:
