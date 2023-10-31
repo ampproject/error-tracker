@@ -103,76 +103,64 @@ describe('unminify', () => {
     nock.cleanAll();
   });
 
-  it('unminifies multiple frames (same file)', () => {
+  it('unminifies multiple frames (same file)', async () => {
     nock('https://cdn.ampproject.org')
       .get('/rtv/123/v0.js.map')
       .reply(200, rawSourceMap);
 
-    return unminify([frame1, frame2], '123').then((unminified) => {
-      const f1 = unminified[0];
-      expect(f1.source).to.equal('https://cdn.ampproject.org/one.js');
-      expect(f1.line).to.equal(1);
-      expect(f1.column).to.equal(21);
-      const f2 = unminified[1];
-      expect(f2.source).to.equal('https://cdn.ampproject.org/one.js');
-      expect(f2.line).to.equal(2);
-      expect(f2.column).to.equal(3);
-    });
+    const [f1, f2] = await unminify([frame1, frame2], '123');
+    expect(f1.source).to.equal('https://cdn.ampproject.org/one.js');
+    expect(f1.line).to.equal(1);
+    expect(f1.column).to.equal(21);
+    expect(f2.source).to.equal('https://cdn.ampproject.org/one.js');
+    expect(f2.line).to.equal(2);
+    expect(f2.column).to.equal(3);
   });
 
-  it('unminifies multiple frames (multiple files)', () => {
+  it('unminifies multiple frames (multiple files)', async () => {
     nock('https://cdn.ampproject.org')
       .get('/rtv/123/v0.js.map')
       .reply(200, rawSourceMap)
       .get('/rtv/123/v1.js.map')
       .reply(200, rawSourceMap);
 
-    return unminify([frame1, frame3], '123').then((unminified) => {
-      const f1 = unminified[0];
-      expect(f1.source).to.equal('https://cdn.ampproject.org/one.js');
-      expect(f1.line).to.equal(1);
-      expect(f1.column).to.equal(21);
-      const f2 = unminified[1];
-      expect(f2.source).to.equal('https://cdn.ampproject.org/two.js');
-      expect(f2.line).to.equal(1);
-      expect(f2.column).to.equal(21);
-    });
+    const [f1, f2] = await unminify([frame1, frame3], '123');
+    expect(f1.source).to.equal('https://cdn.ampproject.org/one.js');
+    expect(f1.line).to.equal(1);
+    expect(f1.column).to.equal(21);
+    expect(f2.source).to.equal('https://cdn.ampproject.org/two.js');
+    expect(f2.line).to.equal(1);
+    expect(f2.column).to.equal(21);
   });
 
-  it('is resilant to sourcemap fetches failing', () => {
+  it('is resilant to sourcemap fetches failing', async () => {
     nock('https://cdn.ampproject.org')
       .get('/rtv/123/v0.js.map')
       .reply(200, rawSourceMap)
       .get('/rtv/123/v1.js.map')
       .replyWithError('failure');
 
-    return unminify([frame1, frame3], '123').then((unminified) => {
-      const f1 = unminified[0];
-      expect(f1.source).to.equal(frame1.source);
-      expect(f1.line).to.equal(frame1.line);
-      expect(f1.column).to.equal(frame1.column);
-      const f2 = unminified[1];
-      expect(f2.source).to.equal(frame3.source);
-      expect(f2.line).to.equal(frame3.line);
-      expect(f2.column).to.equal(frame3.column);
-    });
+    const [f1, f2] = await unminify([frame1, frame3], '123');
+    expect(f1.source).to.equal(frame1.source);
+    expect(f1.line).to.equal(frame1.line);
+    expect(f1.column).to.equal(frame1.column);
+    expect(f2.source).to.equal(frame3.source);
+    expect(f2.line).to.equal(frame3.line);
+    expect(f2.column).to.equal(frame3.column);
   });
 
-  it('does not unminify non-cdn js files', () => {
+  it('does not unminify non-cdn js files', async () => {
     nock('https://cdn.ampproject.org')
       .get('/rtv/123/v0.js.map')
       .reply(200, rawSourceMap);
 
-    return unminify([frame1, nonCdnFrame], '123').then((unminified) => {
-      const f1 = unminified[0];
-      expect(f1.source).to.equal('https://cdn.ampproject.org/one.js');
-      expect(f1.line).to.equal(1);
-      expect(f1.column).to.equal(21);
-      const f2 = unminified[1];
-      expect(f2.source).to.equal(nonCdnFrame.source);
-      expect(f2.line).to.equal(nonCdnFrame.line);
-      expect(f2.column).to.equal(nonCdnFrame.column);
-    });
+    const [f1, f2] = await unminify([frame1, nonCdnFrame], '123');
+    expect(f1.source).to.equal('https://cdn.ampproject.org/one.js');
+    expect(f1.line).to.equal(1);
+    expect(f1.column).to.equal(21);
+    expect(f2.source).to.equal(nonCdnFrame.source);
+    expect(f2.line).to.equal(nonCdnFrame.line);
+    expect(f2.column).to.equal(nonCdnFrame.column);
   });
 
   it('does not request same file twice (same stack)', () => {
@@ -193,29 +181,27 @@ describe('unminify', () => {
     return Promise.all([p, p2]);
   });
 
-  it('does not request same file twice (after response)', () => {
+  it('does not request same file twice (after response)', async () => {
     nock('https://cdn.ampproject.org')
       .get('/rtv/123/v0.js.map')
       .reply(200, rawSourceMap);
 
-    return unminify([frame1], '123').then(() => {
-      return unminify([frame2], '123');
-    });
+    await unminify([frame1], '123');
+    return await unminify([frame2], '123');
   });
 
-  it('requests file twice after purge', () => {
+  it('requests file twice after purge', async () => {
     nock('https://cdn.ampproject.org')
       .get('/rtv/123/v0.js.map')
       .twice()
       .reply(200, rawSourceMap);
 
-    return unminify([frame1], '123').then(() => {
-      clock.tick(1e10);
-      return unminify([frame2], '123');
-    });
+    await unminify([frame1], '123');
+    clock.tick(10000000000);
+    return await unminify([frame2], '123');
   });
 
-  it('normalizes unversioned files into rtv version', () => {
+  it('normalizes unversioned files into rtv version', async () => {
     nock('https://cdn.ampproject.org')
       .get('/rtv/123/v0.js.map')
       .reply(200, rawSourceMap)
@@ -224,13 +210,9 @@ describe('unminify', () => {
       .get('/rtv/125/v0-module.js.map')
       .reply(200, rawSourceMap);
 
-    return unminify([frame1], '123')
-      .then(() => {
-        return unminify([frame2], '124');
-      })
-      .then(() => {
-        return unminify([moduleFrame], '125');
-      });
+    await unminify([frame1], '123');
+    await unminify([frame2], '124');
+    return await unminify([moduleFrame], '125');
   });
 
   it('strips nomodule during normalization', () => {
