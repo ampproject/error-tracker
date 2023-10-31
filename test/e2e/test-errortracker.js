@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
+import { Log } from '@google-cloud/logging';
 import { StatusCodes } from 'http-status-codes';
+
 import app from '../../app.js';
-import * as logPromises from '../../utils/log.js';
+import nock from 'nock';
 
 describe('Error Tracker Server', () => {
-  const logs = {};
-  before(async () => {
-    await Promise.all(Object.values(logPromises));
-  });
-
   const makeQuery = (function () {
     const mappings = {
       version: 'v',
@@ -103,24 +100,12 @@ describe('Error Tracker Server', () => {
       'CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;' +
       'CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
-  function requestFake(url, callback) {
-    Promise.resolve().then(() => {
-      if (url.endsWith('.map')) {
-        callback(null, null, JSON.stringify(rawSourceMap));
-      } else {
-        callback(
-          null,
-          null,
-          JSON.stringify({
-            ampRuntimeVersion: '011830043289240',
-            diversions: ['001830043289240'],
-          })
-        );
-      }
-    });
-  }
+
+  /** @type {sinon.SinonSandbox} */
   let sandbox;
+  /** @type {sinon.SinonFakeTimers} */
   let clock;
+  /** @type {import('node:http').Server} */
   let server;
 
   before(() => {
@@ -131,32 +116,30 @@ describe('Error Tracker Server', () => {
   });
 
   beforeEach(async () => {
+    nock.disableNetConnect();
+    nock.enableNetConnect('127.0.0.1');
+
     sandbox = sinon.createSandbox({
       useFakeTimers: true,
     });
     clock = sandbox.clock;
-    for (const key in logs) {
-      sandbox.stub(logs[key], 'write').callsFake((entry, callback) => {
-        Promise.resolve(null).then(callback);
-      });
-    }
-    // TODO(@danielrozenberg): remove and replace this once `Request` is replaced with `fetch`
-    // sandbox.stub(Request, 'request').callsFake((url, callback) => {
-    //   Promise.reject(new Error('network disabled')).catch(callback);
-    // });
+    sandbox.stub(Log.prototype, 'write').resolves();
   });
 
-  afterEach(() => {
-    clock.tick(1e10);
+  afterEach(async () => {
+    await clock.tickAsync(1e10);
+
     sandbox.restore();
+
+    expect(nock.pendingMocks()).to.be.empty;
+    nock.cleanAll();
   });
 
   testSuite('POST JSON', makePostRequest('json'));
   testSuite('POST Text', makePostRequest('text/plain'));
 
   function testSuite(description, makeRequest) {
-    // TODO(@danielrozenberg): unskip this once `Request` is replaced with `fetch`
-    describe.skip(description, () => {
+    describe(description, () => {
       describe('rejects bad requests', () => {
         it('without referrer', () => {
           return makeRequest('', knownGoodQuery).then((res) => {
@@ -362,10 +345,16 @@ describe('Error Tracker Server', () => {
             });
           });
 
-          // TODO(@danielrozenberg): unskip this once `Request` is replaced with `fetch`
-          describe.skip('when unminification succeeds', () => {
+          describe('when unminification succeeds', () => {
             beforeEach(() => {
-              Request.request.callsFake(requestFake);
+              nock('https://cdn.ampproject.org')
+                .get('/rtv/metadata')
+                .reply(200, {
+                  ampRuntimeVersion: '011830043289240',
+                  diversions: ['001830043289240'],
+                })
+                .get('/rtv/011830043289240/v0.js.map')
+                .reply(200, rawSourceMap);
             });
 
             it('logs full error', () => {
@@ -418,10 +407,16 @@ describe('Error Tracker Server', () => {
             });
           });
 
-          // TODO(@danielrozenberg): unskip this once `Request` is replaced with `fetch`
-          describe.skip('when unminification succeeds', () => {
+          describe('when unminification succeeds', () => {
             beforeEach(() => {
-              Request.request.callsFake(requestFake);
+              nock('https://cdn.ampproject.org')
+                .get('/rtv/metadata')
+                .reply(200, {
+                  ampRuntimeVersion: '011830043289240',
+                  diversions: ['001830043289240'],
+                })
+                .get('/rtv/011830043289240/v0.js.map')
+                .reply(200, rawSourceMap);
             });
 
             it('logs full error', () => {
