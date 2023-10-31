@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import unminify from '../../utils/stacktrace/unminify.js';
+import {
+  unminify,
+  normalizeCdnJsUrl,
+} from '../../utils/stacktrace/unminify.js';
 import Frame from '../../utils/stacktrace/frame.js';
 
 describe('unminify', () => {
@@ -265,7 +268,7 @@ describe('unminify', () => {
     //         const input = 'https://cdn.ampproject.org/${inp}';
     //         const expected = '${exp ? `https://cdn.ampproject.org/${exp}.map` : ''}';
 
-    //         const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+    //         const actual = normalizeCdnJsUrl(input, 'RTV123');
     //         expect(actual).to.equal(expected);
     //       });
     //     `);
@@ -299,7 +302,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0.js';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -308,7 +311,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -316,7 +319,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0.js';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -324,7 +327,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v1.js';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -333,7 +336,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -341,7 +344,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v1.js';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -349,7 +352,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v20.js';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -358,7 +361,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -366,7 +369,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v20.js';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
     });
@@ -377,7 +380,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -386,7 +389,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -395,7 +398,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -404,7 +407,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -413,7 +416,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -422,7 +425,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -431,7 +434,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -440,7 +443,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -449,7 +452,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
     });
@@ -460,7 +463,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -470,7 +473,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -479,7 +482,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -488,7 +491,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -498,7 +501,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -507,7 +510,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -516,7 +519,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -526,7 +529,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -535,7 +538,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -545,7 +548,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -555,7 +558,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -565,7 +568,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -575,7 +578,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -585,7 +588,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -595,7 +598,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -605,7 +608,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -615,7 +618,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -625,7 +628,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
     });
@@ -635,7 +638,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0.mjs';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -644,7 +647,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -652,7 +655,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0.mjs';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -660,7 +663,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v1.mjs';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -669,7 +672,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -677,7 +680,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v1.mjs';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -685,7 +688,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v20.mjs';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -694,7 +697,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -702,7 +705,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v20.mjs';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -711,7 +714,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -720,7 +723,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -729,7 +732,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -738,7 +741,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -747,7 +750,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -756,7 +759,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -765,7 +768,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -774,7 +777,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -783,7 +786,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -792,7 +795,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -802,7 +805,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -811,7 +814,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -820,7 +823,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -830,7 +833,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -839,7 +842,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -848,7 +851,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -858,7 +861,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -867,7 +870,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -877,7 +880,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -887,7 +890,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -897,7 +900,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -907,7 +910,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -917,7 +920,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -927,7 +930,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -937,7 +940,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -947,7 +950,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension-module.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -957,7 +960,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.mjs.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
     });
@@ -967,7 +970,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -976,7 +979,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -984,7 +987,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -992,7 +995,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v1.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1001,7 +1004,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1009,7 +1012,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v1.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1017,7 +1020,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v20.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1026,7 +1029,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1034,7 +1037,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v20.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1043,7 +1046,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1053,7 +1056,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1062,7 +1065,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1071,7 +1074,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1081,7 +1084,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1090,7 +1093,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1099,7 +1102,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1109,7 +1112,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1118,7 +1121,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1127,7 +1130,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1137,7 +1140,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1146,7 +1149,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1155,7 +1158,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1165,7 +1168,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1174,7 +1177,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1184,7 +1187,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1194,7 +1197,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1204,7 +1207,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1214,7 +1217,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1224,7 +1227,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1234,7 +1237,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1244,7 +1247,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1254,7 +1257,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1264,7 +1267,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1274,7 +1277,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1284,7 +1287,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1294,7 +1297,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1302,7 +1305,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1311,7 +1314,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1319,7 +1322,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1327,7 +1330,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v1.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1336,7 +1339,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1344,7 +1347,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v1.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1352,7 +1355,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v20.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1361,7 +1364,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1369,7 +1372,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v20.js.br';
         const expected = 'https://cdn.ampproject.org/rtv/RTV123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1378,7 +1381,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1388,7 +1391,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1397,7 +1400,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1406,7 +1409,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1416,7 +1419,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1425,7 +1428,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1434,7 +1437,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1444,7 +1447,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1453,7 +1456,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/RTV123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1462,7 +1465,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1472,7 +1475,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1481,7 +1484,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1490,7 +1493,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1500,7 +1503,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1509,7 +1512,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1519,7 +1522,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1529,7 +1532,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1539,7 +1542,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1549,7 +1552,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1559,7 +1562,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1569,7 +1572,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v0/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1579,7 +1582,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1589,7 +1592,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1599,7 +1602,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v1/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1609,7 +1612,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1619,7 +1622,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension-module.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1629,7 +1632,7 @@ describe('unminify', () => {
         const expected =
           'https://cdn.ampproject.org/rtv/010123456789123/v20/amp-extension.js.map';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
     });
@@ -1639,7 +1642,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/validator.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1647,7 +1650,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/validator-module.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1655,7 +1658,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/validator.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1663,7 +1666,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/validator.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1671,7 +1674,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/validator-module.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1679,7 +1682,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/validator.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1688,7 +1691,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/validator.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1697,7 +1700,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/validator-module.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1706,7 +1709,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/validator.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1715,7 +1718,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/validator.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1724,7 +1727,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/validator-module.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1733,7 +1736,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/validator.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
     });
@@ -1743,7 +1746,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/experiments.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1751,7 +1754,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/experiments-module.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1759,7 +1762,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/experiments.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1767,7 +1770,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/experiments.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1775,7 +1778,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/experiments-module.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1783,7 +1786,7 @@ describe('unminify', () => {
         const input = 'https://cdn.ampproject.org/v0/experiments.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1792,7 +1795,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/experiments.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1801,7 +1804,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/experiments-module.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1810,7 +1813,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/experiments.js';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1819,7 +1822,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/experiments.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1828,7 +1831,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/experiments-module.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
 
@@ -1837,7 +1840,7 @@ describe('unminify', () => {
           'https://cdn.ampproject.org/rtv/010123456789123/v0/experiments.mjs';
         const expected = '';
 
-        const actual = unminify.normalizeCdnJsUrl(input, 'RTV123');
+        const actual = normalizeCdnJsUrl(input, 'RTV123');
         expect(actual).to.equal(expected);
       });
     });

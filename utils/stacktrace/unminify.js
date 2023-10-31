@@ -19,15 +19,20 @@
  */
 
 import { TraceMap, originalPositionFor } from '@jridgewell/trace-mapping';
-import { request } from '../requests/request.js';
+// TODO(@danielrozenberg): replace this with native `fetch` when `nock` supports it.
+import fetch from 'node-fetch';
+
 import Cache from '../cache.js';
 import Frame from './frame.js';
-import logs from '@google-cloud/logging';
+import { generic as genericLog } from '../log.js';
 
 const twoWeeks = 2 * 7 * 24 * 60 * 60 * 1000;
+const oneMinute = 60 * 1000;
 
+/** @type {Cache<TraceMap>} */
 const traceMapCache = new Cache(twoWeeks);
-const requestCache = new Map();
+/** @type {Cache<Promise<TraceMap>>} */
+const pendingRequests = new Cache(oneMinute);
 
 const cdnJsRegex = new RegExp(
   // Require the CDN URL origin at the beginning.
@@ -61,7 +66,7 @@ const nilConsumer = new TraceMap({
  * @param {string} version
  * @return {string}
  */
-function normalizeCdnJsUrl(url, version) {
+export function normalizeCdnJsUrl(url, version) {
   const match = cdnJsRegex.exec(url);
   if (!match) {
     return;
@@ -110,105 +115,84 @@ function unminifyFrame(frame, consumer) {
 
 /**
  * @param {string} url
- * @return {Promise} Promise that resolves to a source map.
+ * @return {Promise<TraceMap>} Promise that resolves to a source map.
  */
-function getSourceMapFromNetwork(url) {
-  const reqPromise = new Promise((resolve, reject) => {
-    request(url, (err, _, body) => {
-      requestCache.delete(url);
-
-      if (err) {
-        reject(err);
-      } else {
-        try {
-          resolve(new TraceMap(body));
-        } catch (e) {
-          reject(e);
-        }
-      }
-    });
-  }).then(
-    (consumer) => {
-      traceMapCache.set(url, consumer);
-      return consumer;
-    },
-    (err) => {
-      const entry = logs.generic.entry(
-        {
-          labels: {
-            'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
-          },
-          resource: {
-            type: 'gae_app',
+async function getSourceMapFromNetwork(url) {
+  try {
+    const res = await fetch(url);
+    const consumer = new TraceMap(await res.json());
+    traceMapCache.set(url, consumer);
+    return consumer;
+  } catch (err) {
+    try {
+      genericLog.write(
+        genericLog.entry(
+          {
             labels: {
-              module_id: process.env.GAE_SERVICE,
-              version_id: process.env.GAE_VERSION,
+              'appengine.googleapis.com/instance_name':
+                process.env.GAE_INSTANCE,
             },
+            resource: {
+              type: 'gae_app',
+              labels: {
+                module_id: process.env.GAE_SERVICE,
+                version_id: process.env.GAE_VERSION,
+              },
+            },
+            severity: 500, // Error.
           },
-          severity: 500, // Error.
-        },
-        {
-          message: 'failed retrieving source map',
-          context: {
-            url,
-            message: err.message,
-            stack: err.stack,
-          },
-        }
+          {
+            message: 'failed retrieving source map',
+            context: {
+              url,
+              message: err.message,
+              stack: err.stack,
+            },
+          }
+        )
       );
-      logs.generic.write(entry, (writeErr) => {
-        if (writeErr) {
-          console.error(writeErr);
-        }
-      });
-      throw err;
+    } catch (writeErr) {
+      console.error(writeErr);
     }
-  );
-
-  requestCache.set(url, reqPromise);
-  return reqPromise;
+    throw err;
+  }
 }
 
 /**
- * @param {!Array<!Frame>} stack
+ * @param {Frame[]} stack
  * @param {string} version
- * @return {!Array<!Promise>} Array of promises that resolve to source maps
+ * @return {Promise<TraceMap[]>} Array of promises that resolve to source maps.
  */
-function extractSourceMaps(stack, version) {
-  return stack.map(({ source }) => {
+async function extractSourceMaps(stack, version) {
+  const sourceMaps = stack.map(({ source }) => {
     const sourceMapUrl = normalizeCdnJsUrl(source, version);
 
     if (!sourceMapUrl) {
-      return Promise.resolve(nilConsumer);
+      return nilConsumer;
     }
 
     if (traceMapCache.has(sourceMapUrl)) {
-      return Promise.resolve(traceMapCache.get(sourceMapUrl));
+      return traceMapCache.get(sourceMapUrl);
     }
 
-    if (requestCache.has(sourceMapUrl)) {
-      return requestCache.get(sourceMapUrl);
+    if (!pendingRequests.has(sourceMapUrl)) {
+      pendingRequests.set(sourceMapUrl, getSourceMapFromNetwork(sourceMapUrl));
     }
-
-    return getSourceMapFromNetwork(sourceMapUrl);
+    return pendingRequests.get(sourceMapUrl);
   });
+  return Promise.all(sourceMaps);
 }
 
 /**
- * @param {!Array<!Frame>} stack
+ * @param {Frame[]} stack
  * @param {string} version
  * @return {Promise} Promise that resolves to unminified stack trace.
  */
-function unminify(stack, version) {
-  const promises = extractSourceMaps(stack, version);
-
-  return Promise.all(promises).then(
-    (consumers) => {
-      return stack.map((frame, i) => unminifyFrame(frame, consumers[i]));
-    },
-    () => stack
-  );
+export async function unminify(stack, version) {
+  try {
+    const consumers = await extractSourceMaps(stack, version);
+    return stack.map((frame, i) => unminifyFrame(frame, consumers[i]));
+  } catch (unused) {
+    return stack;
+  }
 }
-
-export default unminify;
-unminify.normalizeCdnJsUrl = normalizeCdnJsUrl;

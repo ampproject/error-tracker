@@ -23,8 +23,8 @@ import extractReportingParams from '../utils/requests/extract-reporting-params.j
 import LogTarget from '../utils/log-target.js';
 import standardizeStackTrace from '../utils/stacktrace/standardize-stack-trace.js';
 import ignoreMessageOrException from '../utils/stacktrace/should-ignore.js';
-import unminify from '../utils/stacktrace/unminify.js';
-import latestRtv from '../utils/rtv/latest-rtv.js';
+import { unminify } from '../utils/stacktrace/unminify.js';
+import { latestRtv } from '../utils/rtv/latest-rtv.js';
 
 const CF_METADATA = {
   resource: {
