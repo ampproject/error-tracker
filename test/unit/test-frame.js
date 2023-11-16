@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const Frame = require('../../utils/stacktrace/frame');
+import Frame from '../../utils/stacktrace/frame.js';
 
 describe('Frame', () => {
   describe('#toString', () => {

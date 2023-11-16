@@ -19,11 +19,11 @@
  * @param {!Object<string, string>} obj
  * @return {string}
  */
-exports.stringify = function stringify(obj) {
+export function stringify(obj) {
   let string = '';
   for (const prop in obj) {
     string += `&${encodeURIComponent(prop)}=${encodeURIComponent(obj[prop])}`;
   }
 
   return string.substring(1);
-};
+}

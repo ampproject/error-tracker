@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-const Frame = require('./frame');
+import Frame from './frame.js';
+
 const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
 const chromeFrame = new RegExp(
   `^\\s*at (?:` +
@@ -105,4 +106,4 @@ function standardizeStackTrace(stack, message) {
   return frames;
 }
 
-module.exports = standardizeStackTrace;
+export default standardizeStackTrace;

@@ -18,13 +18,13 @@
  * to unmininification.
  */
 
-const { StatusCodes } = require('http-status-codes');
-const extractReportingParams = require('../utils/requests/extract-reporting-params');
-const LogTarget = require('../utils/log-target');
-const standardizeStackTrace = require('../utils/stacktrace/standardize-stack-trace');
-const ignoreMessageOrException = require('../utils/stacktrace/should-ignore');
-const unminify = require('../utils/stacktrace/unminify');
-const latestRtv = require('../utils/rtv/latest-rtv');
+import { StatusCodes } from 'http-status-codes';
+import extractReportingParams from '../utils/requests/extract-reporting-params.js';
+import LogTarget from '../utils/log-target.js';
+import standardizeStackTrace from '../utils/stacktrace/standardize-stack-trace.js';
+import ignoreMessageOrException from '../utils/stacktrace/should-ignore.js';
+import unminify from '../utils/stacktrace/unminify.js';
+import latestRtv from '../utils/rtv/latest-rtv.js';
 
 const CF_METADATA = {
   resource: {
@@ -159,4 +159,4 @@ async function handler(req, res) {
   }
 }
 
-module.exports = handler;
+export default handler;

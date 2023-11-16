@@ -21,7 +21,7 @@
 function dedupeSource(source) {
   return (
     source &&
-    source.replace(/(ampproject\/amphtml\/\d+)(\/.+)\2(\/[^\/]+)$/, '$1$2$3')
+    source.replace(/(ampproject\/amphtml\/\d+)(\/.+)\2(\/[^/]+)$/, '$1$2$3')
   );
 }
 
@@ -57,4 +57,4 @@ class Frame {
   }
 }
 
-module.exports = Frame;
+export default Frame;

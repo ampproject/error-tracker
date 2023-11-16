@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { parse, stringify } = require('../../utils/requests/query-string');
+import { stringify } from '../../utils/requests/query-string.js';
 
 describe('Query String', () => {
   describe('stringify', () => {

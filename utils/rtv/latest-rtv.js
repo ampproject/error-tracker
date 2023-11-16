@@ -17,26 +17,26 @@
  * to prevent reports for old errors from getting through.
  */
 
-const Request = require('../requests/request');
-const Cache = require('../cache');
-const logs = require('../log');
+import { request } from '../requests/request.js';
+import Cache from '../cache.js';
+import { generic } from '../log.js';
 
 const url = 'https://cdn.ampproject.org/rtv/metadata';
 const fiveMin = 5 * 60 * 1000;
 const fiftyMin = 50 * 60 * 1000;
 const cache = new Cache(fiveMin, fiftyMin);
 
-module.exports = function () {
+export default function () {
   if (cache.has(url)) {
     return cache.get(url);
   }
   const req = new Promise((resolve, reject) => {
-    Request.request(url, (err, _, body) => {
+    request(url, (err, _, body) => {
       if (err) {
         reject(err);
       } else {
         try {
-          const { ampRuntimeVersion, ltsRuntimeVersion, diversions } =
+          const { ampRuntimeVersion, diversions, ltsRuntimeVersion } =
             JSON.parse(body);
           const versions = [ampRuntimeVersion, ltsRuntimeVersion]
             .concat(diversions)
@@ -48,7 +48,7 @@ module.exports = function () {
       }
     });
   }).catch(async (err) => {
-    const genericLog = await logs.generic;
+    const genericLog = await generic;
     const entry = genericLog.entry(
       {
         labels: {
@@ -77,4 +77,4 @@ module.exports = function () {
 
   cache.set(url, req);
   return req;
-};
+}

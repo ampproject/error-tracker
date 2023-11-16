@@ -16,9 +16,9 @@
 
 process.env.NODE_ENV = 'test';
 
-const chai = require('chai');
-const chaihttp = require('chai-http');
-const sinon = require('sinon');
+import chai from 'chai';
+import chaihttp from 'chai-http';
+import sinon from 'sinon';
 
 chai.use(chaihttp);
 
