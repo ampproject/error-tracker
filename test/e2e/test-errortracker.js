@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
+import { Log } from '@google-cloud/logging';
 import { StatusCodes } from 'http-status-codes';
+
 import app from '../../app.js';
-import * as logPromises from '../../utils/log.js';
+import nock from 'nock';
 
 describe('Error Tracker Server', () => {
-  const logs = {};
-  before(async () => {
-    await Promise.all(Object.values(logPromises));
-  });
-
   const makeQuery = (function () {
     const mappings = {
       version: 'v',
@@ -103,24 +100,12 @@ describe('Error Tracker Server', () => {
       'CAAC,IAAI,IAAM,SAAUA,GAClB,OAAOC,IAAID;' +
       'CCDb,IAAI,IAAM,SAAUE,GAClB,OAAOA',
   };
-  function requestFake(url, callback) {
-    Promise.resolve().then(() => {
-      if (url.endsWith('.map')) {
-        callback(null, null, JSON.stringify(rawSourceMap));
-      } else {
-        callback(
-          null,
-          null,
-          JSON.stringify({
-            ampRuntimeVersion: '011830043289240',
-            diversions: ['001830043289240'],
-          })
-        );
-      }
-    });
-  }
+
+  /** @type {sinon.SinonSandbox} */
   let sandbox;
+  /** @type {sinon.SinonFakeTimers} */
   let clock;
+  /** @type {import('node:http').Server} */
   let server;
 
   before(() => {
@@ -131,165 +116,142 @@ describe('Error Tracker Server', () => {
   });
 
   beforeEach(async () => {
+    nock.disableNetConnect();
+    nock.enableNetConnect('127.0.0.1');
+
     sandbox = sinon.createSandbox({
       useFakeTimers: true,
     });
     clock = sandbox.clock;
-    for (const key in logs) {
-      sandbox.stub(logs[key], 'write').callsFake((entry, callback) => {
-        Promise.resolve(null).then(callback);
-      });
-    }
-    // TODO(@danielrozenberg): remove and replace this once `Request` is replaced with `fetch`
-    // sandbox.stub(Request, 'request').callsFake((url, callback) => {
-    //   Promise.reject(new Error('network disabled')).catch(callback);
-    // });
+    sandbox.stub(Log.prototype, 'write').resolves();
   });
 
-  afterEach(() => {
-    clock.tick(1e10);
+  afterEach(async () => {
+    await clock.tickAsync(1e10);
+
     sandbox.restore();
+
+    expect(nock.pendingMocks()).to.be.empty;
+    nock.cleanAll();
   });
 
   testSuite('POST JSON', makePostRequest('json'));
   testSuite('POST Text', makePostRequest('text/plain'));
 
   function testSuite(description, makeRequest) {
-    // TODO(@danielrozenberg): unskip this once `Request` is replaced with `fetch`
-    describe.skip(description, () => {
+    describe(description, () => {
       describe('rejects bad requests', () => {
-        it('without referrer', () => {
-          return makeRequest('', knownGoodQuery).then((res) => {
-            expect(res.text).to.equal('Bad Request');
-          });
+        it('without referrer', async () => {
+          const { text } = await makeRequest('', knownGoodQuery);
+          expect(text).to.equal('Bad Request');
         });
 
-        it('without version', () => {
+        it('without version', async () => {
           const query = Object.assign({}, knownGoodQuery, { version: '' });
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.text).to.equal('Bad Request');
-          });
+          const { text } = await makeRequest(referrer, query);
+          expect(text).to.equal('Bad Request');
         });
 
-        it('without error message', () => {
+        it('without error message', async () => {
           const query = Object.assign({}, knownGoodQuery, { message: '' });
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.text).to.equal('Bad Request');
-          });
+          const { text } = await makeRequest(referrer, query);
+          expect(text).to.equal('Bad Request');
         });
 
-        it('with blacklisted error', () => {
-          sandbox.stub(Math, 'random').returns(0);
+        it('with blacklisted error', async () => {
           const query = Object.assign({}, knownGoodQuery, {
             message: 'stop_youtube',
           });
 
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.text).to.equal('Bad Request');
-          });
+          sandbox.stub(Math, 'random').returns(0);
+          const { text } = await makeRequest(referrer, query);
+          expect(text).to.equal('Bad Request');
         });
       });
 
-      it('ignores development errors', () => {
+      it('ignores development errors', async () => {
         const query = Object.assign({}, knownGoodQuery, {
           version: '$internalRuntimeVersion$',
         });
 
-        return makeRequest(referrer, query).then((res) => {
-          expect(res.status).to.equal(StatusCodes.OK);
-        });
+        const { status } = await makeRequest(referrer, query);
+        expect(status).to.equal(StatusCodes.OK);
       });
 
       describe('throttling', () => {
-        it('does not throttle canary dev errors', () => {
-          sandbox.stub(Math, 'random').returns(1);
+        it('does not throttle canary dev errors', async () => {
           const query = Object.assign({}, knownGoodQuery, { canary: true });
 
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.status).to.equal(StatusCodes.ACCEPTED);
-          });
+          sandbox.stub(Math, 'random').returns(1);
+          const { status } = await makeRequest(referrer, query);
+          expect(status).to.equal(StatusCodes.ACCEPTED);
         });
 
-        it('does not throttle "control" binary type errors', () => {
-          sandbox.stub(Math, 'random').returns(1);
+        it('does not throttle "control" binary type errors', async () => {
           const query = Object.assign({}, knownGoodQuery, {
             binaryType: 'control',
           });
 
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.status).to.equal(StatusCodes.ACCEPTED);
-          });
+          sandbox.stub(Math, 'random').returns(1);
+          const { status } = await makeRequest(referrer, query);
+          expect(status).to.equal(StatusCodes.ACCEPTED);
         });
 
-        it('throttles 90% of production errors', () => {
-          sandbox.stub(Math, 'random').returns(0.1);
+        it('throttles 90% of production errors', async () => {
           const query = Object.assign({}, knownGoodQuery);
 
-          return makeRequest(referrer, query)
-            .then((res) => {
-              expect(res.status).to.equal(StatusCodes.ACCEPTED);
-              Math.random.returns(0.11);
-              return makeRequest(referrer, query);
-            })
-            .then((res) => {
-              expect(res.status).to.equal(StatusCodes.OK);
-            });
+          sandbox.stub(Math, 'random').returns(0.1);
+          const response1 = await makeRequest(referrer, query);
+          expect(response1.status).to.equal(StatusCodes.ACCEPTED);
+
+          Math.random.returns(0.11);
+          const response2 = await makeRequest(referrer, query);
+          expect(response2.status).to.equal(StatusCodes.OK);
         });
 
-        it('does not throttles pre-throttled production errors', () => {
-          sandbox.stub(Math, 'random').returns(0.99);
+        it('does not throttles pre-throttled production errors', async () => {
           const query = Object.assign({ prethrottled: true }, knownGoodQuery);
 
-          return makeRequest(referrer, query).then((res) => {
-            expect(res.status).to.equal(StatusCodes.ACCEPTED);
-          });
+          sandbox.stub(Math, 'random').returns(0.99);
+          const { status } = await makeRequest(referrer, query);
+          expect(status).to.equal(StatusCodes.ACCEPTED);
         });
 
-        it('throttles 90% of canary user errors', () => {
-          sandbox.stub(Math, 'random').returns(0.1);
+        it('throttles 90% of canary user errors', async () => {
           const query = Object.assign({}, knownGoodQuery, {
             canary: true,
             assert: true,
           });
 
-          return makeRequest(referrer, query)
-            .then((res) => {
-              expect(res.status).to.equal(StatusCodes.ACCEPTED);
-              Math.random.returns(0.11);
-              return makeRequest(referrer, query);
-            })
-            .then((res) => {
-              expect(res.status).to.equal(StatusCodes.OK);
-            });
-        });
-
-        it('throttles 90% of dev errors', () => {
           sandbox.stub(Math, 'random').returns(0.1);
+          const response1 = await makeRequest(referrer, query);
+          expect(response1.status).to.equal(StatusCodes.ACCEPTED);
 
-          return makeRequest(referrer, knownGoodQuery)
-            .then((res) => {
-              expect(res.status).to.equal(StatusCodes.ACCEPTED);
-              Math.random.returns(0.11);
-              return makeRequest(referrer, knownGoodQuery);
-            })
-            .then((res) => {
-              expect(res.status).to.equal(StatusCodes.OK);
-            });
+          Math.random.returns(0.11);
+          const response2 = await makeRequest(referrer, query);
+          expect(response2.status).to.equal(StatusCodes.OK);
         });
 
-        it('throttles 99% of user errors', () => {
-          sandbox.stub(Math, 'random').returns(0.01);
+        it('throttles 90% of dev errors', async () => {
+          sandbox.stub(Math, 'random').returns(0.1);
+          const response1 = await makeRequest(referrer, knownGoodQuery);
+          expect(response1.status).to.equal(StatusCodes.ACCEPTED);
+
+          Math.random.returns(0.11);
+          const response2 = await makeRequest(referrer, knownGoodQuery);
+          expect(response2.status).to.equal(StatusCodes.OK);
+        });
+
+        it('throttles 99% of user errors', async () => {
           const query = Object.assign({}, knownGoodQuery, { assert: true });
 
-          return makeRequest(referrer, query)
-            .then((res) => {
-              expect(res.status).to.equal(StatusCodes.ACCEPTED);
-              Math.random.returns(0.02);
-              return makeRequest(referrer, query);
-            })
-            .then((res) => {
-              expect(res.status).to.equal(StatusCodes.OK);
-            });
+          sandbox.stub(Math, 'random').returns(0.01);
+          const response1 = await makeRequest(referrer, query);
+          expect(response1.status).to.equal(StatusCodes.ACCEPTED);
+
+          Math.random.returns(0.02);
+          const response2 = await makeRequest(referrer, query);
+          expect(response2.status).to.equal(StatusCodes.OK);
         });
       });
 
@@ -304,26 +266,24 @@ describe('Error Tracker Server', () => {
             debug: true,
           });
 
-          it('logs http request', () => {
-            return makeRequest(referrer, query).then((res) => {
-              const { httpRequest } = res.body.event.context;
-              expect(httpRequest.url).to.be.equal(
-                '/r?v=011830043289240&m=The%20object%20does%20' +
-                  'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-                  '&bt=production&s=&debug=1'
-              );
-              expect(httpRequest.userAgent).to.be.equal(userAgent);
-              expect(httpRequest.referrer).to.be.equal(referrer);
-            });
+          it('logs http request', async () => {
+            const { body } = await makeRequest(referrer, query);
+            const { httpRequest } = body.event.context;
+            expect(httpRequest.url).to.be.equal(
+              '/r?v=011830043289240&m=The%20object%20does%20' +
+                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                '&bt=production&s=&debug=1'
+            );
+            expect(httpRequest.userAgent).to.be.equal(userAgent);
+            expect(httpRequest.referrer).to.be.equal(referrer);
           });
 
-          it('logs missing stack trace', () => {
-            return makeRequest(referrer, query).then((res) => {
-              expect(res.body.event.message).to.be.equal(
-                `Error: ${query.message}\n    at ` +
-                  'the-object-does-not-support-the-operation-or-argument.js:1:1'
-              );
-            });
+          it('logs missing stack trace', async () => {
+            const { body } = await makeRequest(referrer, query);
+            expect(body.event.message).to.be.equal(
+              `Error: ${query.message}\n    at ` +
+                'the-object-does-not-support-the-operation-or-argument.js:1:1'
+            );
           });
         });
 
@@ -335,47 +295,50 @@ describe('Error Tracker Server', () => {
             debug: true,
           });
 
-          it('logs http request', () => {
-            return makeRequest(referrer, query).then((res) => {
-              const { httpRequest } = res.body.event.context;
-              expect(httpRequest.url).to.be.equal(
-                '/r?v=011830043289240&m=The%20object%20does%20' +
-                  'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-                  '&bt=production' +
-                  '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
-                  'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
-              );
-              expect(httpRequest.userAgent).to.be.equal(userAgent);
-              expect(httpRequest.referrer).to.be.equal(referrer);
-            });
+          it('logs http request', async () => {
+            const { body } = await makeRequest(referrer, query);
+            const { httpRequest } = body.event.context;
+            expect(httpRequest.url).to.be.equal(
+              '/r?v=011830043289240&m=The%20object%20does%20' +
+                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                '&bt=production' +
+                '&s=t%40https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A1%3A18%0A' +
+                'https%3A%2F%2Fcdn.ampproject.org%2Fv0.js%3A2%3A18&debug=1'
+            );
+            expect(httpRequest.userAgent).to.be.equal(userAgent);
+            expect(httpRequest.referrer).to.be.equal(referrer);
           });
 
           describe('when unminification fails', () => {
-            it('logs full error', () => {
-              return makeRequest(referrer, query).then((res) => {
-                expect(res.body.event.message).to.be.equal(
-                  'Error: The object does not support the operation or argument.\n' +
-                    '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-                    '    at https://cdn.ampproject.org/v0.js:2:18'
-                );
-              });
+            it('logs full error', async () => {
+              const { body } = await makeRequest(referrer, query);
+              expect(body.event.message).to.be.equal(
+                'Error: The object does not support the operation or argument.\n' +
+                  '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                  '    at https://cdn.ampproject.org/v0.js:2:18'
+              );
             });
           });
 
-          // TODO(@danielrozenberg): unskip this once `Request` is replaced with `fetch`
-          describe.skip('when unminification succeeds', () => {
+          describe('when unminification succeeds', () => {
             beforeEach(() => {
-              Request.request.callsFake(requestFake);
+              nock('https://cdn.ampproject.org')
+                .get('/rtv/metadata')
+                .reply(200, {
+                  ampRuntimeVersion: '011830043289240',
+                  diversions: ['001830043289240'],
+                })
+                .get('/rtv/011830043289240/v0.js.map')
+                .reply(200, rawSourceMap);
             });
 
-            it('logs full error', () => {
-              return makeRequest(referrer, query).then((res) => {
-                expect(res.body.event.message).to.be.equal(
-                  'Error: The object does not support the operation or argument.\n' +
-                    '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
-                    '    at n (https://cdn.ampproject.org/two.js:1:21)'
-                );
-              });
+            it('logs full error', async () => {
+              const { body } = await makeRequest(referrer, query);
+              expect(body.event.message).to.be.equal(
+                'Error: The object does not support the operation or argument.\n' +
+                  '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
+                  '    at n (https://cdn.ampproject.org/two.js:1:21)'
+              );
             });
           });
         });
@@ -389,49 +352,52 @@ describe('Error Tracker Server', () => {
             debug: true,
           });
 
-          it('logs http request', () => {
-            return makeRequest(referrer, query).then((res) => {
-              const { httpRequest } = res.body.event.context;
-              expect(httpRequest.url).to.be.equal(
-                '/r?v=011830043289240&m=The%20object%20does%20' +
-                  'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
-                  '&bt=production' +
-                  '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
-                  '%20argument.%0A%20%20%20%20at%20t%20(https%3A%2F%2Fcdn.ampproject.org' +
-                  '%2Fv0.js%3A1%3A18)%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
-                  'org%2Fv0.js%3A2%3A18&debug=1'
-              );
-              expect(httpRequest.userAgent).to.be.equal(userAgent);
-              expect(httpRequest.referrer).to.be.equal(referrer);
-            });
+          it('logs http request', async () => {
+            const { body } = await makeRequest(referrer, query);
+            const { httpRequest } = body.event.context;
+            expect(httpRequest.url).to.be.equal(
+              '/r?v=011830043289240&m=The%20object%20does%20' +
+                'not%20support%20the%20operation%20or%20argument.&a=0&rt=1p' +
+                '&bt=production' +
+                '&s=The%20object%20does%20not%20support%20the%20operation%20or' +
+                '%20argument.%0A%20%20%20%20at%20t%20(https%3A%2F%2Fcdn.ampproject.org' +
+                '%2Fv0.js%3A1%3A18)%0A%20%20%20%20at%20https%3A%2F%2Fcdn.ampproject.' +
+                'org%2Fv0.js%3A2%3A18&debug=1'
+            );
+            expect(httpRequest.userAgent).to.be.equal(userAgent);
+            expect(httpRequest.referrer).to.be.equal(referrer);
           });
 
           describe('when unminification fails', () => {
-            it('logs full error', () => {
-              return makeRequest(referrer, query).then((res) => {
-                expect(res.body.event.message).to.be.equal(
-                  'Error: The object does not support the operation or argument.\n' +
-                    '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
-                    '    at https://cdn.ampproject.org/v0.js:2:18'
-                );
-              });
+            it('logs full error', async () => {
+              const { body } = await makeRequest(referrer, query);
+              expect(body.event.message).to.be.equal(
+                'Error: The object does not support the operation or argument.\n' +
+                  '    at t (https://cdn.ampproject.org/v0.js:1:18)\n' +
+                  '    at https://cdn.ampproject.org/v0.js:2:18'
+              );
             });
           });
 
-          // TODO(@danielrozenberg): unskip this once `Request` is replaced with `fetch`
-          describe.skip('when unminification succeeds', () => {
+          describe('when unminification succeeds', () => {
             beforeEach(() => {
-              Request.request.callsFake(requestFake);
+              nock('https://cdn.ampproject.org')
+                .get('/rtv/metadata')
+                .reply(200, {
+                  ampRuntimeVersion: '011830043289240',
+                  diversions: ['001830043289240'],
+                })
+                .get('/rtv/011830043289240/v0.js.map')
+                .reply(200, rawSourceMap);
             });
 
-            it('logs full error', () => {
-              return makeRequest(referrer, query).then((res) => {
-                expect(res.body.event.message).to.be.equal(
-                  'Error: The object does not support the operation or argument.\n' +
-                    '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
-                    '    at n (https://cdn.ampproject.org/two.js:1:21)'
-                );
-              });
+            it('logs full error', async () => {
+              const { body } = await makeRequest(referrer, query);
+              expect(body.event.message).to.be.equal(
+                'Error: The object does not support the operation or argument.\n' +
+                  '    at bar (https://cdn.ampproject.org/one.js:1:21)\n' +
+                  '    at n (https://cdn.ampproject.org/two.js:1:21)'
+              );
             });
           });
         });

@@ -17,64 +17,62 @@
  * to prevent reports for old errors from getting through.
  */
 
-import { request } from '../requests/request.js';
+// TODO(@danielrozenberg): replace this with native `fetch` when `nock` supports it.
+import fetch from 'node-fetch';
 import Cache from '../cache.js';
-import { generic } from '../log.js';
+import { generic as genericLog } from '../log.js';
 
 const url = 'https://cdn.ampproject.org/rtv/metadata';
 const fiveMin = 5 * 60 * 1000;
 const fiftyMin = 50 * 60 * 1000;
 const cache = new Cache(fiveMin, fiftyMin);
 
-export default function () {
+/**
+ * Fetches current active RTVs.
+ *
+ * @returns {!Promise<string[]>} list of active RTVs.
+ */
+export async function latestRtv() {
   if (cache.has(url)) {
     return cache.get(url);
   }
-  const req = new Promise((resolve, reject) => {
-    request(url, (err, _, body) => {
-      if (err) {
-        reject(err);
-      } else {
-        try {
-          const { ampRuntimeVersion, diversions, ltsRuntimeVersion } =
-            JSON.parse(body);
-          const versions = [ampRuntimeVersion, ltsRuntimeVersion]
-            .concat(diversions)
-            .filter(Boolean);
-          resolve(versions);
-        } catch (e) {
-          reject(e);
-        }
-      }
-    });
-  }).catch(async (err) => {
-    const genericLog = await generic;
-    const entry = genericLog.entry(
-      {
-        labels: {
-          'appengine.googleapis.com/instance_name': process.env.GAE_INSTANCE,
-        },
-        resource: {
-          type: 'gae_app',
-          labels: {
-            module_id: process.env.GAE_SERVICE,
-            version_id: process.env.GAE_VERSION,
+
+  try {
+    const res = await fetch(url);
+    const { ampRuntimeVersion, diversions, ltsRuntimeVersion } =
+      await res.json();
+    const versions = [ampRuntimeVersion, ltsRuntimeVersion]
+      .concat(diversions)
+      .filter(Boolean);
+
+    cache.set(url, versions);
+    return versions;
+  } catch (err) {
+    try {
+      genericLog.write(
+        genericLog.entry(
+          {
+            labels: {
+              'appengine.googleapis.com/instance_name':
+                process.env.GAE_INSTANCE,
+            },
+            resource: {
+              type: 'gae_app',
+              labels: {
+                module_id: process.env.GAE_SERVICE,
+                version_id: process.env.GAE_VERSION,
+              },
+            },
+            severity: 500, // Error.
           },
-        },
-        severity: 500, // Error.
-      },
-      `failed to fetch RTV metadata: ${err.message}`
-    );
-    genericLog.write(entry, (writeErr) => {
-      if (writeErr) {
-        console.warn('Error logging RTV fetch error: ', writeErr);
-      }
-    });
+          `failed to fetch RTV metadata: ${err.message}`
+        )
+      );
+    } catch (writeErr) {
+      console.warn('Error logging RTV fetch error: ', writeErr);
+    }
 
     cache.delete(url);
     return [];
-  });
-
-  cache.set(url, req);
-  return req;
+  }
 }
