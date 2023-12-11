@@ -13,8 +13,7 @@
   "scripts": {
     "postinstall": "cd node_modules/safe-decode-uri-component && node-gyp rebuild",
     "dev": "functions-framework --target=app",
-    "deploy": "gcloud functions deploy r",
-    "deploy-beta": "gcloud functions deploy r-beta",
+    "deploy-stable": "git tag 'deploy-stable-'`date -u '+%Y%m%d%H%M%S'` && git push git@github.com:ampproject/error-tracker --tags",
     "deploy-dev": "gcloud functions deploy r-dev --set-env-vars COMMIT_SHA=$(git rev-parse HEAD)",
     "lint": "eslint .",
     "test": "mocha test/*.js test/**/*.js"
