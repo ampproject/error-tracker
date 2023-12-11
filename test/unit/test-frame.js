@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Frame from '../../utils/stacktrace/frame.js';
+import { Frame } from '../../utils/stacktrace/frame.js';
 
 describe('Frame', () => {
   describe('#toString', () => {

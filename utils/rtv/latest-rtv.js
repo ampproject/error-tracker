@@ -19,7 +19,7 @@
 
 // TODO(@danielrozenberg): replace this with native `fetch` when `nock` supports it.
 import fetch from 'node-fetch';
-import Cache from '../cache.js';
+import { Cache } from '../cache.js';
 import { generic as genericLog } from '../log.js';
 
 const url = 'https://cdn.ampproject.org/rtv/metadata';

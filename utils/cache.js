@@ -19,7 +19,7 @@ import debounce from 'lodash.debounce';
  * more than 2 weeks without retrieval
  * @template T
  */
-class Cache {
+export class Cache {
   /**
    * @param {number} wait
    * @param {number=} maxWait
@@ -99,5 +99,3 @@ class Cache {
     return this.map.size;
   }
 }
-
-export default Cache;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Cache from '../../utils/cache.js';
+import { Cache } from '../../utils/cache.js';
 
 describe('Cache cleans up unused entries periodically', () => {
   let sandbox;

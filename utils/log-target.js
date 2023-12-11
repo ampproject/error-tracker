@@ -19,8 +19,8 @@
  */
 
 import * as logs from './log.js';
-import humanRtv from './rtv/human-rtv.js';
-import releaseChannels from './rtv/release-channels.js';
+import { humanRtv } from './rtv/human-rtv.js';
+import { releaseChannels } from './rtv/release-channels.js';
 
 const GOOGLE_AMP_CACHE_REGEX = new RegExp(
   '^https://cdn\\.ampproject.org/|' +

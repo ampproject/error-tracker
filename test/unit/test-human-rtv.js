@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-import humanRtv from '../../utils/rtv/human-rtv.js';
+import { humanRtv } from '../../utils/rtv/human-rtv.js';
 
 describe('humanRtv', () => {
   [

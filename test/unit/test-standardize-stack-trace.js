@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import standardizeStackTrace from '../../utils/stacktrace/standardize-stack-trace.js';
+import { standardizeStackTrace } from '../../utils/stacktrace/standardize-stack-trace.js';
 
 describe('standardizeStackTrace', () => {
   describe('with a Chrome stack trace', () => {

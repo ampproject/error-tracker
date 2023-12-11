@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import shouldIgnore from '../../utils/stacktrace/should-ignore.js';
-import Frame from '../../utils/stacktrace/frame.js';
+import { shouldIgnore } from '../../utils/stacktrace/should-ignore.js';
+import { Frame } from '../../utils/stacktrace/frame.js';
 
 describe('shouldIgnore', () => {
   const jsFrame = new Frame('', 'file.js', '1', '2');
