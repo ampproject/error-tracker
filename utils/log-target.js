@@ -22,14 +22,14 @@ import * as logs from './log.js';
 import humanRtv from './rtv/human-rtv.js';
 import releaseChannels from './rtv/release-channels.js';
 
-const CDN_REGEX = new RegExp(
+const AMP_CACHE_REGEX = new RegExp(
   '^https://cdn\\.ampproject.org/|' +
     '\\.cdn\\.ampproject\\.org/|' +
     '\\.ampproject\\.net/',
   'i'
 );
 
-export default class LoggingTarget {
+export class LoggingTarget {
   constructor(referrer, reportingParams) {
     this.opts = { referrer, ...reportingParams };
     this.log = this.getLog();
@@ -59,15 +59,17 @@ export default class LoggingTarget {
 
   /** Construct the service bucket name for Stackdriver logging. */
   get serviceName() {
-    const { expected, referrer, version } = this.opts;
+    const { cdn, expected, referrer, version } = this.opts;
     const rtvPrefix = version.substr(0, 2);
 
-    const name = [CDN_REGEX.test(referrer) ? 'CDN' : 'Origin'];
-    name.push(
-      rtvPrefix in releaseChannels
-        ? releaseChannels[rtvPrefix].group
-        : 'Unknown'
-    );
+    const name = [releaseChannels[rtvPrefix]?.group ?? '[Unspecified Channel]'];
+    if (AMP_CACHE_REGEX.test(referrer)) {
+      name.push('Google Cache');
+    } else if (cdn) {
+      name.push(`Publisher Origin (${cdn})`);
+    } else {
+      name.push(`Publisher Origin (CDN not reported)`);
+    }
 
     if (expected && this.getLog() !== logs.expected) {
       // Expected errors are split out of the main bucket, but are present for
@@ -75,7 +77,7 @@ export default class LoggingTarget {
       name.push('(Expected)');
     }
 
-    return name.join(' ');
+    return name.join(' > ');
   }
 
   /** Determine the version identifier to report to Stackdriver logging. */
