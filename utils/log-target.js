@@ -22,7 +22,7 @@ import * as logs from './log.js';
 import humanRtv from './rtv/human-rtv.js';
 import releaseChannels from './rtv/release-channels.js';
 
-const AMP_CACHE_REGEX = new RegExp(
+const GOOGLE_AMP_CACHE_REGEX = new RegExp(
   '^https://cdn\\.ampproject.org/|' +
     '\\.cdn\\.ampproject\\.org/|' +
     '\\.ampproject\\.net/',
@@ -63,7 +63,7 @@ export class LoggingTarget {
     const rtvPrefix = version.substr(0, 2);
 
     const name = [releaseChannels[rtvPrefix]?.group ?? '[Unspecified Channel]'];
-    if (AMP_CACHE_REGEX.test(referrer)) {
+    if (GOOGLE_AMP_CACHE_REGEX.test(referrer)) {
       name.push('Google Cache');
     } else if (cdn) {
       name.push(`Publisher Origin (${cdn})`);
