@@ -41,9 +41,11 @@ export async function latestRtv() {
     const res = await fetch(url);
     const { ampRuntimeVersion, diversions, ltsRuntimeVersion } =
       await res.json();
-    const versions = [ampRuntimeVersion, ltsRuntimeVersion]
-      .concat(diversions)
-      .filter(Boolean);
+    const versions = [
+      ampRuntimeVersion,
+      ltsRuntimeVersion,
+      ...diversions,
+    ].filter(Boolean);
 
     cache.set(url, versions);
     return versions;

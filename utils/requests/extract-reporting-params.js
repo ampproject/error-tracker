@@ -20,7 +20,7 @@
 import { stringify } from './query-string.js';
 import safeDecodeURIComponent from 'safe-decode-uri-component';
 
-function extractReportingParams(params) {
+export function extractReportingParams(params) {
   const boolProp = (key) => params[key] === '1';
   const strProp = (key) => params[key] || '';
 
@@ -28,6 +28,7 @@ function extractReportingParams(params) {
     assert: boolProp('a'),
     binaryType: strProp('bt'),
     canary: boolProp('ca'),
+    cdn: strProp('cdn'),
     debug: boolProp('debug'),
     expected: boolProp('ex'),
     message: safeDecodeURIComponent(strProp('m')),
@@ -40,5 +41,3 @@ function extractReportingParams(params) {
     version: params.v,
   };
 }
-
-export default extractReportingParams;

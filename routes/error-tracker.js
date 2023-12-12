@@ -19,8 +19,8 @@
  */
 
 import { StatusCodes } from 'http-status-codes';
-import extractReportingParams from '../utils/requests/extract-reporting-params.js';
-import LogTarget from '../utils/log-target.js';
+import { extractReportingParams } from '../utils/requests/extract-reporting-params.js';
+import { LoggingTarget } from '../utils/log-target.js';
 import standardizeStackTrace from '../utils/stacktrace/standardize-stack-trace.js';
 import ignoreMessageOrException from '../utils/stacktrace/should-ignore.js';
 import { unminify } from '../utils/stacktrace/unminify.js';
@@ -78,7 +78,7 @@ async function buildEvent(req, reportingParams, logTarget) {
       service: logTarget.serviceName,
       version: logTarget.versionId,
     },
-    message: [normalizedMessage].concat(unminifiedStack).join('\n'),
+    message: [normalizedMessage, ...unminifiedStack].join('\n'),
     context: {
       httpRequest: {
         method: req.method,
@@ -102,7 +102,7 @@ async function handler(req, res) {
   const params = req.body;
   const reportingParams = extractReportingParams(params);
   const { debug, message, version } = reportingParams;
-  const logTarget = new LogTarget(referrer, reportingParams);
+  const logTarget = new LoggingTarget(referrer, reportingParams);
   const { log } = logTarget;
 
   // Reject requests missing essential info.
