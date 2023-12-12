@@ -12,10 +12,10 @@
  * limitations under the License.
  */
 
-import releaseChannels from './release-channels.js';
+import { releaseChannels } from './release-channels.js';
 const RTV_REGEX = /^(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d\d)$/;
 
-export default function humanRtv(rtv) {
+export function humanRtv(rtv) {
   try {
     const [
       unusedRtv,

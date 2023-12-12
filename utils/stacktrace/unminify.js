@@ -22,8 +22,8 @@ import { TraceMap, originalPositionFor } from '@jridgewell/trace-mapping';
 // TODO(@danielrozenberg): replace this with native `fetch` when `nock` supports it.
 import fetch from 'node-fetch';
 
-import Cache from '../cache.js';
-import Frame from './frame.js';
+import { Cache } from '../cache.js';
+import { Frame } from './frame.js';
 import { generic as genericLog } from '../log.js';
 
 const twoWeeks = 2 * 7 * 24 * 60 * 60 * 1000;

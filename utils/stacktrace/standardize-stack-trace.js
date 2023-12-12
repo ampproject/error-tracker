@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import Frame from './frame.js';
+import { Frame } from './frame.js';
 
 const lineColumnNumbersRegex = '([^ \\n]+):(\\d+):(\\d+)';
 const chromeFrame = new RegExp(
@@ -85,7 +85,7 @@ function safariStack(stack) {
  * @param {string} message
  * @return {!Array<!Frame>} The converted stack trace.
  */
-function standardizeStackTrace(stack, message) {
+export function standardizeStackTrace(stack, message) {
   let frames;
   if (chromeFrame.test(stack)) {
     chromeFrame.lastIndex = 0;
@@ -105,5 +105,3 @@ function standardizeStackTrace(stack, message) {
 
   return frames;
 }
-
-export default standardizeStackTrace;

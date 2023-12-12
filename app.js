@@ -17,8 +17,8 @@
 import express from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-import errorTracker from './routes/error-tracker.js';
-import parseErrorHandling from './utils/requests/parse-error-handling.js';
+import { errorTracker } from './routes/error-tracker.js';
+import { parseErrorHandling } from './utils/requests/parse-error-handling.js';
 
 const BODY_LIMIT = 10 * 1024; /* 10kb */
 const jsonParser = express.json({

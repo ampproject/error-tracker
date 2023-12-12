@@ -21,8 +21,8 @@
 import { StatusCodes } from 'http-status-codes';
 import { extractReportingParams } from '../utils/requests/extract-reporting-params.js';
 import { LoggingTarget } from '../utils/log-target.js';
-import standardizeStackTrace from '../utils/stacktrace/standardize-stack-trace.js';
-import ignoreMessageOrException from '../utils/stacktrace/should-ignore.js';
+import { standardizeStackTrace } from '../utils/stacktrace/standardize-stack-trace.js';
+import { shouldIgnore } from '../utils/stacktrace/should-ignore.js';
 import { unminify } from '../utils/stacktrace/unminify.js';
 import { latestRtv } from '../utils/rtv/latest-rtv.js';
 
@@ -45,7 +45,7 @@ async function logEvent(log, event) {
  * Construct an event object for logging.
  * @param {!Request} req
  * @param {!Object<string, string|function>} reportingParams
- * @param {!LogTarget} logTarget
+ * @param {!LoggingTarget} logTarget
  * @return {Promise<?Object<string, string>>} event object, or `null` if the
  *    error should be ignored.
  */
@@ -59,7 +59,7 @@ async function buildEvent(req, reportingParams, logTarget) {
   }
 
   const stack = standardizeStackTrace(stacktrace, message);
-  if (ignoreMessageOrException(message, stack)) {
+  if (shouldIgnore(message, stack)) {
     console.warn(`Ignored "${message}`);
     return null;
   }
@@ -97,7 +97,7 @@ async function buildEvent(req, reportingParams, logTarget) {
  * @param {!Object<string, string>} params
  * @return {?Promise} May return a promise that rejects on logging error
  */
-async function handler(req, res) {
+export async function errorTracker(req, res) {
   const referrer = req.get('Referrer');
   const params = req.body;
   const reportingParams = extractReportingParams(params);
@@ -158,5 +158,3 @@ async function handler(req, res) {
     }
   }
 }
-
-export default handler;

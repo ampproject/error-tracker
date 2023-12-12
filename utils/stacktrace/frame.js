@@ -28,7 +28,7 @@ function dedupeSource(source) {
 /**
  * Represents a single frame in a stack trace.
  */
-class Frame {
+export class Frame {
   /**
    * @param {string} name The context name of the frame
    * @param {string} source The file source of the frame
@@ -56,5 +56,3 @@ class Frame {
     return `    at ${location}`;
   }
 }
-
-export default Frame;

@@ -21,7 +21,7 @@ import {
   unminify,
   normalizeCdnJsUrl,
 } from '../../utils/stacktrace/unminify.js';
-import Frame from '../../utils/stacktrace/frame.js';
+import { Frame } from '../../utils/stacktrace/frame.js';
 
 describe('unminify', () => {
   // https://github.com/mozilla/source-map/blob/75663e0187002920ad98ed1de21e54cb85114609/test/util.js#L161-L176

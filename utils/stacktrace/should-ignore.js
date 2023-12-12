@@ -47,8 +47,6 @@ function includesBlacklistedError(message) {
  * @param {!Array<!Frame>} stack
  * @return {boolean}
  */
-function shouldIgnore(message, stack) {
+export function shouldIgnore(message, stack) {
   return includesBlacklistedError(message) || isNonJSStackTrace(stack);
 }
-
-export default shouldIgnore;
