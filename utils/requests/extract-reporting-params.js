@@ -22,7 +22,7 @@ import safeDecodeURIComponent from 'safe-decode-uri-component';
 
 export function extractReportingParams(params) {
   const boolProp = (key) => params[key] === '1';
-  const strProp = (key) => params[key] || '';
+  const strProp = (key) => params[key]?.trim() ?? '';
 
   return {
     assert: boolProp('a'),
