@@ -19,6 +19,7 @@ import { StatusCodes } from 'http-status-codes';
 
 import app from '../../app.js';
 import nock from 'nock';
+import superagent from 'superagent';
 
 describe('Error Tracker Server', () => {
   const makeQuery = (function () {
@@ -64,9 +65,9 @@ describe('Error Tracker Server', () => {
   function makePostRequest(type) {
     return function (referrer, query) {
       const q = makeQuery(query);
-      return chai
-        .request(server)
-        .post('/r')
+      return superagent
+        .post(`http://127.0.0.1:${server.address().port}/r`)
+        .ok(() => true)
         .type(type)
         .set('Referer', referrer)
         .set('User-Agent', userAgent)
