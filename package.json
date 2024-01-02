@@ -34,7 +34,7 @@
     "@types/lodash.debounce": "4.0.9",
     "@typescript-eslint/eslint-plugin": "6.17.0",
     "@typescript-eslint/parser": "6.17.0",
-    "chai": "4.3.10",
+    "chai": "5.0.0",
     "chai-http": "4.4.0",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
