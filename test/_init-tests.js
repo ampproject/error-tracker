@@ -16,11 +16,8 @@
 
 process.env.NODE_ENV = 'test';
 
-import chai from 'chai';
-import chaihttp from 'chai-http';
+import * as chai from 'chai';
 import sinon from 'sinon';
-
-chai.use(chaihttp);
 
 global.chai = chai;
 global.expect = chai.expect;
