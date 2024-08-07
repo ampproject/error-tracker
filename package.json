@@ -19,8 +19,8 @@
     "test": "mocha test/*.js test/**/*.js"
   },
   "dependencies": {
-    "@google-cloud/logging": "11.1.0",
-    "@google-cloud/storage": "7.11.3",
+    "@google-cloud/logging": "11.2.0",
+    "@google-cloud/storage": "7.12.1",
     "@jridgewell/trace-mapping": "0.3.25",
     "express": "4.19.2",
     "http-status-codes": "2.3.0",
