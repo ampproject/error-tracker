@@ -22,7 +22,7 @@
     "@google-cloud/logging": "11.2.0",
     "@google-cloud/storage": "7.12.1",
     "@jridgewell/trace-mapping": "0.3.25",
-    "express": "4.19.2",
+    "express": "4.20.0",
     "http-status-codes": "2.3.0",
     "lodash.debounce": "4.0.8",
     "node-fetch": "3.3.2",
