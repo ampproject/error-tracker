@@ -29,23 +29,23 @@
     "safe-decode-uri-component": "1.2.2-native"
   },
   "devDependencies": {
-    "@google-cloud/functions-framework": "3.5.1",
-    "@types/express": "4.17.23",
+    "@google-cloud/functions-framework": "5.0.5",
+    "@types/express": "5.0.6",
     "@types/lodash.debounce": "4.0.9",
-    "@typescript-eslint/eslint-plugin": "7.18.0",
-    "@typescript-eslint/parser": "7.18.0",
-    "chai": "5.3.3",
-    "eslint": "8.57.1",
-    "eslint-config-prettier": "9.1.2",
-    "eslint-plugin-chai-expect": "3.1.0",
+    "@typescript-eslint/eslint-plugin": "8.70.0",
+    "@typescript-eslint/parser": "8.70.0",
+    "chai": "6.2.2",
+    "eslint": "10.10.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-chai-expect": "4.1.0",
     "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-sort-destructure-keys": "2.0.0",
+    "eslint-plugin-sort-destructure-keys": "3.0.0",
     "eslint-plugin-prettier": "5.5.4",
-    "mocha": "10.8.2",
-    "nock": "13.5.6",
+    "mocha": "12.0.1",
+    "nock": "14.0.17",
     "prettier": "3.6.2",
-    "sinon": "18.0.1",
+    "sinon": "22.1.0",
     "source-map": "0.7.6",
-    "superagent": "9.0.2"
+    "superagent": "10.3.0"
   }
 }
