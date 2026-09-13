@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@google-cloud/functions-framework": "3.5.1",
-    "@types/express": "4.17.23",
+    "@types/express": "4.17.25",
     "@types/lodash.debounce": "4.0.9",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/parser": "7.18.0",
@@ -40,12 +40,12 @@
     "eslint-plugin-chai-expect": "3.1.0",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-sort-destructure-keys": "2.0.0",
-    "eslint-plugin-prettier": "5.5.4",
+    "eslint-plugin-prettier": "5.5.6",
     "mocha": "10.8.2",
     "nock": "13.5.6",
-    "prettier": "3.6.2",
+    "prettier": "3.9.6",
     "sinon": "18.0.1",
-    "source-map": "0.7.6",
+    "source-map": "0.8.0",
     "superagent": "9.0.2"
   }
 }
